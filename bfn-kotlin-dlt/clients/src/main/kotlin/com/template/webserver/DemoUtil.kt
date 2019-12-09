@@ -38,8 +38,12 @@ object DemoUtil {
     fun generateLocalNodeData(mProxy: CordaRPCOps?,
                               deleteFirestore: Boolean): DemoSummary {
         proxy = mProxy
-        logger.info("\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 DemoUtil started ...  \uD83D\uDD06 \uD83D\uDD06 will list network components: 🧩🧩 deleteFirestore: $deleteFirestore")
+        logger.info("\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
+                "DemoUtil started, proxy: ${proxy.toString()}...  \uD83D\uDD06 \uD83D\uDD06 " +
+                "will generate data 🧩🧩 deleteFirestore: $deleteFirestore")
+
         myNode = proxy!!.nodeInfo()
+        logger.info(" \uD83D\uDD0B  \uD83D\uDD0B current node: ${myNode!!.addresses[0]}  \uD83D\uDD0B ")
         if (myNode!!.legalIdentities[0].name.organisation.contains("Notary")) {
             throw Exception("Cannot add demo data to Notary")
         }

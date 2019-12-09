@@ -107,9 +107,6 @@ class AdminController(rpc: NodeRPCConnection) {
     @GetMapping(value = ["getUser"])
     @Throws(Exception::class)
     fun getUser(@RequestParam(value = "email", required = false) email: String?): UserRecord? {
-        //        if (record == null) {
-//            throw new Exception("User not found: ".concat(email));
-//        }
         return FirebaseUtil.getUser(email)
     }
 

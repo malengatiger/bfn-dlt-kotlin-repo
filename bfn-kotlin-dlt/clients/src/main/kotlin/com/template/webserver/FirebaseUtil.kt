@@ -159,12 +159,12 @@ object FirebaseUtil {
             val page = auth.listUsers(null)
             val m = page.values
             m.forEach(Consumer { e: ExportedUserRecord -> records.add(e) })
-            var cnt = 0
-            for (record in records) {
-                cnt++
-                logger.info("\uD83E\uDD66  \uD83E\uDD66 UserRecord #" +
-                        cnt + " from Firebase: " + GSON.toJson(record))
-            }
+//            var cnt = 0
+//            for (record in records) {
+//                cnt++
+//                logger.info("\uD83E\uDD66  \uD83E\uDD66 UserRecord #" +
+//                        cnt + " from Firebase: " + GSON.toJson(record))
+//            }
             return records
         }
 
