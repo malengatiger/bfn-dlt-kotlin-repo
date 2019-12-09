@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutionException
 @RestController
 @RequestMapping("/admin") // The paths for HTTP requests are relative to this base path.
 class AdminController(rpc: NodeRPCConnection) {
-    val proxy: CordaRPCOps
+    val proxy: CordaRPCOps = rpc.proxy
 
     @Autowired
     private val env: Environment? = null
@@ -200,7 +200,8 @@ class AdminController(rpc: NodeRPCConnection) {
     }
 
     init {
-        proxy = rpc.proxy
-        logger.info("\uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A AdminController: NodeRPCConnection proxy has been injected: \uD83C\uDF3A " + proxy.nodeInfo().toString())
+        logger.info("\uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A AdminController:" +
+                " NodeRPCConnection proxy has been injected: \uD83C\uDF3A "
+                + proxy.nodeInfo().toString() +  " \uD83C\uDF3A ")
     }
 }
