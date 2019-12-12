@@ -59,9 +59,7 @@ private class Client {
         getThisNode(proxyReg)
 
         doNodesAndAggregates(proxyPartyA, proxyPartyB, proxyPartyC, proxyReg)
-
         startDemo(false, deleteFirestore = false);
-
 
     }
     fun startDemo(generateAccounts: Boolean = false, deleteFirestore: Boolean = false) {
@@ -77,7 +75,7 @@ private class Client {
 
             logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 accounts for PARTY B")
             status = generateAccounts(url = "http://localhost:10053",
-                    deleteFirestore = deleteFirestore)
+                    deleteFirestore = false)
             if(status == 200) {
                 logger.info(" \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C Successfully generated Party B")
             } else {
@@ -85,7 +83,7 @@ private class Client {
             }
             logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 accounts for PARTY C")
             status = generateAccounts(url = "http://localhost:10056",
-                    deleteFirestore = deleteFirestore)
+                    deleteFirestore = false)
             if(status == 200) {
                 logger.info(" \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C Successfully generated Party C")
             } else {
@@ -95,11 +93,10 @@ private class Client {
             logger.info("Generating data .. \uD83D\uDCA6 but we are not generating accounts")
         }
 
-        //generateInvoices()
+        generateInvoices()
         generateOffers()
 
     }
-
     private fun generateInvoices() {
         logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 invoices for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
         val response = httpGet(
@@ -144,7 +141,6 @@ private class Client {
         logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${response3.statusCode}  " +
                 "\uD83C\uDF4E \uD83C\uDF4E ${response3.text}")
     }
-
     fun generateAccounts(url: String, deleteFirestore: Boolean ): Int {
         logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 " +
                 "\uD83D\uDD35 \uD83D\uDD35 generateAccounts: $url deleteFirestore: $deleteFirestore")
@@ -180,7 +176,6 @@ private class Client {
         //        getFlows(proxyReg)
         //        getFlows(proxyNotary)
     }
-
     fun getFlows(proxy: CordaRPCOps) {
         logger.info("\n\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35  \uD83C\uDF81 " +
                 "Registered flows for:  \uD83D\uDD06 ${proxy.nodeInfo().legalIdentities.first()}")
@@ -231,7 +226,6 @@ private class Client {
 
 
     }
-
     fun getInvoiceDetails(proxy: CordaRPCOps) {
         val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
         val pageInvoices = proxy.vaultQueryByCriteria(criteria = criteria, contractStateType = InvoiceState::class.java)

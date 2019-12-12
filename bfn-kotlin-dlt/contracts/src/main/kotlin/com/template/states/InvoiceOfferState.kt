@@ -19,35 +19,11 @@ class InvoiceOfferState(val invoiceId: UUID,
                         val discount: Double,
                         val originalAmount: Double,
                         val supplier: AccountInfo,
-                        val investor: AccountInfo, val owner: AccountInfo, val offerDate: Date,
-        //
+                        val investor: AccountInfo, val offerDate: Date,
                         val ownerDate: Date, val invoiceNumber: String, val customer: AccountInfo) : ContractState {
+
     override val participants: List<AbstractParty>
         get() = ImmutableList.of<AbstractParty>(supplier.host,
-                investor.host, customer.host)
-
-    //    @NotNull
-//    @Override
-//    public PersistentState generateMappedObject(@NotNull MappedSchema schema) {
-//        if (schema instanceof InvoiceOfferSchemaV1) {
-//            logger.info("\uD83D\uDCA6 \uD83D\uDCA6 \uD83D\uDCA6 PersistentState generateMappedObject returning new object: \uD83D\uDCA6 PersistentInvoiceOffer");
-//            return new InvoiceOfferSchemaV1.PersistentInvoiceOffer(
-//                    this.invoiceId,this.offerAmount,
-//                    this.discount, this.supplier,this.investor, this.owner,
-//                    this.offerDate,this.ownerDate,this.supplierPublicKey,
-//                    this.investorPublicKey);
-//        } else {
-//            throw new IllegalArgumentException("Object fucked");
-//        }
-//    }
-//
-//    @NotNull
-//    @Override
-//    public Iterable<MappedSchema> supportedSchemas() {
-//        return ImmutableList.of(new InvoiceOfferSchemaV1());
-//    }
-    companion object {
-        private val logger = LoggerFactory.getLogger(InvoiceContract::class.java)
-    }
+                investor.host)
 
 }

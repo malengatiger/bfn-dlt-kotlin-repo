@@ -110,7 +110,10 @@ object DemoUtil {
                 if (invoice.supplierInfo.name == account.name) {
                     logger.info("✂️✂️✂️✂️ Ignore: Account is the supplier. ✂️ Cannot offer invoice to self: \uD83D\uDD35 ${account.name}")
                 } else {
-                    val discount = random.nextInt(20) * 1.5
+                    var discount = random.nextInt(10) * 1.5
+                    if (discount == 0.0) {
+                        discount = 4.3
+                    }
                     registerInvoiceOffer(
                             supplier = WorkerBee.getDTO(invoice.supplierInfo),
                             investor = WorkerBee.getDTO(account),
@@ -245,7 +248,7 @@ object DemoUtil {
     private fun registerAccounts() {
         logger.info("\n\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 registerSupplierAccounts started ...  " +
                 "\uD83D\uDD06 \uD83D\uDD06 ")
-        for (x in 0..10) {
+        for (x in 0..4) {
             var phone = phone
             val prefix = myNode!!.legalIdentities[0].name.organisation
             try {

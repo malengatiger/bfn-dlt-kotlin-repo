@@ -37,9 +37,7 @@ class InvoiceOfferFlow(invoiceOfferState: InvoiceOfferState) : FlowLogic<SignedT
             return FinalityFlow.tracker()
         }
     }
-    // The progress tracker checkpoints each stage of the flow and outputs the specified messages when each
-// checkpoint is reached in the code. See the 'progressTracker.currentStep' expressions within the call()
-// function.
+
     override val progressTracker = ProgressTracker(
             GENERATING_TRANSACTION,
             VERIFYING_TRANSACTION,
@@ -72,7 +70,7 @@ class InvoiceOfferFlow(invoiceOfferState: InvoiceOfferState) : FlowLogic<SignedT
         val txBuilder = TransactionBuilder(notary)
         txBuilder.addOutputState(invoiceOfferState, InvoiceOfferContract.ID)
         txBuilder.addCommand(command, supplierParty.owningKey,
-                investorParty.owningKey, customerParty.owningKey)
+                investorParty.owningKey)
         progressTracker.currentStep = VERIFYING_TRANSACTION
         txBuilder.verify(serviceHub)
         Companion.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 Invoice Offer TransactionBuilder verified")
@@ -83,15 +81,24 @@ class InvoiceOfferFlow(invoiceOfferState: InvoiceOfferState) : FlowLogic<SignedT
         val nodeInfo = serviceHub.myInfo
         val investorOrg: String = invoiceOfferState.investor.host.name.organisation
         val supplierOrg: String = invoiceOfferState.supplier.host.name.organisation
-        val customerOrg: String = invoiceOfferState.customer.host.name.organisation
         val thisNodeOrg = nodeInfo.legalIdentities.first().name.organisation
 
-        val matrix = Matrix()
-        matrix.supplierIsRemote = !supplierOrg.equals(thisNodeOrg, ignoreCase = true)
-        matrix.investorIsRemote = !investorOrg.equals(thisNodeOrg, ignoreCase = true)
-        matrix.customerIsRemote = !customerOrg.equals(thisNodeOrg, ignoreCase = true)
-
-        if (!matrix.supplierIsRemote && !matrix.customerIsRemote && !matrix.investorIsRemote) {
+        val supplierStatus: Int
+        val investorStatus: Int
+        val supplierSession: FlowSession
+        val investorSession: FlowSession
+        var signedTransaction: SignedTransaction? = null
+        supplierStatus = if (supplierOrg.equals(thisNodeOrg, ignoreCase = true)) {
+            LOCAL_SUPPLIER
+        } else {
+            REMOTE_SUPPLIER
+        }
+        investorStatus = if (investorOrg.equals(thisNodeOrg, ignoreCase = true)) {
+            LOCAL_INVESTOR
+        } else {
+            REMOTE_INVESTOR
+        }
+        if (supplierStatus == LOCAL_SUPPLIER && investorStatus == LOCAL_INVESTOR) {
             Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
                     "All participants are LOCAL ... \uD83D\uDD06")
             val mSignedTransactionDone = subFlow(
@@ -100,55 +107,46 @@ class InvoiceOfferFlow(invoiceOfferState: InvoiceOfferState) : FlowLogic<SignedT
                     " \uD83E\uDD66 \uD83E\uDD66  \uD83E\uDD66 \uD83E\uDD66 FinalityFlow has been executed " +
                     "...\uD83E\uDD66 \uD83E\uDD66")
             return mSignedTransactionDone
-        }
 
+        }
         Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 " +
-                "Supplier and/or Customer and/or Investor are NOT on the same node ..." +
+                "Supplier and/or Investor are NOT on the same node ..." +
                 "  \uD83D\uDE21 flowSession(s) required \uD83D\uDE21")
 
-        val supplierSession: FlowSession
-        val investorSession: FlowSession
-        val customerSession: FlowSession
-        val signedTransaction: SignedTransaction
-
-        if (matrix.supplierIsRemote && matrix.customerIsRemote && matrix.investorIsRemote) {
+        if (supplierStatus == LOCAL_SUPPLIER && investorStatus == REMOTE_INVESTOR) {
             Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21 \uD83D\uDE21 " +
-                    "All participants are REMOTE \uD83D\uDE21 ")
+                    "Investor is REMOTE \uD83D\uDE21 ")
             investorSession = initiateFlow(investorParty)
-            supplierSession = initiateFlow(supplierParty)
-            customerSession = initiateFlow(customerParty)
             signedTransaction = collectSignatures(signedTx, ImmutableList.of(
-                    investorSession, supplierSession, customerSession))
+                    investorSession))
+            return signedTransaction
+        }
+        if (supplierStatus == REMOTE_SUPPLIER && investorStatus == REMOTE_INVESTOR) {
+            Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21 \uD83D\uDE21 " +
+                    "Supplier and Investor are REMOTE \uD83D\uDE21 ")
+            investorSession = initiateFlow(investorParty)
+            return if (investorParty.name.toString() == supplierParty.name.toString()) {
+                signedTransaction = collectSignatures(signedTx, ImmutableList.of(
+                        investorSession))
+                signedTransaction
+            } else {
+                supplierSession = initiateFlow(supplierParty)
+                signedTransaction = collectSignatures(signedTx, ImmutableList.of(
+                        investorSession, supplierSession))
+                signedTransaction
+            }
+
+        }
+        if (supplierStatus == REMOTE_SUPPLIER && investorStatus == LOCAL_INVESTOR) {
+            Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21 \uD83D\uDE21 " +
+                    "Supplier is REMOTE \uD83D\uDE21 ")
+            supplierSession = initiateFlow(supplierParty)
+            signedTransaction = collectSignatures(signedTx, ImmutableList.of(
+                    supplierSession))
             return signedTransaction
         }
 
-        Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 " +
-                "Some participants are REMOTE and some are LOCAL \uD83D\uDE21")
-
-        val flowSessions: MutableList<FlowSession> = ArrayList()
-        if (matrix.customerIsRemote) {
-            val session = initiateFlow(customerParty)
-            Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 collectSignature:" +
-                    " customer: $customerParty \uD83D\uDE21 ")
-            flowSessions.add(session)
-        }
-        if (matrix.supplierIsRemote) {
-            val session = initiateFlow(supplierParty)
-            Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 collectSignature: " +
-                    "supplier: $supplierParty \uD83D\uDE21 ")
-            flowSessions.add(session)
-        }
-        if (matrix.investorIsRemote) {
-            val session = initiateFlow(investorParty)
-            Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 collectSignature" +
-                    ": investor: $investorParty \uD83D\uDE21 ")
-            flowSessions.add(session)
-        }
-        Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 Collect signatures for" +
-                " ${flowSessions.size} flowSessions initiated")
-        signedTransaction = collectSignatures(signedTx, flowSessions)
-        reportToRegulator(signedTx)
-        return signedTransaction
+        return signedTransaction!!
     }
 
     @Suspendable
@@ -209,15 +207,13 @@ class InvoiceOfferFlow(invoiceOfferState: InvoiceOfferState) : FlowLogic<SignedT
         return mSignedTransactionDone
     }
 
-    private inner class Matrix {
-        var supplierIsRemote = false
-        var customerIsRemote = false
-        var investorIsRemote = false
-    }
 
     companion object {
         private val logger = LoggerFactory.getLogger(InvoiceOfferFlow::class.java)
-
+        private const val LOCAL_SUPPLIER = 1
+        private const val LOCAL_INVESTOR = 2
+        private const val REMOTE_SUPPLIER = 3
+        private const val REMOTE_INVESTOR= 4
     }
 
     init {

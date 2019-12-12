@@ -614,23 +614,26 @@ object WorkerBee {
 
     @Throws(Exception::class)
     private fun processInvoiceOffer(proxy: CordaRPCOps, invoiceOffer: InvoiceOfferDTO, invoiceState: InvoiceState, investorInfo: AccountInfo): InvoiceOfferDTO {
-        val invoiceOfferState = invoiceOffer.offerAmount?.let {
-            invoiceOffer.discount?.let { it1 ->
-                InvoiceOfferState(
-                    invoiceState.invoiceId, it,
-                        it1, invoiceState.amount, invoiceState.supplierInfo,
-                    investorInfo, invoiceState.supplierInfo, Date(), Date(), invoiceState.invoiceNumber, invoiceState.customerInfo)
-            }
-        }
+        val invoiceOfferState = InvoiceOfferState(
+                invoiceId = invoiceState.invoiceId,
+                customer = invoiceState.customerInfo,
+                investor = investorInfo,
+                supplier = invoiceState.supplierInfo,
+                discount = invoiceOffer.discount!!,
+                invoiceNumber = invoiceState.invoiceNumber,
+                offerAmount = invoiceOffer.offerAmount!!,
+                offerDate = Date(),
+                originalAmount = invoiceState.totalAmount,
+                ownerDate = Date()
+        )
         val signedTransactionCordaFuture = proxy.startTrackedFlowDynamic(
                 InvoiceOfferFlow::class.java, invoiceOfferState)
                 .returnValue
         val issueTx = signedTransactionCordaFuture.get()
-        logger.info("\uD83C\uDF4F \uD83C\uDF4F flow completed... " +
+        logger.info("\uD83C\uDF4F \uD83C\uDF4F processInvoiceOffer completed... " +
                 "\uD83C\uDF4F \uD83C\uDF4F \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDC4C " +
                 "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C  signedTransaction returned: \uD83E\uDD4F " + issueTx.toString() + " \uD83E\uDD4F \uD83E\uDD4F ")
         val offerDTO = invoiceOfferState?.let { getDTO(it) }
-        logger.info("InvoiceOffer: \uD83E\uDD5D \uD83E\uDD5D \uD83E\uDD5D ${GSON.toJson(offerDTO)}")
         try {
             val reference = db.collection("invoiceOffers").add(offerDTO)
             logger.info("\uD83E\uDDE9\uD83E\uDDE9\uD83E\uDDE9\uD83E\uDDE9\uD83E\uDDE9\uD83E\uDDE9 " +
@@ -666,13 +669,11 @@ object WorkerBee {
         o.invoiceNumber = state.invoiceNumber
         o.offerAmount = state.offerAmount
         o.originalAmount = state.originalAmount
-        o.discount = state.discount.toDouble()
+        o.discount = state.discount
         o.supplier = getDTO(state.supplier)
         o.investor = getDTO(state.investor)
         o.customer = getDTO(state.customer)
-        if (state.owner != null) {
-            o.owner = getDTO(state.owner)
-        }
+
         if (state.offerDate != null) {
             o.offerDate = state.offerDate
         }

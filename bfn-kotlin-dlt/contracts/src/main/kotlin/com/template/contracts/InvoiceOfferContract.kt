@@ -3,8 +3,11 @@ package com.template
 import com.template.states.InvoiceOfferState
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.Contract
+import net.corda.core.crypto.toStringShort
 import net.corda.core.identity.AnonymousParty
 import net.corda.core.transactions.LedgerTransaction
+import net.corda.core.utilities.toBase58String
+import net.corda.core.utilities.toSHA256Bytes
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -31,8 +34,8 @@ class InvoiceOfferContract : Contract {
         }
         logger.info(" \uD83E\uDD8B \uD83E\uDD8B \uD83E\uDD8B  Required signers: " + requiredSigners.size)
         for (key in requiredSigners) {
-            val sKey = Base64.getEncoder().encodeToString(key.encoded)
-            logger.info(" \uD83E\uDD8B  Required signer publicKey: $sKey")
+            logger.info(" \uD83E\uDD8B  Required signer publicKey: ${key.toSHA256Bytes()}" +
+                    " \uD83D\uDCA6 \uD83D\uDCA6 ${key.toBase58String()} \uD83D\uDCA6 \uD83D\uDCA6 ${key.toStringShort()} \uD83D\uDCA6 \uD83D\uDCA6 ")
         }
         val offerState = tx.getOutput(0) as? InvoiceOfferState
                 ?: throw IllegalArgumentException("Output state must be InvoiceOfferState")
@@ -51,11 +54,11 @@ class InvoiceOfferContract : Contract {
         if (!requiredSigners.contains(investorPublicKey)) {
             throw IllegalArgumentException("Investor Party must sign")
         }
-        val customerPublicKey = offerState.customer.host.owningKey
-        logger.info(" \uD83D\uDD34 Customer publicKey: $customerPublicKey ☘️ Node: " + offerState.customer.name + " - " + offerState.customer.host.name.organisation)
-        if (!requiredSigners.contains(customerPublicKey)) {
-            throw IllegalArgumentException("Customer Party must definitely sign")
-        }
+//        val customerPublicKey = offerState.customer.host.owningKey
+//        logger.info(" \uD83D\uDD34 Customer publicKey: $customerPublicKey ☘️ Node: " + offerState.customer.name + " - " + offerState.customer.host.name.organisation)
+//        if (!requiredSigners.contains(customerPublicKey)) {
+//            throw IllegalArgumentException("Customer Party must definitely sign")
+//        }
         logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 InvoiceOfferContract: verification done OK! .....\uD83E\uDD1F \uD83E\uDD1F ")
     }
 
