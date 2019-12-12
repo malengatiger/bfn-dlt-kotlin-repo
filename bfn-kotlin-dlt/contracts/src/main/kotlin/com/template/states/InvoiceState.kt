@@ -9,6 +9,7 @@ import net.corda.core.contracts.ContractState
 import net.corda.core.identity.AbstractParty
 import net.corda.core.serialization.CordaSerializable
 import org.slf4j.LoggerFactory
+import java.math.BigDecimal
 import java.util.*
 
 // *********
@@ -19,10 +20,13 @@ import java.util.*
 class InvoiceState(val invoiceId: UUID,
                    val invoiceNumber: String,
                    val description: String,
-                   val amount: Amount<TokenType>,
+                   val amount: Double,
+                   val valueAddedTax: Double,
+                   val totalAmount: Double,
                    val supplierInfo: AccountInfo,
                    val customerInfo: AccountInfo,
                    val dateRegistered: Date?) : ContractState {
+
     override val participants: List<AbstractParty>
         get() = Arrays.asList(supplierInfo.host,
                 customerInfo.host)
@@ -30,6 +34,5 @@ class InvoiceState(val invoiceId: UUID,
     companion object {
         private val logger = LoggerFactory.getLogger(InvoiceState::class.java)
     }
-
 
 }

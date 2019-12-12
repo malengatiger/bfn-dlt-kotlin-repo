@@ -13,16 +13,16 @@ class InvoiceTokenContract
 
     override fun additionalCreateChecks(tx: LedgerTransaction) {
         // Not much to do for this example token.
-        val newHouse = tx.outputStates.single() as InvoiceTokenType
-        newHouse.apply {
-            require(amount > Amount.zero(amount.token)) { "Amount must be greater than zero." }
-        }
+//        val newHouse = tx.outputStates.single() as InvoiceTokenType
+//        newHouse.apply {
+//            require(amount > Amount.zero(amount.token)) { "Amount must be greater than zero." }
+//        }
     }
 
     override fun additionalUpdateChecks(tx: LedgerTransaction) {
 //        val oldHouse = tx.inputStates.single() as InvoiceTokenType
-        val newHouse = tx.outputStates.single() as InvoiceTokenType
-        require(newHouse.amount > Amount.zero(newHouse.amount.token)) { "Valuation must be greater than zero." }
+//        val newHouse = tx.outputStates.single() as InvoiceTokenType
+//        require(newHouse.amount > Amount.zero(newHouse.amount.token)) { "Valuation must be greater than zero." }
     }
 
     override fun verify(tx: LedgerTransaction) {

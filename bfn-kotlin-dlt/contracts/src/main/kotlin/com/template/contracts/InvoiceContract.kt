@@ -7,15 +7,12 @@ import net.corda.core.transactions.LedgerTransaction
 import org.slf4j.LoggerFactory
 import java.util.*
 
-// ************
-// * Contract *
-// ************
 class InvoiceContract : Contract {
     @Throws(IllegalArgumentException::class)
     override fun verify(tx: LedgerTransaction) {
         logger.info(
                 " \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 InvoiceContract: verify starting ..... \uD83E\uDD6C \uD83E\uDD6C ")
-        if (tx.inputStates.size != 0) {
+        if (tx.inputStates.isNotEmpty()) {
             throw IllegalArgumentException("Input states must be zero")
         }
         if (tx.outputStates.size != 1) {
@@ -28,8 +25,7 @@ class InvoiceContract : Contract {
 
         logger.info(" \uD83D\uDD34  \uD83D\uDD34 Required signers: " + requiredSigners.size)
         for (key in requiredSigners) {
-            val sKey = Base64.getEncoder().encodeToString(key.encoded)
-            logger.info(" \uD83D\uDD34 Required signer: publicKey: $sKey")
+            logger.info(" \uD83D\uDD34 Required signer: publicKey: $key")
         }
         val contractState = tx.getOutput(0) as? InvoiceState
                 ?: throw IllegalArgumentException("Output state must be an InvoiceState")
@@ -45,8 +41,7 @@ class InvoiceContract : Contract {
 
     class Register : CommandData
     companion object {
-        // This is used to identify our contract when building a transaction.
-        val ID = InvoiceContract::class.java.name
+        val ID: String = InvoiceContract::class.java.name
         private val logger = LoggerFactory.getLogger(InvoiceContract::class.java)
     }
 }

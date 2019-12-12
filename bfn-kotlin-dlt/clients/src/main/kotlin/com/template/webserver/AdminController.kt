@@ -53,11 +53,27 @@ class AdminController(rpc: NodeRPCConnection) {
     @GetMapping(value = ["/demo"], produces = ["application/json"])
     @Throws(Exception::class)
     private fun buildDemo(@RequestParam deleteFirestore: Boolean): DemoSummary {
-        logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 starting DemoDataGenerator ... \uD83C\uDF4F deleteFirestore: $deleteFirestore")
-        val result = DemoUtil.generateLocalNodeData(proxy, deleteFirestore)
+        logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 starting DemoUtil: buildDemo ... \uD83C\uDF4F deleteFirestore: $deleteFirestore")
+        val result = DemoUtil.generateLocalNodeAccounts(proxy, deleteFirestore)
         logger.info("\n\n\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 DemoUtil result: " +
                 " \uD83C\uDF4F " + GSON.toJson(result)
                 + "    \uD83E\uDDE1 \uD83D\uDC9B \uD83D\uDC9A \uD83D\uDC99 \uD83D\uDC9C\n\n")
+        return result
+    }
+    @GetMapping(value = ["/generateOffers"], produces = ["application/json"])
+    @Throws(Exception::class)
+    private fun generateOffers(): String {
+        logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 starting DemoUtil: generateOffers ... \uD83C\uDF4F ")
+        val result = DemoUtil.generateOffers(proxy)
+        logger.info(result)
+        return result
+    }
+    @GetMapping(value = ["/generateInvoices"], produces = ["application/json"])
+    @Throws(Exception::class)
+    private fun generateInvoices(): String {
+        logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 starting DemoUtil: generateInvoices ... \uD83C\uDF4F ")
+        val result = DemoUtil.registerInvoices(proxy)
+        logger.info(result)
         return result
     }
 

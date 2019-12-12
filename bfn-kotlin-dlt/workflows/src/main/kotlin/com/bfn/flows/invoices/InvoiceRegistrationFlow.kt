@@ -2,7 +2,6 @@ package com.bfn.flows.invoices
 
 import co.paralleluniverse.fibers.Suspendable
 import com.google.common.collect.ImmutableList
-import com.r3.corda.lib.accounts.workflows.flows.RequestKeyForAccount
 import com.template.InvoiceContract
 import com.bfn.flows.regulator.ReportToRegulatorFlow
 import com.template.states.InvoiceState
@@ -53,30 +52,31 @@ class InvoiceRegistrationFlow(val invoiceState: InvoiceState) : FlowLogic<Signed
         Companion.logger.info(" \uD83E\uDD1F \uD83E\uDD1F  \uD83E\uDD1F \uD83E\uDD1F  ... InvoiceRegistrationFlow call started ...")
         val notary = serviceHub.networkMapCache.notaryIdentities[0]
         checkDuplicate(serviceHub)
-        val supplierParty = invoiceState.supplierInfo.host
+
         val customerParty = invoiceState.customerInfo.host
-        val anonCustomer = subFlow(RequestKeyForAccount(invoiceState.customerInfo))
-        val anonSupplier = subFlow(RequestKeyForAccount(invoiceState.supplierInfo))
+        val supplierParty = invoiceState.supplierInfo.host
         val customerOrg = invoiceState.customerInfo.host.name.organisation
-        Companion.logger.info("\uD83C\uDFC8 \uD83C\uDFC8 customerParty key: $anonCustomer")
+        Companion.logger.info("\uD83C\uDFC8 \uD83C\uDFC8 customerParty key: $customerParty")
         val supplierOrg = invoiceState.supplierInfo.host.name.organisation
-        Companion.logger.info("\uD83C\uDFC8 \uD83C\uDFC8 supplierParty key: $anonSupplier")
+        Companion.logger.info("\uD83C\uDFC8 \uD83C\uDFC8 supplierParty key: $supplierParty")
+
         val command = InvoiceContract.Register()
-        Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 Notary: " + notary.name.organisation
-                + "  \uD83C\uDF4A supplierInfo: " + invoiceState.supplierInfo.name
-                + "  \uD83C\uDF4A customerInfo: " + invoiceState.customerInfo.name + " \uD83C\uDF4E  invoice: "
+        Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 Notary: ${notary.name} "
+                + "  \uD83C\uDF4A supplierInfo: ${invoiceState.supplierInfo}"
+                + "  \uD83C\uDF4A customerInfo: ${invoiceState.customerInfo} \uD83C\uDF4E  invoiceNumber: "
                 + invoiceState.invoiceNumber)
+
         progressTracker.currentStep = GENERATING_TRANSACTION
+
         val txBuilder = TransactionBuilder(notary)
-                .addOutputState(invoiceState, InvoiceContract::class.java.name)
+                .addOutputState(invoiceState, InvoiceContract.ID)
                 .addCommand(command, supplierParty.owningKey, customerParty.owningKey)
         progressTracker.currentStep = VERIFYING_TRANSACTION
         txBuilder.verify(serviceHub)
-        Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 Invoice Register TransactionBuilder verified")
         progressTracker.currentStep = SIGNING_TRANSACTION
         val signedTx = serviceHub.signInitialTransaction(txBuilder)
         val nodeInfo = serviceHub.myInfo
-        val thisNodeOrg = nodeInfo.legalIdentities[0].name.organisation
+        val thisNodeOrg = nodeInfo.legalIdentities.first().name.organisation
         val supplierStatus: Int
         val customerStatus: Int
         supplierStatus = if (supplierOrg.equals(thisNodeOrg, ignoreCase = true)) {
@@ -89,54 +89,55 @@ class InvoiceRegistrationFlow(val invoiceState: InvoiceState) : FlowLogic<Signed
         } else {
             REMOTE_CUSTOMER
         }
+
         if (supplierStatus == LOCAL_SUPPLIER && customerStatus == LOCAL_CUSTOMER) {
-            Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 Supplier and Customer are on the same node ...")
-            Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 Invoice Registration: signInitialTransaction executed ...")
-            val mSignedTransactionDone = subFlow<SignedTransaction>(
+            Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 Supplier and Customer are on the same node ..." +
+                    " \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21")
+            val mSignedTransactionDone = subFlow(
                     FinalityFlow(signedTx, ImmutableList.of<FlowSession>()))
-            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  SAME NODE ==> FinalityFlow has been executed ... \uD83E\uDD66 \uD83E\uDD66")
-            //talk to the regulator ....
-            Companion.logger.info("\uD83D\uDCCC \uD83D\uDCCC \uD83D\uDCCC  Talking to the Regulator, for compliance, Senor! .............")
-            reportToRegulator(serviceHub, mSignedTransactionDone)
+            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  SAME NODE ==> FinalityFlow has been executed " +
+                    "... \uD83E\uDD66 \uD83E\uDD66")
+            reportToRegulator(mSignedTransactionDone)
             return mSignedTransactionDone
         }
-        Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21  \uD83D\uDE21 Supplier and Customer are NOT on the same node ..." +
-                "  \uD83D\uDE21 flowSession(s) required")
+
+        Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 Supplier and Customer are NOT on the same node ..." +
+                "  \uD83D\uDE21 flowSession(s) required ... \uD83D\uDE21")
         var supplierSession: FlowSession
         var customerSession: FlowSession
         var signedTransaction: SignedTransaction? = null
-        Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 Invoice Registration: signInitialTransaction executed ...")
         if (supplierStatus == LOCAL_SUPPLIER && customerStatus == REMOTE_CUSTOMER) {
-            Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21  \uD83D\uDE21 LOCAL_SUPPLIER and REMOTE_CUSTOMER ...")
+            Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 LOCAL_SUPPLIER and REMOTE_CUSTOMER \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21")
             customerSession = initiateFlow(customerParty)
             signedTransaction = getSignedTransaction(signedTx, ImmutableList.of(customerSession))
         }
         if (supplierStatus == REMOTE_SUPPLIER && customerStatus == LOCAL_CUSTOMER) {
-            Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21  \uD83D\uDE21 REMOTE_SUPPLIER and LOCAL_CUSTOMER ...")
+            Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 REMOTE_SUPPLIER and LOCAL_CUSTOMER \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21")
             supplierSession = initiateFlow(supplierParty)
             signedTransaction = getSignedTransaction(signedTx, ImmutableList.of(supplierSession))
         }
+
         if (supplierStatus == REMOTE_SUPPLIER && customerStatus == REMOTE_CUSTOMER) {
-            Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21  \uD83D\uDE21 REMOTE_SUPPLIER and REMOTE_CUSTOMER ...")
+            Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 REMOTE_SUPPLIER and REMOTE_CUSTOMER  \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21")
             supplierSession = initiateFlow(supplierParty)
-            customerSession = initiateFlow(customerParty)
-            signedTransaction = getSignedTransaction(signedTx, ImmutableList.of(supplierSession, customerSession))
+            if (supplierParty.toString()!= customerParty.toString()) {
+                customerSession = initiateFlow(customerParty)
+                signedTransaction = getSignedTransaction(signedTx, ImmutableList.of(supplierSession, customerSession))
+            } else {
+                signedTransaction = getSignedTransaction(signedTx, ImmutableList.of(supplierSession))
+            }
         }
         if (signedTransaction != null) {
-            reportToRegulator(serviceHub, signedTransaction)
+            reportToRegulator(signedTransaction)
         }
         return signedTransaction
     }
 
     @Suspendable
     @Throws(FlowException::class)
-    private fun reportToRegulator(serviceHub: ServiceHub, mSignedTransactionDone: SignedTransaction) {
-        Companion.logger.info("\uD83D\uDCCC \uD83D\uDCCC \uD83D\uDCCC  Talking to the Regulator, for compliance, Senor! .............")
-        val parties = serviceHub.identityService.partiesFromName("Regulator", false)
-        val regulator = parties.iterator().next()
+    private fun reportToRegulator(mSignedTransactionDone: SignedTransaction) {
         try {
-            subFlow(ReportToRegulatorFlow(regulator, mSignedTransactionDone))
-            Companion.logger.info("\uD83D\uDCCC \uD83D\uDCCC \uD83D\uDCCC  DONE talking to the Regulator, Phew!")
+            subFlow(ReportToRegulatorFlow(mSignedTransactionDone))
         } catch (e: Exception) {
             Companion.logger.error(" \uD83D\uDC7F  \uD83D\uDC7F  \uD83D\uDC7F Regulator fell down.  \uD83D\uDC7F IGNORED  \uD83D\uDC7F ", e)
             throw FlowException("Regulator fell down!")
@@ -156,10 +157,11 @@ class InvoiceRegistrationFlow(val invoiceState: InvoiceState) : FlowLogic<Signed
         Companion.logger.info("\uD83C\uDFBD \uD83C\uDFBD \uD83C\uDFBD \uD83C\uDFBD  Signatures collected OK!  \uD83D\uDE21 \uD83D\uDE21 " +
                 ".... will call FinalityFlow ... \uD83C\uDF3A \uD83C\uDF3A txId: "
                 + signedTransaction.id.toString())
-        val mSignedTransactionDone = subFlow<SignedTransaction>(
+        val mSignedTransactionDone = subFlow(
                 FinalityFlow(signedTransaction, sessions))
         Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  " +
-                " \uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C OTHER NODE(S): FinalityFlow has been executed ... " +
+                " \uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C OTHER NODE(S): FinalityFlow has been executed ..." +
+                "\uD83C\uDF40 \uD83C\uDF40 \uD83C\uDF40 YEBO!! " +
                 "\uD83E\uDD66 \uD83E\uDD66")
         return mSignedTransactionDone
     }

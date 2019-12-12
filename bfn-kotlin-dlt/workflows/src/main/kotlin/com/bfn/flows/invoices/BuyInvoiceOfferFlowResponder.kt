@@ -7,7 +7,7 @@ import net.corda.core.transactions.SignedTransaction
 import org.slf4j.LoggerFactory
 import java.util.*
 
-@InitiatedBy(BuyInvoiceOfferFlow::class)
+@InitiatedBy(SelectBestInvoiceOfferFlow::class)
 class BuyInvoiceOfferFlowResponder(private val counterPartySession: FlowSession) : FlowLogic<SignedTransaction>() {
     @Suspendable
     @Throws(FlowException::class)
@@ -31,10 +31,9 @@ class BuyInvoiceOfferFlowResponder(private val counterPartySession: FlowSession)
         Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C Transaction finalized \uD83E\uDD1F \uD83C\uDF4F \uD83C\uDF4E $signedTransaction")
         //todo - talk to the regulator ....
         Companion.logger.info("\uD83D\uDCCC \uD83D\uDCCC \uD83D\uDCCC  Talking to the Regulator, Senor! .............")
-        val parties = serviceHub.identityService.partiesFromName("Regulator", false)
-        val regulator = parties.iterator().next()
+
         try {
-            subFlow(ReportToRegulatorFlow(regulator, signedTransaction))
+            subFlow(ReportToRegulatorFlow(signedTransaction))
             Companion.logger.info("\uD83D\uDCCC \uD83D\uDCCC \uD83D\uDCCC  DONE talking to the Regulator, Phew!")
         } catch (e: Exception) {
             Companion.logger.error(" \uD83D\uDC7F  \uD83D\uDC7F  \uD83D\uDC7F Regulator fell down.  \uD83D\uDC7F IGNORED  \uD83D\uDC7F ", e)

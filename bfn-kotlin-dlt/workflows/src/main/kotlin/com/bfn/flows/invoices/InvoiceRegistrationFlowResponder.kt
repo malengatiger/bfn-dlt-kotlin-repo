@@ -20,21 +20,20 @@ class InvoiceRegistrationFlowResponder(private val counterPartySession: FlowSess
         Companion.logger.info("\uD83C\uDF45 \uD83C\uDF45 getCounterPartyFlowInfo: " +
                 counterPartySession.getCounterpartyFlowInfo().toString())
         val signTransactionFlow: SignTransactionFlow = object : SignTransactionFlow(counterPartySession) {
+            @Suspendable
             @Throws(FlowException::class)
             override fun checkTransaction(stx: SignedTransaction) {
             }
         }
-        Companion.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 run subFlow SignTransactionFlow ...")
         subFlow(signTransactionFlow)
         val signedTransaction = subFlow(ReceiveFinalityFlow(counterPartySession))
-        Companion.logger.info("\uD83E\uDDE1 \uD83D\uDC9B \uD83D\uDC9A \uD83D\uDC99 \uD83D\uDC9C ReceiveFinalityFlow executed \uD83E\uDD1F")
-        Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  Transaction finalized! \uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C \uD83E\uDD1F \uD83C\uDF4F \uD83C\uDF4E $signedTransaction")
-        //todo - talk to the regulator ....
+        Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  Transaction finalized!" +
+                " \uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C \uD83E\uDD1F \uD83C\uDF4F \uD83C\uDF4E $signedTransaction")
+
         Companion.logger.info("\uD83D\uDCCC \uD83D\uDCCC \uD83D\uDCCC  Talking to the Regulator, for compliance, Senor! .............")
-        val parties = serviceHub.identityService.partiesFromName("Regulator", false)
-        val regulator = parties.iterator().next()
+
         try {
-            subFlow(ReportToRegulatorFlow(regulator, signedTransaction))
+            subFlow(ReportToRegulatorFlow(signedTransaction))
             Companion.logger.info("\uD83D\uDCCC \uD83D\uDCCC \uD83D\uDCCC  DONE talking to the Regulator, Phew!")
         } catch (e: Exception) {
             Companion.logger.error(" \uD83D\uDC7F  \uD83D\uDC7F  \uD83D\uDC7F Regulator fell down.  \uD83D\uDC7F IGNORED  \uD83D\uDC7F ", e)
@@ -47,7 +46,4 @@ class InvoiceRegistrationFlowResponder(private val counterPartySession: FlowSess
         private val logger = LoggerFactory.getLogger(InvoiceRegistrationFlowResponder::class.java)
     }
 
-    init {
-        Companion.logger.info("InvoiceRegistrationFlowResponder Constructor fired: \uD83C\uDF45 \uD83C\uDF45 \uD83C\uDF45")
-    }
 }

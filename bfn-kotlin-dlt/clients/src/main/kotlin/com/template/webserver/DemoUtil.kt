@@ -1,12 +1,13 @@
 package com.template.webserver
 
 import com.google.gson.GsonBuilder
+import com.r3.corda.lib.accounts.contracts.states.AccountInfo
 import com.template.dto.*
+import com.template.states.InvoiceState
 import com.template.webserver.FirebaseUtil.deleteCollections
 import com.template.webserver.FirebaseUtil.deleteUsers
 import com.template.webserver.FirebaseUtil.users
 import com.template.webserver.WorkerBee.getAccounts
-import com.template.webserver.WorkerBee.getInvoiceOfferStates
 import com.template.webserver.WorkerBee.getInvoiceStates
 import com.template.webserver.WorkerBee.listFirestoreNodes
 import com.template.webserver.WorkerBee.listFlows
@@ -16,6 +17,9 @@ import com.template.webserver.WorkerBee.startInvoiceRegistrationFlow
 import com.template.webserver.WorkerBee.writeNodesToFirestore
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.node.NodeInfo
+import net.corda.core.node.services.Vault
+import net.corda.core.node.services.vault.PageSpecification
+import net.corda.core.node.services.vault.QueryCriteria
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.Environment
 import java.io.BufferedReader
@@ -35,8 +39,8 @@ object DemoUtil {
     private val demoSummary = DemoSummary()
     private var myNode: NodeInfo? = null
     @Throws(Exception::class)
-    fun generateLocalNodeData(mProxy: CordaRPCOps?,
-                              deleteFirestore: Boolean): DemoSummary {
+    fun generateLocalNodeAccounts(mProxy: CordaRPCOps?,
+                                  deleteFirestore: Boolean): DemoSummary {
         proxy = mProxy
         logger.info("\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
                 "DemoUtil started, proxy: ${proxy.toString()}...  \uD83D\uDD06 \uD83D\uDD06 " +
@@ -70,11 +74,7 @@ object DemoUtil {
         }
         //
         logger.info(" 👽 👽 👽 👽 start data generation:  👽 👽 👽 👽  ")
-        registerSupplierAccounts()
-        registerCustomerAccounts()
-        registerInvestorAccounts()
-        //
-        registerInvoices()
+        registerAccounts()
         //
         val list = getAccounts(proxy!!)
         var cnt = 0
@@ -89,8 +89,42 @@ object DemoUtil {
         return demoSummary
     }
 
-    var nodes: List<NodeInfoDTO>? = null
-    var accounts: List<AccountInfoDTO>? = null
+    private var nodes: List<NodeInfoDTO>? = null
+
+    fun generateOffers(proxy: CordaRPCOps): String {
+        this.proxy = proxy
+        val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
+        val pageInvoices = proxy.vaultQueryByWithPagingSpec(criteria = criteria, contractStateType = InvoiceState::class.java,
+                paging = PageSpecification(pageNumber = 1, pageSize = 400))
+        logger.info("Invoices on Node:  \uD83D\uDE21 \uD83D\uDE21 ️ ${pageInvoices.totalStatesAvailable} ♻️")
+        val page = proxy.vaultQueryByWithPagingSpec(criteria = criteria, contractStateType = AccountInfo::class.java,
+                paging = PageSpecification(pageNumber = 1, pageSize = 200))
+        logger.info("Accounts on Node:  \uD83D\uDE21 \uD83D\uDE21 ️ ${page.totalStatesAvailable} ♻️")
+        var cnt = 0
+        val shuffledInvoices = pageInvoices.states.shuffled()
+        val shuffledAccts = page.states.shuffled()
+        shuffledInvoices.forEach() {
+            val invoice = it.state.data
+            shuffledAccts.forEach() {
+                val account = it.state.data
+                if (invoice.supplierInfo.name == account.name) {
+                    logger.info("✂️✂️✂️✂️ Ignore: Account is the supplier. ✂️ Cannot offer invoice to self: \uD83D\uDD35 ${account.name}")
+                } else {
+                    val discount = random.nextInt(20) * 1.5
+                    registerInvoiceOffer(
+                            supplier = WorkerBee.getDTO(invoice.supplierInfo),
+                            investor = WorkerBee.getDTO(account),
+                            invoice = WorkerBee.getDTO(invoice),
+                            discount = discount)
+                    cnt++
+                }
+            }
+        }
+        val msg = "\uD83E\uDDE1 \uD83D\uDC9B \uD83D\uDC9A \uD83D\uDC99 \uD83D\uDC9C Offers generated: \uD83E\uDD4F  $cnt \uD83E\uDD4F "
+        logger.info(msg)
+        return msg;
+    }
+
     @Throws(Exception::class)
     fun startNodes(mProxy: CordaRPCOps, env: Environment?): DemoSummary {
         proxy = mProxy
@@ -107,7 +141,7 @@ object DemoUtil {
                 + " BFN Nodes")
         logger.info(" \uD83C\uDF4E  \uD83C\uDF4E " + flows.size
                 + " BFN Flows")
-        generateLocalNodeData(proxy, true)
+        generateLocalNodeAccounts(proxy, true)
         val nodeInfo = mProxy.nodeInfo()
         var cnt = 0
         for (dto in nodes!!) {
@@ -160,7 +194,7 @@ object DemoUtil {
                 val response = StringBuilder()
                 var responseLine: String = ""
                 while (br.readLine().also { responseLine = it } != null) {
-                    response.append(responseLine.trim ())
+                    response.append(responseLine.trim())
                 }
                 summary = GSON.fromJson(response.toString(), DashboardData::class.java)
                 logger.info("\uD83E\uDD1F \uD83E\uDD1F \uD83E\uDD1F " +
@@ -169,51 +203,6 @@ object DemoUtil {
                 return summary
             }
         }
-
-    private fun sendOfferToOtherNodes(offer: InvoiceOfferDTO, account: AccountInfoDTO) {
-        logger.info("\uD83C\uDF3C \uD83C\uDF3C \uD83C\uDF3C ️.... sendOfferToOtherNodes " + account.name + " invoiceId: " + offer.invoiceId + " amt: " + "" + offer.offerAmount)
-        accounts = getAccounts(proxy!!)
-        for (node in nodes!!) {
-            if (node.addresses!![0].contains(account.host!!)) {
-                continue
-            }
-            if (node.addresses!![0].contains("Regulator")) {
-                continue
-            }
-            if (node.addresses!![0].contains("Notary")) {
-                continue
-            }
-            logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D Processing accounts on Node: "
-                    + node.addresses + " " + node.webAPIUrl)
-            //get accounts for just this node
-            val list: MutableList<AccountInfoDTO> = ArrayList()
-            for (m in accounts!!) {
-                if (!m.host.equals(account.host, ignoreCase = true)) {
-                    list.add(m)
-                }
-            }
-            for (m in list) {
-                if (m.identifier.equals(offer.investor!!.identifier, ignoreCase = true)) {
-                    continue
-                }
-                val x = random.nextInt(1000)
-                if (x > 500) {
-                    continue
-                }
-                offer.investor = m
-                offer.offerDate = Date()
-                try {
-                    startInvoiceOfferFlow(proxy!!, offer)
-                    logger.info("\uD83C\uDF3A  \uD83C\uDF3A " + account.name + " from " +
-                            account.host + (" \uD83C\uDF3C \uD83C\uDF3C \uD83C\uDF3C ️" +
-                            "Offer sent to \uD83C\uDF4E   \uD83E\uDD4F  \uD83E\uDD4F  \uD83E\uDD4F  \uD83E\uDD4F ")
-                            + m.name + " at " + m.host + "  \uD83E\uDD6C invoiceId: " + "" + offer.offerAmount)
-                } catch (e: Exception) {
-                    logger.error("\uD83D\uDC7F  \uD83D\uDC7F  \uD83D\uDC7F Failed to send offer to remote investor", e)
-                }
-            }
-        }
-    }
 
     @Throws(Exception::class)
     private fun executeForeignNodeDemoData(node: NodeInfoDTO) {
@@ -253,115 +242,20 @@ object DemoUtil {
     }
 
     @Throws(Exception::class)
-    private fun registerSupplierAccounts() {
+    private fun registerAccounts() {
         logger.info("\n\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 registerSupplierAccounts started ...  " +
                 "\uD83D\uDD06 \uD83D\uDD06 ")
-        var phone = phone
-        val prefix = myNode!!.legalIdentities[0].name.organisation
-        try {
-            val supplier1 = startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
-            suppliers!!.add(supplier1)
-        } catch (e1: Exception) {
-            logger.warn("Unable to add account - probable duplicate name")
-        }
-        phone = phone
-        try {
-            val supplier2 = startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
-            suppliers!!.add(supplier2)
-        } catch (e1: Exception) {
-            logger.warn("Unable to add account - probable duplicate name")
-        }
-        phone = phone
-        try {
-            val supplier3 = startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
-            suppliers!!.add(supplier3)
-        } catch (e1: Exception) {
-            logger.warn("Unable to add account - probable duplicate name")
-        }
-        phone = phone
-        try {
-            val supplier4 = startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
-            suppliers!!.add(supplier4)
-        } catch (e1: Exception) {
-            logger.warn("Unable to add account - probable duplicate name")
+        for (x in 0..10) {
+            var phone = phone
+            val prefix = myNode!!.legalIdentities[0].name.organisation
+            try {
+                startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
+            } catch (e1: Exception) {
+                logger.warn("Unable to add account - probable duplicate name")
+            }
         }
         logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 registerSupplierAccounts complete ..." +
                 "  \uD83D\uDD06 \uD83D\uDD06 added " + suppliers!!.size + " accounts")
-    }
-
-    @Throws(Exception::class)
-    private fun registerCustomerAccounts() {
-        logger.info("\n\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
-                "registerCustomerAccounts started ...  \uD83D\uDD06 \uD83D\uDD06 ")
-        var phone = phone
-        val prefix = myNode!!.legalIdentities[0].name.organisation
-        try {
-            val customer1 = startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
-            customers!!.add(customer1)
-        } catch (e1: Exception) {
-            logger.warn("Unable to add account - probable duplicate name")
-        }
-        phone = phone
-        try {
-            val customer2 = startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
-            customers!!.add(customer2)
-        } catch (e1: Exception) {
-            logger.warn("Unable to add account - probable duplicate name")
-        }
-        phone = phone
-        try {
-            val customer3 = startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
-            customers!!.add(customer3)
-        } catch (e1: Exception) {
-            logger.warn("Unable to add account - probable duplicate name")
-        }
-        phone = phone
-        try {
-            val customer4 = startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
-            customers!!.add(customer4)
-        } catch (e1: Exception) {
-            logger.warn("Unable to add account - probable duplicate name")
-        }
-        logger.info(" \uD83D\uDD06 \uD83D\uDD06 registerCustomerAccounts complete ...  " +
-                "\uD83D\uDD06 \uD83D\uDD06 added " + customers!!.size + " accounts")
-    }
-
-    @Throws(Exception::class)
-    private fun registerInvestorAccounts() {
-        logger.info("\n\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
-                "registerInvestorAccounts started ... " +
-                " \uD83D\uDD06 \uD83D\uDD06")
-        var phone = phone
-        val prefix = myNode!!.legalIdentities[0].name.organisation
-        try {
-            val investor1 = startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
-            investors!!.add(investor1)
-        } catch (e1: Exception) {
-            logger.warn("Unable to add account - probable duplicate name")
-        }
-        phone = phone
-        try {
-            val investor2 = startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
-            investors!!.add(investor2)
-        } catch (e1: Exception) {
-            logger.warn("Unable to add account - probable duplicate name")
-        }
-        phone = phone
-        try {
-            val investor3 = startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
-            investors!!.add(investor3)
-        } catch (e1: Exception) {
-            logger.warn("Unable to add account - probable duplicate name")
-        }
-        phone = phone
-        try {
-            val investor4 = startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
-            investors!!.add(investor4)
-        } catch (e1: Exception) {
-            logger.warn("Unable to add account - probable duplicate name")
-        }
-        logger.info(" \uD83D\uDD06 \uD83D\uDD06 registerInvestorAccounts complete ...  " +
-                "\uD83D\uDD06 \uD83D\uDD06 added " + investors!!.size + "  accounts")
     }
 
     private val phone: String
@@ -382,60 +276,57 @@ object DemoUtil {
 
     private val random = Random(System.currentTimeMillis())
     @Throws(Exception::class)
-    private fun registerInvoices() {
-        for (supplier in suppliers!!) {
-            for (customer in customers!!) {
-                val m = InvoiceDTO()
-                m.invoiceNumber = "INV_" + System.currentTimeMillis()
-                m.supplier = supplier
-                m.customer = customer
-                var num = random.nextInt(500)
+    fun registerInvoices(proxy: CordaRPCOps): String {
+        this.proxy = proxy
+        val accounts = getAccounts(this.proxy!!)
+        val shuffled = accounts.shuffled()
+        shuffled.forEach() {
+            val index = random.nextInt(accounts.size - 1)
+            val supplier = accounts[index]
+            val index2 = random.nextInt(accounts.size - 1)
+            val customer = accounts[index2]
+            if (supplier.name != it.name && customer.name != it.name) {
+                val invoice = InvoiceDTO()
+                invoice.invoiceNumber = "INV_" + System.currentTimeMillis()
+                invoice.supplier = supplier
+                invoice.customer = customer
+                var num = random.nextInt(1500)
                 if (num == 0) num = 92
-                m.amount = num.toDouble()
-                m.valueAddedTax = 15.0
-                m.totalAmount = num * 1.15
-                m.description = "Demo Invoice at " + Date().toString()
-                m.dateRegistered = Date()
-                val invoice = startInvoiceRegistrationFlow(proxy!!, m)
-                val discount = random.nextInt(25) * 1.0
-                for (investor in investors!!) {
-                    try {
-                        registerInvoiceOffer(invoice, supplier, investor, discount)
-                    } catch (e: Exception) {
-                    }
-                }
+                invoice.amount = num * 1000.0
+                invoice.valueAddedTax = 15.0
+                invoice.totalAmount = num * 1.15
+                invoice.description = "Demo Invoice at " + Date().toString()
+                invoice.dateRegistered = Date()
+                startInvoiceRegistrationFlow(this.proxy!!, invoice)
             }
         }
-        val invoiceStates = getInvoiceStates(proxy!!, null, false)
+
+        val invoiceStates = getInvoiceStates(this.proxy!!, null, false)
         logger.info(" \uD83C\uDF4A  \uD83C\uDF4A " + invoiceStates.size + " InvoiceStates on node ...  \uD83C\uDF4A ")
         demoSummary.numberOfInvoices = invoiceStates.size
-        val list2 = getInvoiceOfferStates(proxy!!, null, false)
-        demoSummary.numberOfInvoiceOffers = list2.size
-        logger.info(" \uD83C\uDF4A  \uD83C\uDF4A " + list2.size + " InvoiceOfferStates on node ...  \uD83C\uDF4A ")
+        return "\uD83D\uDC9A \uD83D\uDC99 \uD83D\uDC9C Invoices Generated: ${invoiceStates.size} \uD83D\uDC9C"
     }
 
     private val nodeInvoiceOffers: MutableList<InvoiceOfferDTO> = ArrayList()
     @Throws(Exception::class)
     private fun registerInvoiceOffer(invoice: InvoiceDTO, supplier: AccountInfoDTO,
                                      investor: AccountInfoDTO, discount: Double) {
-        logger.info("\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 registerInvoiceOffer started ..." +
-                "  \uD83D\uDD06 \uD83D\uDD06 ")
-        val m = InvoiceOfferDTO()
-        m.invoiceId = invoice.invoiceId
-        m.supplier = supplier
-        m.owner = supplier
-        m.investor = investor
-        m.offerDate = Date()
-        m.discount = discount
-        if (m.discount == BigDecimal.ZERO.toDouble()) {
-            m.discount = 3.5
+
+        val invoiceOffer = InvoiceOfferDTO()
+        invoiceOffer.invoiceId = invoice.invoiceId
+        invoiceOffer.supplier = supplier
+        invoiceOffer.owner = supplier
+        invoiceOffer.investor = investor
+        invoiceOffer.offerDate = Date()
+        invoiceOffer.discount = discount
+        if (invoiceOffer.discount == BigDecimal.ZERO.toDouble()) {
+            invoiceOffer.discount = 3.5
         }
-        val n = 100.0 - m.discount / 100
-        m.offerAmount = n
-        m.originalAmount = invoice.totalAmount
-        val offer = startInvoiceOfferFlow(proxy!!, m)
+        val percentageOfAmount = 100.0 - invoiceOffer.discount!!
+        invoiceOffer.offerAmount = (percentageOfAmount / 100) * invoice.totalAmount!!
+        invoiceOffer.originalAmount = invoice.totalAmount
+        val offer = startInvoiceOfferFlow(proxy!!, invoiceOffer)
         nodeInvoiceOffers.add(offer)
-        sendOfferToOtherNodes(offer, supplier)
     }
 
     var names: MutableList<String> = ArrayList()
@@ -462,12 +353,14 @@ object DemoUtil {
             names.add("Craighall Investments Ltd")
             names.add("Robert Grayson Associates")
             names.add("KZN Wildlife Pty Ltd")
+            names.add("Bafana Spaza Pty Ltd")
             names.add("Kumar Enterprises Ltd")
             names.add("KrugerX Steel")
             names.add("TrainServices Pros Ltd")
             names.add("Topper PanelBeaters Ltd")
             names.add("Pelosi PAC LLC")
             names.add("Blackridge Inc.")
+            names.add("BlackOx Inc.")
             names.add("Soweto Engineering Works Pty Ltd")
             names.add("Soweto Bakeries Ltd")
             names.add("BlackStone Partners Ltd")
@@ -476,8 +369,12 @@ object DemoUtil {
             names.add("Bidenstock Pty Ltd")
             names.add("Innovation Solutions Pty Ltd")
             names.add("Schiff Ventures Ltd")
+            names.add("JohnnyUnitas Inc.")
             names.add("Process Innovation Partners")
             names.add("TrendSpotter Inc.")
+            names.add("Naidoo Electronics Pty Ltd.")
+            names.add("BlackOx Electronics Pty Ltd.")
+            names.add("Baker-Smith Electronics Pty Ltd.")
             names.add("KnightRider Inc.")
             names.add("Fantastica Technology Inc.")
             names.add("Flickenburg Associates Pty Ltd")
@@ -489,6 +386,7 @@ object DemoUtil {
             names.add("Peachtree Solutions Ltd")
             names.add("InnovateSpecialists Inc")
             names.add("DealMakers Pty Ltd")
+            names.add("InvoiceHunters Pty Ltd")
             names.add("Clarity Solutions Inc")
             names.add("UK Holdings Ltd")
             names.add("Lauraine Pty Ltd")

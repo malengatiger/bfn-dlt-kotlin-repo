@@ -1,13 +1,14 @@
 package com.template.dto
 
+import java.math.BigDecimal
 import java.util.*
 
 class InvoiceOfferDTO {
     var invoiceId: String? = null
     var invoiceNumber: String? = null
-    var offerAmount = 0.0
-    var discount = 0.0
-    var originalAmount = 0.0
+    var offerAmount: Double? = null
+    var discount: Double? = null
+    var originalAmount: Double? = null
     var supplier: AccountInfoDTO? = null
     var investor: AccountInfoDTO? = null
     var owner: AccountInfoDTO? = null

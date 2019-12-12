@@ -14,8 +14,11 @@ import java.util.*
 
 @CordaSerializable
 @BelongsToContract(InvoiceOfferContract::class)
-class InvoiceOfferState(val invoiceId: UUID, val offerAmount: BigDecimal, val discount: BigDecimal,
-                        val originalAmount: BigDecimal, val supplier: AccountInfo,
+class InvoiceOfferState(val invoiceId: UUID,
+                        val offerAmount: Double,
+                        val discount: Double,
+                        val originalAmount: Double,
+                        val supplier: AccountInfo,
                         val investor: AccountInfo, val owner: AccountInfo, val offerDate: Date,
         //
                         val ownerDate: Date, val invoiceNumber: String, val customer: AccountInfo) : ContractState {

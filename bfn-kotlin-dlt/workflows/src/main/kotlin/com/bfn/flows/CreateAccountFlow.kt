@@ -26,21 +26,25 @@ class CreateAccountFlow(
         val me = serviceHub.myInfo;
 
         nodes.forEach() {
-            logger.info(" \uD83E\uDDE9 \uD83E\uDDE9 Node in network: ${it.legalIdentities[0].name}")
-            if (me.legalIdentities[0].name == it.legalIdentities[0].name) {
+            logger.info(" \uD83E\uDDE9 \uD83E\uDDE9 Node in network: " +
+                    "${it.legalIdentities.first().name}")
+            if (me.legalIdentities[0].name == it.legalIdentities.first().name) {
                 logger.info("Ignore: account on this node, no need to share with self")
             } else {
-                if (it.legalIdentities[0].name.toString().contains("Notary")) {
+                if (it.legalIdentities.first().name.toString().contains("Notary")) {
                     logger.info("Ignore: this is a Notary")
                 } else {
-                    logger.info("Share with nodes ${it.legalIdentities[0].name}")
-                    serviceHub.accountService.shareAccountInfoWithParty(accountId = acctInfo.identifier.id, party = it.legalIdentities[0])
-                    logger.info(" \uD83C\uDF40  \uD83C\uDF40 Account ${acctInfo.name} shared with ${it.legalIdentities[0].name}")
+                    logger.info("Share with nodes ${it.legalIdentities.first().name}")
+                    serviceHub.accountService.shareAccountInfoWithParty(
+                            accountId = acctInfo.identifier.id, party = it.legalIdentities.first())
+                    logger.info(" \uD83C\uDF40  \uD83C\uDF40 Account ${acctInfo.name} " +
+                            "shared with ${it.legalIdentities[0].name}")
                 }
             }
         }
-        logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  account ${acctInfo.name} " +
-                "-   \uD83D\uDC9A id: ${acctInfo.linearId} created and shared \uD83D\uDC7D ")
+
+        logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  account : $acctInfo " +
+                "-   \uD83D\uDC9A created and shared \uD83D\uDC7D ")
         return acctInfo
 
     }
