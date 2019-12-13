@@ -19,6 +19,7 @@ class InvoiceRegistrationFlowResponder(private val counterPartySession: FlowSess
         Companion.logger.info("\uD83C\uDF45 \uD83C\uDF45 This party: " + myself.name.toString() + ", party from session: \uD83C\uDF45 " + party.name.toString())
         Companion.logger.info("\uD83C\uDF45 \uD83C\uDF45 getCounterPartyFlowInfo: " +
                 counterPartySession.getCounterpartyFlowInfo().toString())
+
         val signTransactionFlow: SignTransactionFlow = object : SignTransactionFlow(counterPartySession) {
             @Suspendable
             @Throws(FlowException::class)

@@ -9,19 +9,15 @@ import com.template.webserver.FirebaseUtil.deleteUsers
 import com.template.webserver.FirebaseUtil.users
 import com.template.webserver.WorkerBee.getAccounts
 import com.template.webserver.WorkerBee.getInvoiceStates
-import com.template.webserver.WorkerBee.listFirestoreNodes
-import com.template.webserver.WorkerBee.listFlows
 import com.template.webserver.WorkerBee.startAccountRegistrationFlow
 import com.template.webserver.WorkerBee.startInvoiceOfferFlow
 import com.template.webserver.WorkerBee.startInvoiceRegistrationFlow
-import com.template.webserver.WorkerBee.writeNodesToFirestore
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.node.NodeInfo
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.PageSpecification
 import net.corda.core.node.services.vault.QueryCriteria
 import org.slf4j.LoggerFactory
-import org.springframework.core.env.Environment
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.math.BigDecimal
@@ -74,7 +70,7 @@ object DemoUtil {
         }
         //
         logger.info(" 👽 👽 👽 👽 start data generation:  👽 👽 👽 👽  ")
-        registerAccounts()
+        generateAccounts(5)
         //
         val list = getAccounts(proxy!!)
         var cnt = 0
@@ -91,7 +87,7 @@ object DemoUtil {
 
     private var nodes: List<NodeInfoDTO>? = null
 
-    fun generateOffers(proxy: CordaRPCOps): String {
+    fun generateOffers(proxy: CordaRPCOps, maxRecords: Int = 300): String {
         this.proxy = proxy
         val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
         val pageInvoices = proxy.vaultQueryByWithPagingSpec(criteria = criteria, contractStateType = InvoiceState::class.java,
@@ -100,6 +96,7 @@ object DemoUtil {
         val page = proxy.vaultQueryByWithPagingSpec(criteria = criteria, contractStateType = AccountInfo::class.java,
                 paging = PageSpecification(pageNumber = 1, pageSize = 200))
         logger.info("Accounts on Node:  \uD83D\uDE21 \uD83D\uDE21 ️ ${page.totalStatesAvailable} ♻️")
+        logger.info("\uD83D\uDD35 max records to generate: \uD83D\uDCA6 $maxRecords \uD83D\uDCA6");
         var cnt = 0
         val shuffledInvoices = pageInvoices.states.shuffled()
         val shuffledAccts = page.states.shuffled()
@@ -108,74 +105,38 @@ object DemoUtil {
             shuffledAccts.forEach() {
                 val account = it.state.data
                 if (invoice.supplierInfo.name == account.name) {
-                    logger.info("✂️✂️✂️✂️ Ignore: Account is the supplier. ✂️ Cannot offer invoice to self: \uD83D\uDD35 ${account.name}")
+                    logger.info("\uD83D\uDD35 Ignore: ${it.state.data.name} Account is the supplier. " +
+                            "\uD83D\uDD35 Cannot offer invoice to self: \uD83C\uDF3A ${account.name}")
                 } else {
-                    var discount = random.nextInt(10) * 1.5
-                    if (discount == 0.0) {
-                        discount = 4.3
+
+                    if (cnt < maxRecords) {
+                        val xx = random.nextInt(100)
+                        if (xx > 80) {
+                            var discount = random.nextInt(10) * 1.5
+                            if (discount == 0.0) {
+                                discount = 4.3
+                            }
+                            logger.info("\uD83D\uDE21 Processing .... ${invoice.invoiceNumber} " +
+                                    "\uD83C\uDF4F ${invoice.amount} for account:  \uD83D\uDC9C ${account.name}")
+                            registerInvoiceOffer(
+                                    supplier = WorkerBee.getDTO(invoice.supplierInfo),
+                                    investor = WorkerBee.getDTO(account),
+                                    invoice = WorkerBee.getDTO(invoice),
+                                    discount = discount)
+                            logger.info("\uD83D\uDE21 registered InvoiceOffer for supplier: \uD83C\uDF4F " +
+                                    "${invoice.supplierInfo.name} ${invoice.supplierInfo.host} " +
+                                    "\uD83C\uDF4F \uD83D\uDCA6 investor: ${account.name} \uD83D\uDCA6 ${account.host} ")
+                            cnt++
+                        }
                     }
-                    registerInvoiceOffer(
-                            supplier = WorkerBee.getDTO(invoice.supplierInfo),
-                            investor = WorkerBee.getDTO(account),
-                            invoice = WorkerBee.getDTO(invoice),
-                            discount = discount)
-                    cnt++
                 }
             }
         }
-        val msg = "\uD83E\uDDE1 \uD83D\uDC9B \uD83D\uDC9A \uD83D\uDC99 \uD83D\uDC9C Offers generated: \uD83E\uDD4F  $cnt \uD83E\uDD4F "
+        val msg = "\uD83E\uDDE1 \uD83D\uDC9B  Offers generated: \uD83E\uDD4F  $cnt \uD83E\uDD4F "
         logger.info(msg)
         return msg;
     }
 
-    @Throws(Exception::class)
-    fun startNodes(mProxy: CordaRPCOps, env: Environment?): DemoSummary {
-        proxy = mProxy
-        val start = System.currentTimeMillis()
-        demoSummary.started = Date().toString()
-        nodes = listFirestoreNodes()
-        if (nodes!!.isEmpty()) {
-            nodes = writeNodesToFirestore(proxy!!, env!!)
-        }
-        demoSummary.numberOfNodes = nodes!!.size
-        val flows: List<*> = listFlows(proxy!!)
-        demoSummary.numberOfFlows = flows.size
-        logger.info(" \uD83C\uDF4E  \uD83C\uDF4E " + nodes!!.size
-                + " BFN Nodes")
-        logger.info(" \uD83C\uDF4E  \uD83C\uDF4E " + flows.size
-                + " BFN Flows")
-        generateLocalNodeAccounts(proxy, true)
-        val nodeInfo = mProxy.nodeInfo()
-        var cnt = 0
-        for (dto in nodes!!) {
-            val name = dto.addresses!![0]
-            if (nodeInfo.legalIdentities[0].name.toString()
-                            .equals(name, ignoreCase = true)) {
-                logger.info("\n\uD83C\uDF36 \uD83C\uDF36 Ignoring Local Node - no data to generate")
-                continue
-            }
-            if (dto.addresses!![0].contains("Notary")) {
-                logger.info("\n\uD83C\uDF36 \uD83C\uDF36 Ignoring Notary Node - no data to generate")
-                continue
-            }
-            if (dto.addresses!![0].contains("Regulator")) {
-                logger.info("\n\uD83C\uDF36 \uD83C\uDF36 Ignoring Regulator Node - no data to generate")
-                continue
-            }
-            try {
-                executeForeignNodeDemoData(dto)
-                cnt++
-            } catch (e: Exception) {
-                logger.error(" \uD83D\uDC7F  \uD83D\uDC7F  \uD83D\uDC7F Foreign demo data failed", e)
-            }
-        }
-        val end = System.currentTimeMillis()
-        demoSummary.ended = Date().toString()
-        demoSummary.elapsedSeconds = ((end - start) / 1000).toDouble()
-        demoSummary.dashboardData = regulatorDashboard
-        logger.info("\uD83C\uDF81 \uD83C\uDF81 Foreign Nodes Demo Data Generated; NODES: \uD83D\uDC99 $cnt \uD83D\uDC99 ")
-        return demoSummary
-    }
 
     @get:Throws(Exception::class)
     private val regulatorDashboard: DashboardData
@@ -245,10 +206,10 @@ object DemoUtil {
     }
 
     @Throws(Exception::class)
-    private fun registerAccounts() {
+    private fun generateAccounts(count: Int) {
         logger.info("\n\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 registerSupplierAccounts started ...  " +
                 "\uD83D\uDD06 \uD83D\uDD06 ")
-        for (x in 0..4) {
+        for (x in 0..count) {
             var phone = phone
             val prefix = myNode!!.legalIdentities[0].name.organisation
             try {
@@ -279,28 +240,34 @@ object DemoUtil {
 
     private val random = Random(System.currentTimeMillis())
     @Throws(Exception::class)
-    fun registerInvoices(proxy: CordaRPCOps): String {
+    fun generateInvoices(proxy: CordaRPCOps, count: Int): String {
         this.proxy = proxy
         val accounts = getAccounts(this.proxy!!)
         val shuffled = accounts.shuffled()
+        var cnt = 0;
         shuffled.forEach() {
-            val index = random.nextInt(accounts.size - 1)
-            val supplier = accounts[index]
-            val index2 = random.nextInt(accounts.size - 1)
-            val customer = accounts[index2]
-            if (supplier.name != it.name && customer.name != it.name) {
-                val invoice = InvoiceDTO()
-                invoice.invoiceNumber = "INV_" + System.currentTimeMillis()
-                invoice.supplier = supplier
-                invoice.customer = customer
-                var num = random.nextInt(1500)
-                if (num == 0) num = 92
-                invoice.amount = num * 1000.0
-                invoice.valueAddedTax = 15.0
-                invoice.totalAmount = num * 1.15
-                invoice.description = "Demo Invoice at " + Date().toString()
-                invoice.dateRegistered = Date()
-                startInvoiceRegistrationFlow(this.proxy!!, invoice)
+            if (cnt < count) {
+                val index = random.nextInt(accounts.size - 1)
+                val supplier = accounts[index]
+                val index2 = random.nextInt(accounts.size - 1)
+                val customer = accounts[index2]
+                if (supplier.name != it.name && customer.name != it.name) {
+                    val invoice = InvoiceDTO()
+                    invoice.invoiceNumber = "INV_" + System.currentTimeMillis()
+                    invoice.supplier = supplier
+                    invoice.customer = customer
+                    var num = random.nextInt(1500)
+                    if (num == 0) num = 92
+                    invoice.amount = num * 1000.0
+                    invoice.valueAddedTax = 15.0
+                    invoice.totalAmount = num * 1.15
+                    invoice.description = "Demo Invoice at " + Date().toString()
+                    invoice.dateRegistered = Date()
+                    val result = startInvoiceRegistrationFlow(this.proxy!!, invoice)
+                    cnt++
+                    logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C invoice generated, result: ${result.invoiceId}")
+
+                }
             }
         }
 
@@ -328,8 +295,12 @@ object DemoUtil {
         val percentageOfAmount = 100.0 - invoiceOffer.discount!!
         invoiceOffer.offerAmount = (percentageOfAmount / 100) * invoice.totalAmount!!
         invoiceOffer.originalAmount = invoice.totalAmount
-        val offer = startInvoiceOfferFlow(proxy!!, invoiceOffer)
-        nodeInvoiceOffers.add(offer)
+        try {
+            val offer = startInvoiceOfferFlow(proxy!!, invoiceOffer)
+            nodeInvoiceOffers.add(offer)
+        } catch (e: Exception) {
+            logger.warn("Unable to add offer: ${e.message}")
+        }
     }
 
     var names: MutableList<String> = ArrayList()

@@ -35,6 +35,7 @@ object WorkerBee {
     private val logger = LoggerFactory.getLogger(WorkerBee::class.java)
     private val GSON = GsonBuilder().setPrettyPrinting().create()
     val db = FirestoreClient.getFirestore()
+
     @Throws(Exception::class)
     fun writeNodes(proxy: CordaRPCOps) {
         val nodes = listNodes(proxy)
@@ -57,7 +58,7 @@ object WorkerBee {
                 dto.addresses = ArrayList()
                 (dto.addresses as ArrayList<String>).add(party.name.toString())
             }
-            logger.info("\uD83C\uDF3A \uD83C\uDF3A BFN Corda Node: \uD83C\uDF3A "
+            logger.info("\uD83C\uDF3A BFN Corda Node: \uD83C\uDF3A "
                     + info.legalIdentities[0].name.toString())
             nodeList.add(dto)
         }
@@ -83,57 +84,6 @@ object WorkerBee {
             (node.addresses as ArrayList<String>).add(map["addresses"].toString())
             nodeList.add(node)
         }
-        return nodeList
-    }
-
-    @JvmStatic
-    @Throws(Exception::class)
-    fun writeNodesToFirestore(proxy: CordaRPCOps, env: Environment): List<NodeInfoDTO> {
-        val nodes = proxy.networkMapSnapshot()
-        val nodeList: MutableList<NodeInfoDTO> = ArrayList()
-        proxy.startFlowDynamic(IssueTokensFlow::class.java)
-        deleteCollection("nodes")
-        for (info in nodes) {
-            val dto = NodeInfoDTO()
-            dto.serial = info.serial
-            dto.platformVersion = info.platformVersion.toLong()
-//            dto.addresses = List()
-            for (party in info.legalIdentities) {
-                dto.addresses!!.plus(party.toString())
-            }
-            when (info.legalIdentities[0].name.organisation) {
-                "OCTMainOffice" -> {
-                    val octURL = env.getProperty("OCT")
-                    dto.webAPIUrl = octURL
-                }
-                "OCTCapeTown" -> {
-                    val ctURL = env.getProperty("CapeTown")
-                    dto.webAPIUrl = ctURL
-                }
-                "OCTLondon" -> {
-                    val lonURL = env.getProperty("London")
-                    dto.webAPIUrl = lonURL
-                }
-                "OCTNewYork" -> {
-                    val nyURL = env.getProperty("NewYork")
-                    dto.webAPIUrl = nyURL
-                }
-                "Regulator" -> {
-                    val regURL = env.getProperty("Regulator")
-                    dto.webAPIUrl = regURL
-                }
-            }
-            val future = db.collection("nodes").add(dto)
-            nodeList.add(dto)
-            logger.info("\uD83C\uDF3A \uD83C\uDF3A Node written to Firestore: \uD83C\uDF3A "
-                    + info.legalIdentities[0].name.organisation
-                    + " -  \uD83D\uDD06 path: " + future.get().path)
-        }
-        if (nodeList.isEmpty()) {
-            throw Exception("Nodes not found")
-        }
-        logger.info(" \uD83E\uDDE1 \uD83D\uDC9B \uD83D\uDC9A Corda NetworkNodes written: \uD83D\uDC9A "
-                + nodeList.size + " \uD83D\uDC9A ")
         return nodeList
     }
 
@@ -171,7 +121,7 @@ object WorkerBee {
             logger.warn("Account not found on BFN account")
             throw Exception("Account not found on BFN network")
         }
-        val msg = "\uD83C\uDF3A  \uD83C\uDF3A found account:  \uD83C\uDF3A " + GSON.toJson(dto)
+        val msg = "\uD83C\uDF3A \uD83C\uDF3A found account:  \uD83C\uDF3A " + GSON.toJson(dto)
         logger.info(msg)
         return dto
     }

@@ -38,10 +38,9 @@ springBoot {
     mainClassName = "com.template.webserver.ServerKt"
 }
 
-task runTemplateClient(type: JavaExec, dependsOn: assemble) {
+task runClient(type: JavaExec, dependsOn: assemble) {
     classpath = sourceSets.main.runtimeClasspath
     main = 'com.template.ClientKt'
-    args 'localhost:10006', 'user1', 'test'
 }
 
 task runPartyA(type: JavaExec, dependsOn: assemble) {

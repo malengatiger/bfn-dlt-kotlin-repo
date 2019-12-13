@@ -1,9 +1,8 @@
 package com.template
-import khttp.get as httpGet
-import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
 import com.template.states.InvoiceOfferState
 import com.template.states.InvoiceState
+import com.template.webserver.FirebaseUtil
 import net.corda.client.rpc.CordaRPCClient
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.node.services.Vault
@@ -11,6 +10,7 @@ import net.corda.core.node.services.vault.PageSpecification
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.utilities.NetworkHostAndPort
 import net.corda.core.utilities.loggerFor
+import khttp.get as httpGet
 
 
 /**
@@ -23,9 +23,7 @@ fun main(args: Array<String>) = Client().main(args)
 private class Client {
     companion object {
         val logger = loggerFor<Client>()
-        val G = GsonBuilder().setPrettyPrinting().create()
     }
-
 
 
     fun main(args: Array<String>) {
@@ -59,7 +57,8 @@ private class Client {
         getThisNode(proxyReg)
 
         doNodesAndAggregates(proxyPartyA, proxyPartyB, proxyPartyC, proxyReg)
-        startDemo(false, deleteFirestore = false);
+        //startDemo(false, deleteFirestore = true);
+        generateOffers()
 
     }
     fun startDemo(generateAccounts: Boolean = false, deleteFirestore: Boolean = false) {
@@ -98,21 +97,21 @@ private class Client {
 
     }
     private fun generateInvoices() {
-        logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 invoices for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
+        logger.info(" \uD83D\uDE21  generateInvoices for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
         val response = httpGet(
                 timeout = 990000000.0,
                 url = "http://localhost:10050/admin/generateInvoices")
         logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${response.statusCode}  " +
                 "\uD83C\uDF4E \uD83C\uDF4E ${response.text}")
 
-        logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 invoices for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
+        logger.info(" \uD83D\uDE21  generateInvoices for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
         val response2 = httpGet(
                 timeout = 990000000.0,
                 url = "http://localhost:10053/admin/generateInvoices")
         logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${response2.statusCode}  " +
                 "\uD83C\uDF4E \uD83C\uDF4E ${response2.text}")
 
-        logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 invoices for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
+        logger.info(" \uD83D\uDE21  generateInvoices for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
         val response3 = httpGet(
                 timeout = 990000000.0,
                 url = "http://localhost:10056/admin/generateInvoices")
@@ -120,21 +119,21 @@ private class Client {
                 "\uD83C\uDF4E \uD83C\uDF4E ${response3.text}")
     }
     private fun generateOffers() {
-        logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 offers for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
+        logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
         val response = httpGet(
                 timeout = 990000000.0,
                 url = "http://localhost:10050/admin/generateOffers")
         logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${response.statusCode}  " +
                 "\uD83C\uDF4E \uD83C\uDF4E ${response.text}")
 
-        logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 offers for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
+        logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
         val response2 = httpGet(
                 timeout = 990000000.0,
                 url = "http://localhost:10053/admin/generateOffers")
         logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${response2.statusCode}  " +
                 "\uD83C\uDF4E \uD83C\uDF4E ${response2.text}")
 
-        logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 offers for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
+        logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
         val response3 = httpGet(
                 timeout = 990000000.0,
                 url = "http://localhost:10056/admin/generateOffers")

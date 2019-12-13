@@ -43,17 +43,17 @@ class InvoiceOfferContract : Contract {
         if (offerState.offerDate.time > Date().time) {
             throw IllegalArgumentException("Offer date cannot be in the future")
         }
-        //check signatures of all parties
-        val supplierPublicKey = offerState.supplier.host.owningKey
-        logger.info(" \uD83D\uDD34 Supplier publicKey: $supplierPublicKey ☘️ Node: " + offerState.supplier.name + " - " + offerState.supplier.host.name.organisation)
-        if (!requiredSigners.contains(supplierPublicKey)) {
-            throw IllegalArgumentException("Supplier Party must sign")
-        }
-        val investorPublicKey = offerState.investor.host.owningKey
-        logger.info(" \uD83D\uDD34 Investor publicKey: $investorPublicKey ☘️ Node: " + offerState.investor.name + " - " + offerState.investor.host.name.organisation)
-        if (!requiredSigners.contains(investorPublicKey)) {
-            throw IllegalArgumentException("Investor Party must sign")
-        }
+//        //check signatures of all parties
+//        val supplierPublicKey = offerState.supplier.host.owningKey
+//        logger.info(" \uD83D\uDD34 Supplier publicKey: $supplierPublicKey ☘️ Node: " + offerState.supplier.name + " - " + offerState.supplier.host.name.organisation)
+//        if (!requiredSigners.contains(supplierPublicKey)) {
+//            throw IllegalArgumentException("Supplier Party must sign")
+//        }
+//        val investorPublicKey = offerState.investor.host.owningKey
+//        logger.info(" \uD83D\uDD34 Investor publicKey: $investorPublicKey ☘️ Node: " + offerState.investor.name + " - " + offerState.investor.host.name.organisation)
+//        if (!requiredSigners.contains(investorPublicKey)) {
+//            throw IllegalArgumentException("Investor Party must sign")
+//        }
 //        val customerPublicKey = offerState.customer.host.owningKey
 //        logger.info(" \uD83D\uDD34 Customer publicKey: $customerPublicKey ☘️ Node: " + offerState.customer.name + " - " + offerState.customer.host.name.organisation)
 //        if (!requiredSigners.contains(customerPublicKey)) {

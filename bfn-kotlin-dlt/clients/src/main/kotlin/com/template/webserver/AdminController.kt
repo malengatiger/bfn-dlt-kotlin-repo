@@ -13,7 +13,6 @@ import com.template.webserver.WorkerBee.listFlows
 import com.template.webserver.WorkerBee.listNodes
 import com.template.webserver.WorkerBee.listNotaries
 import com.template.webserver.WorkerBee.startAccountRegistrationFlow
-import com.template.webserver.WorkerBee.writeNodesToFirestore
 import net.corda.core.messaging.CordaRPCOps
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,27 +27,10 @@ import java.util.concurrent.ExecutionException
 @RestController
 @RequestMapping("/admin") // The paths for HTTP requests are relative to this base path.
 class AdminController(rpc: NodeRPCConnection) {
-    val proxy: CordaRPCOps = rpc.proxy
+    private val proxy: CordaRPCOps = rpc.proxy
 
     @Autowired
     private val env: Environment? = null
-
-    @GetMapping(value = ["/gen"], produces = ["application/json"])
-    @Throws(Exception::class)
-    private fun generateData(): DemoSummary {
-        if (env == null) {
-            throw Exception("Environment variables not available")
-        } else {
-            logger.info("\uD83C\uDF40 \uD83C\uDF40 \uD83C\uDF40 " +
-                    "Environment variables available \uD83C\uDF40 ")
-        }
-        logger.info("\n\n\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 starting DemoDataGenerator ... \uD83C\uDF4F")
-        val result = DemoUtil.startNodes(proxy, env)
-        logger.info("\n\n\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 DemoUtil result: " +
-                " \uD83C\uDF4F " + GSON.toJson(result)
-                + "    \uD83E\uDDE1 \uD83D\uDC9B \uD83D\uDC9A \uD83D\uDC99 \uD83D\uDC9C\n\n")
-        return result
-    }
 
     @GetMapping(value = ["/demo"], produces = ["application/json"])
     @Throws(Exception::class)
@@ -62,17 +44,21 @@ class AdminController(rpc: NodeRPCConnection) {
     }
     @GetMapping(value = ["/generateOffers"], produces = ["application/json"])
     @Throws(Exception::class)
-    private fun generateOffers(): String {
+    private fun generateOffers(@RequestParam max: Int?): String {
         logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 starting DemoUtil: generateOffers ... \uD83C\uDF4F ")
-        val result = DemoUtil.generateOffers(proxy)
+        var maximumRecords = 2000;
+        if (max != null) maximumRecords = max
+        val result = DemoUtil.generateOffers(proxy, maximumRecords)
         logger.info(result)
         return result
     }
     @GetMapping(value = ["/generateInvoices"], produces = ["application/json"])
     @Throws(Exception::class)
-    private fun generateInvoices(): String {
+    private fun generateInvoices(@RequestParam max: Int?): String {
         logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 starting DemoUtil: generateInvoices ... \uD83C\uDF4F ")
-        val result = DemoUtil.registerInvoices(proxy)
+        var maximumRecords = 10;
+        if (max != null) maximumRecords = max
+        val result = DemoUtil.generateInvoices(proxy, maximumRecords)
         logger.info(result)
         return result
     }
@@ -155,14 +141,10 @@ class AdminController(rpc: NodeRPCConnection) {
 
     @GetMapping(value = ["writeNodesToFirestore"])
     @Throws(Exception::class)
-    fun writeNodesToFirestore(): List<NodeInfoDTO> {
-        if (env == null) {
-            throw Exception("Environment variables not available")
-        } else {
-            logger.info("\uD83C\uDF40 \uD83C\uDF40 \uD83C\uDF40 " +
-                    "Environment variables available \uD83C\uDF40 ")
-        }
-        return writeNodesToFirestore(proxy, env)
+    fun writeNodesToFirestore(appProperties: AppProperties): List<NodeInfoDTO> {
+
+        return FirebaseUtil.refreshNodes(proxy, appProperties)
+
     }
 
     @GetMapping(value = ["/hello"], produces = ["text/plain"])

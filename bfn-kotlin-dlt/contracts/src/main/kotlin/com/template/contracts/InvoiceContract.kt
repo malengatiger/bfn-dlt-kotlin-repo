@@ -30,13 +30,8 @@ class InvoiceContract : Contract {
         val contractState = tx.getOutput(0) as? InvoiceState
                 ?: throw IllegalArgumentException("Output state must be an InvoiceState")
 
-        if (!requiredSigners.contains(contractState.supplierInfo.host.owningKey)) {
-            throw IllegalArgumentException("Supplier Party must sign")
-        }
-        if (!requiredSigners.contains(contractState.customerInfo.host.owningKey)) {
-            throw IllegalArgumentException("Customer Party must sign")
-        }
-        logger.info(" \uD83D\uDD06 \uD83D\uDD06 InvoiceContract:  \uD83C\uDF4E verification done OK! .....\uD83E\uDD1F \uD83E\uDD1F ")
+        logger.info(" \uD83D\uDD06 \uD83D\uDD06 InvoiceContract: " +
+                "\uD83C\uDF4E verification done OK! .....\uD83E\uDD1F \uD83E\uDD1F ")
     }
 
     class Register : CommandData

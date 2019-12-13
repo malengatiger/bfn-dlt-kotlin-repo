@@ -1,6 +1,7 @@
 package com.template.webserver
 
 import com.google.cloud.firestore.CollectionReference
+import com.google.cloud.firestore.Firestore
 import com.google.firebase.auth.ExportedUserRecord
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
@@ -15,7 +16,9 @@ import com.template.dto.AccountInfoDTO
 import com.template.dto.InvoiceDTO
 import com.template.dto.InvoiceOfferDTO
 import com.template.dto.NodeInfoDTO
+import net.corda.core.messaging.CordaRPCOps
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 import java.util.concurrent.ExecutionException
 import java.util.function.Consumer
@@ -23,9 +26,10 @@ import java.util.function.Consumer
 object FirebaseUtil {
     private val logger = LoggerFactory.getLogger(FirebaseUtil::class.java)
     private val GSON = GsonBuilder().setPrettyPrinting().create()
-    val auth = FirebaseAuth.getInstance()
-    val db = FirestoreClient.getFirestore()
-    val messaging = FirebaseMessaging.getInstance()
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val db: Firestore = FirestoreClient.getFirestore()
+    private val messaging: FirebaseMessaging = FirebaseMessaging.getInstance()
+
     @JvmStatic
     @Throws(ExecutionException::class, InterruptedException::class)
     fun sendInvoiceOfferMessage(offer: InvoiceOfferDTO?) {
@@ -75,14 +79,45 @@ object FirebaseUtil {
     @Throws(Exception::class)
     fun addNode(node: NodeInfoDTO?) {
         try {
-            val future = db.collection("nodes").add(node)
-            logger.info("🅿️ 🅿️ 🅿️ Added node document with ID: " + future.get().id)
+            db.collection("nodes").add(node)
+            logger.info("\uD83D\uDC9B  Added corda node to Firestore: ⚽ " +
+                    " ${node!!.addresses!!.first()}  \uD83C\uDF00 ${node!!.webAPIUrl}")
         } catch (e: Exception) {
             logger.error("Failed to add node", e)
             throw e
         }
     }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun refreshNodes(proxy: CordaRPCOps, appProperties: AppProperties) : List<NodeInfoDTO> {
+        logger.info(" \uD83C\uDF3A \uD83C\uDF3A \uD83C\uDD7F️ \uD83C\uDD7F️ \uD83C\uDD7F️ " +
+                "Refreshing Nodes on Firebase ...  \uD83C\uDF3A \uD83C\uDF3A ")
 
+        val kList = WorkerBee.listNodes(proxy)
+        deleteNodes()
+        kList.forEach() {
+            if (it.addresses!!.first().contains("PartyA")) {
+                it.webAPIUrl = appProperties.partyA
+            }
+            if (it.addresses!!.first().contains("PartyB")) {
+                it.webAPIUrl = appProperties.partyB
+            }
+            if (it.addresses!!.first().contains("PartyC")) {
+                it.webAPIUrl = appProperties.partyC
+            }
+            if (it.addresses!!.first().contains("Regulator")) {
+                it.webAPIUrl = appProperties.regulator
+            }
+           addNode(it)
+        }
+
+        kList.forEach() {
+            logger.info(" \uD83E\uDD6C \uD83E\uDD6C Corda Node  \uD83C\uDF00 \uD83C\uDF00 " +
+                    "${GSON.toJson(it)} \uD83C\uDFC0 \uD83C\uDFC0 \uD83C\uDFC0 ")
+        }
+        return kList
+    }
+    @JvmStatic
     @Throws(Exception::class)
     fun deleteNodes() {
         try {
@@ -124,7 +159,7 @@ object FirebaseUtil {
                 }
                 auth.deleteUser(user.uid)
                 cnt++
-                logger.info("\uD83C\uDF4A \uD83C\uDF4A \uD83C\uDF4A User deleted: 🔵 #$cnt")
+                logger.info("\uD83C\uDF4A  User deleted: 🔵 #$cnt")
             }
             page = page.nextPage
         }
@@ -192,7 +227,7 @@ object FirebaseUtil {
             for (document in documents) {
                 document.reference.delete()
                 ++deleted
-                logger.info(" \uD83E\uDD4F  \uD83E\uDD4F  \uD83E\uDD4F  Deleted document:  \uD83D\uDC9C " + document.reference.path)
+                logger.info("\uD83E\uDD4F Deleted document:  \uD83D\uDC9C " + document.reference.path)
             }
             if (deleted >= batchSize) { // retrieve and delete another batch
                 deleteCollection(collection, batchSize)
