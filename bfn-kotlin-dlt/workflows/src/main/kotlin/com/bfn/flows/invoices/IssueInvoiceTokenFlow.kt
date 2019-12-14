@@ -5,28 +5,21 @@ import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.accounts.workflows.flows.RequestKeyForAccount
 import com.r3.corda.lib.accounts.workflows.internal.accountService
 import com.r3.corda.lib.accounts.workflows.ourIdentity
-import com.r3.corda.lib.tokens.contracts.states.EvolvableTokenType
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
-import com.r3.corda.lib.tokens.contracts.states.NonFungibleToken
 import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType
 import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.contracts.utilities.heldBy
 import com.r3.corda.lib.tokens.contracts.utilities.issuedBy
 import com.r3.corda.lib.tokens.contracts.utilities.of
 import com.r3.corda.lib.tokens.workflows.flows.issue.IssueTokensFlow
-import com.r3.corda.lib.tokens.workflows.flows.move.MoveTokensFlow
-import com.r3.corda.lib.tokens.workflows.flows.rpc.IssueTokens
 import com.r3.corda.lib.tokens.workflows.flows.rpc.MoveFungibleTokens
 import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount
 import com.r3.corda.lib.tokens.workflows.utilities.tokenAmountWithIssuerCriteria
-import com.template.states.InvoiceTokenType
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.StartableByRPC
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.identity.Party
-import net.corda.core.node.services.queryBy
-import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.utilities.ProgressTracker
 import java.math.BigDecimal
@@ -41,21 +34,23 @@ class IssueInvoiceTokenFlow(
     override val progressTracker = ProgressTracker()
     @Suspendable
     override fun call(): SignedTransaction {
-        logger.info(" \uD83C\uDF4E \uD83C\uDF4E IssueInvoiceTokenFlow: call started")
+        logger.info(" \uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E IssueInvoiceTokenFlow: call started")
 
-        val stateAndRef = serviceHub.accountService.accountInfo(accountId).single()
-        val account = stateAndRef.state.data
+        val stateAndRef = serviceHub.accountService.accountInfo(UUID.fromString(accountId))
+        val account = stateAndRef!!.state.data
 
         val issuer: Party = serviceHub.ourIdentity
-        val myTokenType = TokenType("ZAR", 2)
-        val myIssuedTokenType: IssuedTokenType = myTokenType issuedBy issuer
+        val zarTokenType = TokenType("ZAR", 2)
+        val myIssuedTokenType: IssuedTokenType = zarTokenType issuedBy issuer
 
         val anonParty = subFlow(RequestKeyForAccount(account))
         val fungibleToken: FungibleToken =  amount of myIssuedTokenType heldBy anonParty
-        val holderSession = initiateFlow(anonParty)
+        logger.info("\uD83E\uDDE9 \uD83E\uDDE9 Token: ${fungibleToken.issuedTokenType.tokenType.tokenIdentifier} created for \uD83C\uDF3F  $anonParty")
 
+        val holderSession = initiateFlow(anonParty)
         val tx = subFlow(IssueTokensFlow(fungibleToken, listOf(holderSession)))
-        logger.info(" \uD83C\uDF4E \uD83C\uDF4E Tokens issued: $fungibleToken ")
+        //
+        logger.info(" \uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E Tokens issued to ${account.name}, token: \uD83C\uDF4A $fungibleToken ")
         return tx
     }
 }

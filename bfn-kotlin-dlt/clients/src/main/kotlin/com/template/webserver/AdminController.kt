@@ -55,18 +55,29 @@ class AdminController(rpc: NodeRPCConnection) {
     @GetMapping(value = ["/generateInvoices"], produces = ["application/json"])
     @Throws(Exception::class)
     private fun generateInvoices(@RequestParam max: Int?): String {
-        logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 starting DemoUtil: generateInvoices ... \uD83C\uDF4F ")
+        logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 generateInvoices ... \uD83C\uDF4F ")
         var maximumRecords = 10;
         if (max != null) maximumRecords = max
         val result = DemoUtil.generateInvoices(proxy, maximumRecords)
         logger.info(result)
         return result
     }
+    @GetMapping(value = ["/selectBestOffer"], produces = ["application/json"])
+    @Throws(Exception::class)
+    private fun selectBestOffer(@RequestParam accountId: String,
+                                @RequestParam invoiceId: String): String {
+        logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 selectBestOffer requested " +
+                "... \uD83C\uDF4F ")
+        val token = WorkerBee.selectBestOffer(proxy,accountId,invoiceId)
+        logger.info("\uD83C\uDF0E \uD83C\uDF0E Token Issued and returned: \uD83C\uDF0E $token")
+        return "Token Issued and returned: ${token.issuedTokenType.tokenType.tokenIdentifier} amount: ${token.amount}";
+    }
 
     @PostMapping(value = ["/startAccountRegistrationFlow"], produces = ["application/json"])
     @Throws(Exception::class)
     private fun startAccountRegistrationFlow(@RequestBody user: UserDTO): AccountInfoDTO {
-        return startAccountRegistrationFlow(proxy, user.name!!, user.email, user.password, user.cellphone)
+        return startAccountRegistrationFlow(proxy, user.name!!,
+                user.email, user.password, user.cellphone)
     }
 
     @get:GetMapping(value = ["getAccounts"])
@@ -79,10 +90,6 @@ class AdminController(rpc: NodeRPCConnection) {
         return WorkerBee.listFirestoreNodes()
     }
 
-    /*
-@GetMapping(value = "/states", produces = arrayOf("text/plain"))
-    private fun states() = proxy.vaultQueryBy<ContractState>().states.toString()
- */
     @get:GetMapping(value = ["/getStates"], produces = ["application/json"])
     private val states: List<String>
         private get() {

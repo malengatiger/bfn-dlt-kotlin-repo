@@ -28,14 +28,10 @@ class InvoiceRegistrationFlowResponder(private val counterPartySession: FlowSess
         }
         subFlow(signTransactionFlow)
         val signedTransaction = subFlow(ReceiveFinalityFlow(counterPartySession))
-        Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  Transaction finalized!" +
+        Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  InvoiceRegistrationFlowResponder finalized!" +
                 " \uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C \uD83E\uDD1F \uD83C\uDF4F \uD83C\uDF4E $signedTransaction")
-
-        Companion.logger.info("\uD83D\uDCCC \uD83D\uDCCC \uD83D\uDCCC  Talking to the Regulator, for compliance, Senor! .............")
-
         try {
             subFlow(ReportToRegulatorFlow(signedTransaction))
-            Companion.logger.info("\uD83D\uDCCC \uD83D\uDCCC \uD83D\uDCCC  DONE talking to the Regulator, Phew!")
         } catch (e: Exception) {
             Companion.logger.error(" \uD83D\uDC7F  \uD83D\uDC7F  \uD83D\uDC7F Regulator fell down.  \uD83D\uDC7F IGNORED  \uD83D\uDC7F ", e)
             throw FlowException("Regulator fell down!")

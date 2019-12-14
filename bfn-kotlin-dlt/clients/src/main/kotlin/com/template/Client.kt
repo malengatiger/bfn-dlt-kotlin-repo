@@ -2,7 +2,6 @@ package com.template
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
 import com.template.states.InvoiceOfferState
 import com.template.states.InvoiceState
-import com.template.webserver.FirebaseUtil
 import net.corda.client.rpc.CordaRPCClient
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.node.services.Vault
@@ -54,17 +53,25 @@ private class Client {
 
         val clientReg = CordaRPCClient(nodeAddressRegulator)
         val proxyReg = clientReg.start(rpcUsername, rpcPassword).proxy
-        getThisNode(proxyReg)
 
+        getThisNode(proxyReg)
         doNodesAndAggregates(proxyPartyA, proxyPartyB, proxyPartyC, proxyReg)
-        //startDemo(false, deleteFirestore = true);
-        generateOffers()
+
+//        startAccounts(true, deleteFirestore = true);
+///
+//        generateInvoices()
+//        generateOffers()
+        runInvoiceOfferAuction(proxyPartyA)
+//        runInvoiceOfferAuction(proxyPartyB)
+//        runInvoiceOfferAuction(proxyPartyC)
+    }
+    fun recoverUsingFirestore() {
 
     }
-    fun startDemo(generateAccounts: Boolean = false, deleteFirestore: Boolean = false) {
+    private fun startAccounts(generateAccounts: Boolean = false, deleteFirestore: Boolean = false) {
         if (generateAccounts) {
             logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 accounts for PARTY A")
-            var status = generateAccounts(url = "http://localhost:10050",
+            var status = startAccountsForNode(url = "http://localhost:10050",
                     deleteFirestore = deleteFirestore)
             if(status == 200) {
                 logger.info(" \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C Successfully generated Party A")
@@ -73,7 +80,7 @@ private class Client {
             }
 
             logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 accounts for PARTY B")
-            status = generateAccounts(url = "http://localhost:10053",
+            status = startAccountsForNode(url = "http://localhost:10053",
                     deleteFirestore = false)
             if(status == 200) {
                 logger.info(" \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C Successfully generated Party B")
@@ -81,7 +88,7 @@ private class Client {
                 logger.info("Houston, we down, \uD83D\uDCA6 status :  $status ")
             }
             logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 accounts for PARTY C")
-            status = generateAccounts(url = "http://localhost:10056",
+            status = startAccountsForNode(url = "http://localhost:10056",
                     deleteFirestore = false)
             if(status == 200) {
                 logger.info(" \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C Successfully generated Party C")
@@ -97,50 +104,50 @@ private class Client {
 
     }
     private fun generateInvoices() {
-        logger.info(" \uD83D\uDE21  generateInvoices for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
+        logger.info("\uD83D\uDE21  generateInvoices for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
         val response = httpGet(
                 timeout = 990000000.0,
                 url = "http://localhost:10050/admin/generateInvoices")
-        logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${response.statusCode}  " +
-                "\uD83C\uDF4E \uD83C\uDF4E ${response.text}")
+        logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response.statusCode}  " +
+                "${response.text}")
 
-        logger.info(" \uD83D\uDE21  generateInvoices for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
+        logger.info("\uD83D\uDE21  generateInvoices for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
         val response2 = httpGet(
                 timeout = 990000000.0,
                 url = "http://localhost:10053/admin/generateInvoices")
-        logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${response2.statusCode}  " +
-                "\uD83C\uDF4E \uD83C\uDF4E ${response2.text}")
+        logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${response2.statusCode}  " +
+                "${response2.text}")
 
-        logger.info(" \uD83D\uDE21  generateInvoices for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
+        logger.info("\uD83D\uDE21  generateInvoices for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
         val response3 = httpGet(
                 timeout = 990000000.0,
                 url = "http://localhost:10056/admin/generateInvoices")
-        logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${response3.statusCode}  " +
-                "\uD83C\uDF4E \uD83C\uDF4E ${response3.text}")
+        logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response3.statusCode}  " +
+                "${response3.text}")
     }
     private fun generateOffers() {
         logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
         val response = httpGet(
                 timeout = 990000000.0,
                 url = "http://localhost:10050/admin/generateOffers")
-        logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${response.statusCode}  " +
-                "\uD83C\uDF4E \uD83C\uDF4E ${response.text}")
+        logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response.statusCode}  " +
+                "${response.text}")
 
         logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
         val response2 = httpGet(
                 timeout = 990000000.0,
                 url = "http://localhost:10053/admin/generateOffers")
-        logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${response2.statusCode}  " +
-                "\uD83C\uDF4E \uD83C\uDF4E ${response2.text}")
+        logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response2.statusCode}  " +
+                " ${response2.text}")
 
         logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
         val response3 = httpGet(
                 timeout = 990000000.0,
                 url = "http://localhost:10056/admin/generateOffers")
-        logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${response3.statusCode}  " +
-                "\uD83C\uDF4E \uD83C\uDF4E ${response3.text}")
+        logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${response3.statusCode}  " +
+                "${response3.text}")
     }
-    fun generateAccounts(url: String, deleteFirestore: Boolean ): Int {
+    private fun startAccountsForNode(url: String, deleteFirestore: Boolean ): Int {
         logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 " +
                 "\uD83D\uDD35 \uD83D\uDD35 generateAccounts: $url deleteFirestore: $deleteFirestore")
         val response = httpGet(
@@ -175,18 +182,18 @@ private class Client {
         //        getFlows(proxyReg)
         //        getFlows(proxyNotary)
     }
-    fun getFlows(proxy: CordaRPCOps) {
+    private fun getFlows(proxy: CordaRPCOps) {
         logger.info("\n\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35  \uD83C\uDF81 " +
                 "Registered flows for:  \uD83D\uDD06 ${proxy.nodeInfo().legalIdentities.first()}")
         proxy.registeredFlows().forEach() {
             logger.info(" \uD83C\uDF81 Registered flow:  \uD83D\uDD06 $it")
         }
     }
-    fun getThisNode(proxy: CordaRPCOps) {
+    private fun getThisNode(proxy: CordaRPCOps) {
         val me = proxy.nodeInfo();
         logger.info("\uD83E\uDD6C \uD83E\uDD6C I am connected to (p2pPort): \uD83E\uDD6C ${me.addresses.first()} - \uD83C\uDF4A - ${me.legalIdentities.first()}")
     }
-    fun getNodes(proxy: CordaRPCOps) {
+    private fun getNodes(proxy: CordaRPCOps) {
         val nodes = proxy.networkMapSnapshot()
         nodes.forEach() {
             logger.info("\uD83D\uDC9A \uD83D\uDC99 \uD83D\uDC9C Node found: \uD83D\uDC9A ${it.addresses.first()}  \uD83C\uDF00 \uD83C\uDF00 ${it.legalIdentities.first()}")
@@ -195,7 +202,7 @@ private class Client {
         val notary = proxy.notaryIdentities().first();
         logger.info("\uD83D\uDD31 \uD83D\uDD31 Notary is \uD83D\uDD31 ${notary.name}")
     }
-    fun getAggregates(proxy: CordaRPCOps) {
+    private fun getAggregates(proxy: CordaRPCOps) {
         val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
         val page = proxy.vaultQueryByWithPagingSpec(criteria = criteria, contractStateType = AccountInfo::class.java,
                 paging = PageSpecification(pageNumber = 1, pageSize = 200))
@@ -211,7 +218,7 @@ private class Client {
 
         logger.info("InvoiceOffers on Node: ♻️ ${pageInvoiceOffers.totalStatesAvailable} ♻️")
     }
-    fun getAccountDetails(proxy: CordaRPCOps) {
+    private fun getAccountDetails(proxy: CordaRPCOps) {
         val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
         val page = proxy.vaultQueryByCriteria(criteria = criteria, contractStateType = AccountInfo::class.java)
         var cnt = 1
@@ -225,7 +232,7 @@ private class Client {
 
 
     }
-    fun getInvoiceDetails(proxy: CordaRPCOps) {
+    private fun getInvoiceDetails(proxy: CordaRPCOps) {
         val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
         val pageInvoices = proxy.vaultQueryByCriteria(criteria = criteria, contractStateType = InvoiceState::class.java)
         var cnt = 1
@@ -237,18 +244,105 @@ private class Client {
         logger.info("Invoices on Node: ♻️ ${pageInvoices.states.size} ♻️")
 
     }
-    fun getInvoiceOffers(proxy: CordaRPCOps) {
-        val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
-        val page = proxy.vaultQueryByCriteria(criteria = criteria, contractStateType = InvoiceOfferState::class.java)
-        var cnt = 1
-        val sorted = page.states.sortedBy { it.state.data.supplier.name }
-        sorted.forEach() {
-            logger.info("\uD83E\uDDE9\uD83E\uDDE9 InvoiceOffer #$cnt \uD83E\uDDE9 ${it.state.data}")
-            cnt++
+    private fun runInvoiceOfferAuction(proxy: CordaRPCOps) {
+        mList.clear()
+        var pageNumber = 1
+        val pageSize = 200
+        val page = query(proxy, pageNumber = pageNumber, pageSize = pageSize)
+        logger.info("\n................... \uD83D\uDCCC Printing page $pageNumber")
+        printList(page)
 
+        val remainder: Int = (page.totalStatesAvailable % pageSize).toInt()
+        var pageCnt: Int = (page.totalStatesAvailable / pageSize).toInt()
+        if (remainder > 0) pageCnt++
+
+        if (pageCnt > 1)  {
+            while (pageNumber < pageCnt) {
+                pageNumber++
+                val pageX = query(proxy,pageNumber, pageSize)
+                logger.info("................... \uD83D\uDCCC Printing page $pageNumber")
+                printList(pageX)
+            }
         }
-        logger.info("InvoiceOffers on Node: ♻️ ${page.states.size} ♻️")
+
+        val sorted = mList.sortedBy { it.invoiceId.toString() }
+        var cnt = 1
+        logger.info("\n\n................... \uD83D\uDCCC \uD83D\uDCCC Printing offers sorted by invoiceId")
+        sorted.forEach() {
+            logger.info(" \uD83D\uDD06 #$cnt accountId: ${it.supplier.identifier.id} " +
+                    "invoiceId: ${it.invoiceId} \uD83C\uDF88 investor: ${it.investor.name} " +
+                    " \uD83E\uDDE9 supplier: ${it.supplier.name}")
+            cnt++
+        }
+        logger.info("\n\nInvoiceOffers on Node: ♻️ ${page.totalStatesAvailable} ♻️")
+        logger.info("InvoiceOffers gathered: ♻️ ${mList.size} ♻️")
+        selectBestOffers()
+
+    }
+    private fun selectBestOffers() {
+        val map: MutableMap<String,AccountInfo> = mutableMapOf()
+        mList.forEach() {
+            map[it.invoiceId.toString()] = it.supplier
+        }
 
 
+        var cnt = 1
+        map.forEach() {
+            logger.info("\uD83C\uDF88 \uD83C\uDF88 Invoice to be processed: #$cnt " +
+                    "\uD83D\uDC9A invoiceId: ${it.key} - account: ${it.value.name}")
+            val params: MutableMap<String, String> = mutableMapOf()
+            params["accountId"] = it.value.identifier.id.toString()
+            params["invoiceId"] = it.key
+
+            if (it.value.host.name.toString().contains("PartyA")) {
+                logger.info("\uD83D\uDE21  selectBestOffer using PARTY A, account: ${it.value.name}  \uD83D\uDE21  \uD83D\uDE21 ")
+                val response = httpGet(
+                        timeout = 990000000.0, params = params,
+                        url = "http://localhost:10050/admin/selectBestOffer")
+                val result = response.text
+                logger.info("\uD83C\uDF38 WINNING offer:  #$cnt  \uD83C\uDF38 $result")
+            }
+            if (it.value.host.name.toString().contains("PartyB")) {
+                logger.info("\uD83D\uDE21  selectBestOffer using PARTY B, account: ${it.value.name}  \uD83D\uDE21  \uD83D\uDE21 ")
+                val response = httpGet(
+                        timeout = 990000000.0, params = params,
+                        url = "http://localhost:10053/admin/selectBestOffer")
+                val result = response.text
+                logger.info("\uD83C\uDF38 WINNING offer:  #$cnt  \uD83C\uDF38 $result")
+            }
+            if (it.value.host.name.toString().contains("PartyC")) {
+                logger.info("\uD83D\uDE21  selectBestOffer using PARTY C, account: ${it.value.name}  \uD83D\uDE21  \uD83D\uDE21 ")
+                val response = httpGet(
+                        timeout = 990000000.0, params = params,
+                        url = "http://localhost:10056/admin/selectBestOffer")
+                val result = response.text
+                logger.info("\uD83C\uDF38 WINNING offer:  #$cnt  \uD83C\uDF38 $result")
+            }
+            cnt++
+            if (cnt > 1) {
+                return
+            }
+        }
+    }
+    private val mList: MutableList<InvoiceOfferState> = ArrayList()
+    private fun printList(page: Vault.Page<InvoiceOfferState>) {
+
+        var cnt = 1
+        page.states.forEach() {
+           logger.info(" \uD83D\uDD06 #$cnt accountId: ${it.state.data.supplier.identifier.id} " +
+                   "invoiceId: ${it.state.data.invoiceId} \uD83C\uDF88 investor: ${it.state.data.investor.name} " +
+                   " \uD83E\uDDE9 supplier: ${it.state.data.supplier.name}")
+            mList.add(it.state.data)
+            cnt++
+        }
+    }
+    private fun query(proxy: CordaRPCOps, pageNumber: Int, pageSize: Int): Vault.Page<InvoiceOfferState> {
+        val criteria = QueryCriteria.VaultQueryCriteria(
+                status = Vault.StateStatus.UNCONSUMED)
+
+        return  proxy.vaultQueryByWithPagingSpec(
+                contractStateType = InvoiceOfferState::class.java,
+                paging = PageSpecification(pageNumber = pageNumber, pageSize = pageSize),
+                criteria = criteria)
     }
 }

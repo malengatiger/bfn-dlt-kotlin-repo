@@ -7,15 +7,13 @@ import com.bfn.flows.invoices.InvoiceRegistrationFlow
 import com.google.firebase.cloud.FirestoreClient
 import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
-import com.r3.corda.lib.tokens.workflows.flows.issue.IssueTokensFlow
+import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 import com.template.dto.*
 
 import com.template.states.InvoiceOfferState
 import com.template.states.InvoiceState
-import com.template.states.InvoiceTokenType
 import com.template.webserver.FirebaseUtil.addNode
 import com.template.webserver.FirebaseUtil.createUser
-import com.template.webserver.FirebaseUtil.deleteCollection
 import com.template.webserver.FirebaseUtil.sendAccountMessage
 import com.template.webserver.FirebaseUtil.sendInvoiceMessage
 import com.template.webserver.FirebaseUtil.sendInvoiceOfferMessage
@@ -27,7 +25,6 @@ import net.corda.core.node.services.vault.PageSpecification
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.node.services.vault.QueryCriteria.VaultQueryCriteria
 import org.slf4j.LoggerFactory
-import org.springframework.core.env.Environment
 import java.util.*
 import java.util.concurrent.ExecutionException
 
@@ -458,7 +455,6 @@ object WorkerBee {
     @Throws(Exception::class)
     fun startInvoiceOfferFlow(proxy: CordaRPCOps, invoiceOffer: InvoiceOfferDTO): InvoiceOfferDTO {
         return try {
-            logger.info(" \uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 startInvoiceOfferFlow ....")
             //todo - refactor to proper query ...
             val criteria: QueryCriteria = VaultQueryCriteria(StateStatus.UNCONSUMED)
             val (states) = proxy.vaultQueryByWithPagingSpec(
@@ -503,66 +499,6 @@ object WorkerBee {
     }
 
     @Throws(Exception::class)
-    fun startInvoiceOfferFlowToAllAccounts(proxy: CordaRPCOps, all: InvoiceOfferAllDTO): List<InvoiceOfferDTO> {
-        return try {
-            if (all.discount == Double.MIN_VALUE) {
-                throw Exception("Discount not found")
-            }
-            //todo - refactor to proper query ...
-            val criteria: QueryCriteria = VaultQueryCriteria(StateStatus.UNCONSUMED)
-            val (states) = proxy.vaultQueryByWithPagingSpec(
-                    InvoiceState::class.java, criteria,
-                    PageSpecification(1, 200))
-            var invoiceState: InvoiceState? = null
-            for (state in states) {
-                if (state.state.data.invoiceId.toString().equals(all.invoiceId, ignoreCase = true)) {
-                    invoiceState = state.state.data
-                    break
-                }
-            }
-            if (invoiceState == null) {
-                throw Exception("Invoice not found")
-            }
-            val (states1) = proxy.vaultQueryByWithPagingSpec(
-                    AccountInfo::class.java, criteria,
-                    PageSpecification(1, 200))
-            val m = getAccount(proxy, all.accountId)
-            val offers: MutableList<InvoiceOfferDTO> = ArrayList()
-            //
-            val invoiceOffer = InvoiceOfferDTO()
-            invoiceOffer.invoiceId = all.invoiceId
-            invoiceOffer.invoiceNumber = invoiceState.invoiceNumber
-            invoiceOffer.offerAmount = invoiceOffer.offerAmount
-            invoiceOffer.discount = invoiceOffer.discount
-            invoiceOffer.supplier = m
-            invoiceOffer.owner = m
-            invoiceOffer.originalAmount = invoiceState.amount
-            invoiceOffer.offerDate = Date()
-            val n = 100.0 - (invoiceOffer.discount?.div(100)!!)
-            invoiceOffer.offerAmount = invoiceOffer.originalAmount!! * n
-            logger.info("\uD83D\uDC7D \uD83D\uDC7D INVOICE: " + invoiceOffer.invoiceId)
-            logger.info("we have to send offer  to " + (states1.size - 1) + " accounts")
-            for (info in states1) {
-                if (info.state.data.identifier.id.toString().equals(all.accountId, ignoreCase = true)) {
-                    logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 Ignore this account :: \uD83D\uDE21  " + info.state.data.name)
-                    continue
-                }
-                invoiceOffer.investor = getDTO(info.state.data)
-                val offerDTO = processInvoiceOffer(proxy, invoiceOffer,
-                        invoiceState, info.state.data)
-                offers.add(offerDTO)
-            }
-            offers
-        } catch (e: Exception) {
-            if (e.message != null) {
-                throw Exception("Failed to add invoiceOffers. " + e.message)
-            } else {
-                throw Exception("Failed to add invoiceOffers. Unknown cause")
-            }
-        }
-    }
-
-    @Throws(Exception::class)
     private fun processInvoiceOffer(proxy: CordaRPCOps, invoiceOffer: InvoiceOfferDTO, invoiceState: InvoiceState, investorInfo: AccountInfo): InvoiceOfferDTO {
         val invoiceOfferState = InvoiceOfferState(
                 invoiceId = invoiceState.invoiceId,
@@ -581,12 +517,11 @@ object WorkerBee {
                 .returnValue
         val issueTx = signedTransactionCordaFuture.get()
         logger.info("\uD83C\uDF4F \uD83C\uDF4F processInvoiceOffer completed... " +
-                "\uD83C\uDF4F \uD83C\uDF4F \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDC4C " +
-                "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C  signedTransaction returned: \uD83E\uDD4F " + issueTx.toString() + " \uD83E\uDD4F \uD83E\uDD4F ")
+                "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C   ")
         val offerDTO = invoiceOfferState?.let { getDTO(it) }
         try {
             val reference = db.collection("invoiceOffers").add(offerDTO)
-            logger.info("\uD83E\uDDE9\uD83E\uDDE9\uD83E\uDDE9\uD83E\uDDE9\uD83E\uDDE9\uD83E\uDDE9 " +
+            logger.info("\uD83E\uDDE9 " +
                     "Firestore invoiceOffers path: " + reference.get().path)
         } catch (e: Exception) {
             logger.error(e.message)
@@ -595,6 +530,17 @@ object WorkerBee {
         return offerDTO!!
     }
 
+    fun selectBestOffer(proxy: CordaRPCOps, accountId: String,
+                        invoiceId: String): FungibleToken {
+
+        val cordaFuture = proxy.startTrackedFlowDynamic(
+                SelectBestInvoiceOfferFlow::class.java, accountId, invoiceId)
+                .returnValue
+        val token = cordaFuture.get()
+        logger.info("\uD83C\uDF4F \uD83C\uDF4F selectBestOffer completed... token issued " +
+                "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C   $token")
+        return token
+    }
     @JvmStatic
     @Throws(Exception::class)
     fun getDTO(state: InvoiceState): InvoiceDTO {
