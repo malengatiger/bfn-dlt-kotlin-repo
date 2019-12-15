@@ -2,12 +2,9 @@ package com.template
 import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
-import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType
-import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.template.states.InvoiceOfferState
 import com.template.states.InvoiceState
 import com.template.states.OfferAndTokenState
-import com.template.webserver.WorkerBee
 import net.corda.client.rpc.CordaRPCClient
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.node.services.Vault
@@ -69,8 +66,8 @@ private class Client {
 //
 //        generateInvoices()
 //        generateOffers()
-
-//        runInvoiceOfferAuction(proxyPartyA)
+//
+        runInvoiceOfferAuction(proxyPartyA)
 //        runInvoiceOfferAuction(proxyPartyB)
 //        runInvoiceOfferAuction(proxyPartyC)
 //
@@ -294,10 +291,9 @@ private class Client {
     private fun runInvoiceOfferAuction(proxy: CordaRPCOps) {
         mList.clear()
         var pageNumber = 1
-        val pageSize = 200
+        val pageSize = 1200
         val page = query(proxy, pageNumber = pageNumber, pageSize = pageSize)
-        logger.info("\n................... \uD83D\uDCCC Printing page $pageNumber")
-        printList(page)
+        addToList(page)
 
         val remainder: Int = (page.totalStatesAvailable % pageSize).toInt()
         var pageCnt: Int = (page.totalStatesAvailable / pageSize).toInt()
@@ -307,18 +303,19 @@ private class Client {
             while (pageNumber < pageCnt) {
                 pageNumber++
                 val pageX = query(proxy,pageNumber, pageSize)
-                logger.info("................... \uD83D\uDCCC Printing page $pageNumber")
-                printList(pageX)
+                logger.info("................... \uD83D\uDCCC .......... \uD83D\uDCCC \uD83D\uDCCC Printing page $pageNumber")
+                addToList(pageX)
             }
         }
 
         val sorted = mList.sortedBy { it.invoiceId.toString() }
         var cnt = 1
-        logger.info("\n\n................... \uD83D\uDCCC \uD83D\uDCCC Printing offers sorted by invoiceId")
+        logger.info("\n\n................... \uD83D\uDCCC \uD83D\uDCCC " +
+                "Printing offers sorted by invoiceId .... \uD83D\uDCCC \uD83D\uDCCC")
         sorted.forEach() {
-            logger.info(" \uD83D\uDD06 #$cnt accountId: ${it.supplier.identifier.id} " +
-                    "invoiceId: ${it.invoiceId} \uD83C\uDF88 investor: ${it.investor.name} " +
-                    " \uD83E\uDDE9 supplier: ${it.supplier.name}")
+            logger.info(" \uD83D\uDD06 #$cnt supplier: ${it.supplier.name}" +
+                    "host: ${it.supplier.host} \uD83C\uDF88 investor: ${it.investor.name} " +
+                    " \uD83E\uDDE9 host: ${it.investor.host} - \uD83E\uDDA0 offerAmt: ${it.offerAmount} from ${it.originalAmount}")
             cnt++
         }
         logger.info("\n\nInvoiceOffers on Node: ♻️ ${page.totalStatesAvailable} ♻️")
@@ -368,14 +365,11 @@ private class Client {
             cnt++
         }
     }
-    private val mList: MutableList<InvoiceOfferState> = ArrayList()
-    private fun printList(page: Vault.Page<InvoiceOfferState>) {
+    private val mList: MutableList<InvoiceOfferState> = mutableListOf()
+    private fun addToList(page: Vault.Page<InvoiceOfferState>) {
 
         var cnt = 1
         page.states.forEach() {
-           logger.info(" \uD83D\uDD06 #$cnt accountId: ${it.state.data.supplier.identifier.id} " +
-                   "invoiceId: ${it.state.data.invoiceId} \uD83C\uDF88 investor: ${it.state.data.investor.name} " +
-                   " \uD83E\uDDE9 supplier: ${it.state.data.supplier.name}")
             mList.add(it.state.data)
             cnt++
         }

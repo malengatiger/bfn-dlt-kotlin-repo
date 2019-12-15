@@ -52,8 +52,11 @@ class SelectBestInvoiceOfferFlow(private val supplierAccountId: String,
         val accountService = serviceHub.cordaService(KeyManagementBackedAccountService::class.java)
         val supplierAccount = accountService.accountInfo(UUID.fromString(supplierAccountId))!!.state.data
         Companion.logger.info(" \uD83C\uDF00 \uD83C\uDF00 ${supplierAccount.name} selecting best invoice offer ...")
-        val isFound = checkTokens()
-        Companion.logger.info(" \uD83C\uDF3F \uD83C\uDF3F Checked for duplicate OfferAndToken \uD83C\uDF3F we cool, Bro! - $isFound")
+        val oat = checkTokens()
+        if (oat != null) {
+            return oat
+        }
+        Companion.logger.info(" \uD83C\uDF3F \uD83C\uDF3F Checked for duplicate OfferAndToken \uD83C\uDF3F we cool, Bro! ")
         val (list: MutableList<StateAndRef<InvoiceOfferState>>, selected) = filterOffersByParams()
 
         //issue tokens
@@ -143,45 +146,9 @@ class SelectBestInvoiceOfferFlow(private val supplierAccountId: String,
 
         return signedTransaction
     }
-    @Suspendable
-    private fun addCloseOfferCommand(list: MutableList<StateAndRef<InvoiceOfferState>>, transactionBuilder: TransactionBuilder) {
-        val map: MutableMap<Party, Party> = mutableMapOf()
-        list.forEach() {
-            transactionBuilder.addInputState(it)
-            map[it.state.data.supplier.host] = it.state.data.supplier.host
-            map[it.state.data.investor.host] = it.state.data.investor.host
-        }
-        val keys: MutableList<PublicKey> = mutableListOf()
-        map.forEach() {
-            keys.add(it.key.owningKey)
-        }
-        transactionBuilder.addCommand(InvoiceOfferContract.CloseOffer(), keys)
-    }
-    @Suspendable
-    private fun addInvoiceCloseCommand(transactionBuilder: TransactionBuilder) {
-        //find underlying invoice and consume it
-        //todo - refactor this query
-        val page = serviceHub.vaultService.queryBy(
-                contractStateType = InvoiceState::class.java,
-                criteria = VaultQueryCriteria(status = StateStatus.UNCONSUMED),
-                paging = PageSpecification(
-                        pageSize = 500, pageNumber = 1
-                )
-        )
-        page.states.forEach() {
-            if (it.state.data.invoiceId.toString() == invoiceId) {
-                transactionBuilder.addInputState(it)
-                val supplierParty = it.state.data.supplierInfo.host
-                val customerParty = it.state.data.customerInfo.host
-                transactionBuilder.addCommand(InvoiceContract.Close(), listOf(supplierParty.owningKey, customerParty.owningKey))
-                Companion.logger.info("\uD83D\uDC7A ️Invoice to consume: ${it.state.data.supplierInfo.name} \uD83D\uDC7A " +
-                        "invoiceAmt: ${it.state.data.totalAmount} - ️ \uD83D\uDD34 invoice added to transaction")
-            }
-        }
-    }
 
     @Suspendable
-    private fun checkTokens(): Boolean {
+    private fun checkTokens(): OfferAndTokenState? {
         var isFound = false
         val page = serviceHub.vaultService.queryBy(
                 criteria = VaultQueryCriteria(status = StateStatus.UNCONSUMED),
@@ -190,18 +157,20 @@ class SelectBestInvoiceOfferFlow(private val supplierAccountId: String,
                         pageNumber = 1),
                 contractStateType = OfferAndTokenState::class.java)
 
+        var offerAndToken: OfferAndTokenState? = null
         page.states.forEach() {
             val mId = it.state.data.invoiceOffer.invoiceId.toString()
             if (mId == invoiceId) {
                 isFound = true
+                offerAndToken = it.state.data
             }
         }
         if (isFound) {
             val msg = "\uD83D\uDC7F This invoice has already been taken. \uD83D\uDC7F \uD83D\uDC7F Sorry Senor!"
             Companion.logger.error(msg)
-            throw IllegalStateException(msg)
+//            throw IllegalStateException(msg)
         }
-        return isFound
+        return offerAndToken
     }
 
     @Suspendable

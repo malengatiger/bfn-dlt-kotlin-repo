@@ -70,7 +70,7 @@ object DemoUtil {
         }
         //
         logger.info(" 👽 👽 👽 👽 start data generation:  👽 👽 👽 👽  ")
-        generateAccounts(5)
+        generateAccounts(3)
         //
         val list = getAccounts(proxy!!)
         var cnt = 0
