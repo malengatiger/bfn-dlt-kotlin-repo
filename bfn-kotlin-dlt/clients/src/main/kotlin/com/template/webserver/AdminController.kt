@@ -84,13 +84,7 @@ class AdminController(rpc: NodeRPCConnection) {
     @get:GetMapping(value = ["getAccounts"])
     val accounts: List<AccountInfoDTO>
         get() = getAccounts(proxy)
-
-    @GetMapping(value = ["listFirestoreNodes"])
-    @Throws(ExecutionException::class, InterruptedException::class)
-    fun listFirestoreNodes(): List<NodeInfoDTO> {
-        return WorkerBee.listFirestoreNodes()
-    }
-
+//getInvoiceStatesAcrossNodes
     @get:GetMapping(value = ["/getStates"], produces = ["application/json"])
     private val states: List<String>
         private get() {
@@ -106,6 +100,7 @@ class AdminController(rpc: NodeRPCConnection) {
                          @RequestParam(value = "accountId", required = false) accountId: String?): List<InvoiceDTO> {
         return getInvoiceStates(proxy, accountId, consumed)
     }
+
 
     @GetMapping(value = ["getInvoiceOfferStates"])
     @Throws(Exception::class)

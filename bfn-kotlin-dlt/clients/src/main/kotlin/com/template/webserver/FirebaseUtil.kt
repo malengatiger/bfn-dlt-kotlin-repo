@@ -4,6 +4,7 @@ import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.CollectionReference
 import com.google.cloud.firestore.DocumentReference
 import com.google.cloud.firestore.Firestore
+import com.google.cloud.firestore.QuerySnapshot
 import com.google.firebase.auth.ExportedUserRecord
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
@@ -96,7 +97,7 @@ object FirebaseUtil {
     @JvmStatic
     @Throws(Exception::class)
     fun refreshNodes(proxy: CordaRPCOps, appProperties: AppProperties) : List<NodeInfoDTO> {
-        logger.info(" \uD83C\uDF3A \uD83C\uDF3A \uD83C\uDD7F️ \uD83C\uDD7F️ \uD83C\uDD7F️ " +
+        logger.info(" \uD83C\uDF3A \uD83C\uDF3A \uD83E\uDD4F \uD83E\uDD4F \uD83E\uDD4F \uD83E\uDD4F  " +
                 "Refreshing Nodes on Firebase ...  \uD83C\uDF3A \uD83C\uDF3A ")
 
         val kList = WorkerBee.listNodes(proxy)
@@ -104,15 +105,40 @@ object FirebaseUtil {
         kList.forEach() {
             if (it.addresses!!.first().contains("PartyA")) {
                 it.webAPIUrl = appProperties.partyA
+                // "webAPIUrl": "http://192.168.86.240:10056/"
+                val index = appProperties.partyA.lastIndexOf(":")
+                val mPort = appProperties.partyA.substring(index + 1,endIndex = index + 6)
+                val mHost = appProperties.partyA.substring(0,endIndex = index )
+                it.port = mPort.toLong()
+                it.host = mHost
+                logger.info(" \uD83C\uDFC0 \uD83C\uDFC0 \uD83C\uDFC0 host: $mHost port: $mPort")
             }
             if (it.addresses!!.first().contains("PartyB")) {
                 it.webAPIUrl = appProperties.partyB
+                val index = appProperties.partyB.lastIndexOf(":")
+                val mPort = appProperties.partyB.substring(index + 1,endIndex = index + 6)
+                val mHost = appProperties.partyB.substring(0,endIndex = index )
+                it.port = mPort.toLong()
+                it.host = mHost
+                logger.info(" \uD83C\uDFC0 \uD83C\uDFC0 \uD83C\uDFC0 host: $mHost port: $mPort")
             }
             if (it.addresses!!.first().contains("PartyC")) {
                 it.webAPIUrl = appProperties.partyC
+                val index = appProperties.partyC.lastIndexOf(":")
+                val mPort = appProperties.partyC.substring(index + 1,endIndex = index + 6)
+                val mHost = appProperties.partyC.substring(0,endIndex = index )
+                it.port = mPort.toLong()
+                it.host = mHost
+                logger.info(" \uD83C\uDFC0 \uD83C\uDFC0 \uD83C\uDFC0 host: $mHost port: $mPort")
             }
             if (it.addresses!!.first().contains("Regulator")) {
                 it.webAPIUrl = appProperties.regulator
+                val index = appProperties.regulator.lastIndexOf(":")
+                val mPort = appProperties.regulator.substring(index + 1,endIndex = index + 6)
+                val mHost = appProperties.regulator.substring(0,endIndex = index )
+                it.port = mPort.toLong()
+                it.host = mHost
+                logger.info(" \uD83C\uDFC0 \uD83C\uDFC0 \uD83C\uDFC0 host: $mHost port: $mPort")
             }
            addNode(it)
         }
@@ -133,6 +159,30 @@ object FirebaseUtil {
             logger.error("Failed to delete nodes", e)
             throw e
         }
+    }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun getCordaNodes(): List<NodeInfoDTO> {
+        var mList : MutableList<NodeInfoDTO> = mutableListOf()
+        try {
+            val future = db.collection("nodes").get()
+            val qs: QuerySnapshot = future.get()
+            qs.documents.forEach() {
+                mList.add(NodeInfoDTO(
+                        webAPIUrl = it.data["webAPIUrl"] as String?,
+                        addresses = it.data["addresses"] as List<String>?,
+                        platformVersion = it.data["platformVersion"] as Long,
+                        serial = it.data["serial"] as Long,
+                        host = it.data["host"] as String?,
+                        port = it.data["port"] as Long?
+                ))
+            }
+
+        } catch (e: Exception) {
+            logger.error("Failed to get nodes", e)
+            throw e
+        }
+        return mList
     }
 
     @JvmStatic

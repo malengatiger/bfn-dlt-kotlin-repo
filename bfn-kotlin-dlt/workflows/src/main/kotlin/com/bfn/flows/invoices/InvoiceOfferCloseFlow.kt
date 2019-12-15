@@ -17,7 +17,7 @@ import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import org.slf4j.LoggerFactory
 
-
+@InitiatingFlow
 @StartableByRPC
 class InvoiceOfferCloseFlow(private val stateAndRef: StateAndRef<InvoiceOfferState>) : FlowLogic<SignedTransaction>() {
 

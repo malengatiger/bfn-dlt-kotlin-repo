@@ -4,6 +4,7 @@ import com.bfn.flows.CreateAccountFlow
 import com.bfn.flows.invoices.SelectBestInvoiceOfferFlow
 import com.bfn.flows.invoices.InvoiceOfferFlow
 import com.bfn.flows.invoices.InvoiceRegistrationFlow
+import com.bfn.flows.invoices.ShareInvoiceFlow
 import com.google.firebase.cloud.FirestoreClient
 import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
@@ -18,6 +19,7 @@ import com.template.webserver.FirebaseUtil.createUser
 import com.template.webserver.FirebaseUtil.sendAccountMessage
 import com.template.webserver.FirebaseUtil.sendInvoiceMessage
 import com.template.webserver.FirebaseUtil.sendInvoiceOfferMessage
+import net.corda.client.rpc.CordaRPCClient
 import net.corda.core.contracts.ContractState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.messaging.CordaRPCOps
@@ -25,6 +27,7 @@ import net.corda.core.node.services.Vault.StateStatus
 import net.corda.core.node.services.vault.PageSpecification
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.node.services.vault.QueryCriteria.VaultQueryCriteria
+import net.corda.core.utilities.NetworkHostAndPort
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ExecutionException
@@ -62,26 +65,6 @@ object WorkerBee {
         }
         logger.info(" \uD83E\uDDE1 \uD83D\uDC9B \uD83D\uDC9A Corda NetworkNodes found: \uD83D\uDC9A "
                 + nodeList.size + " \uD83D\uDC9A ")
-        return nodeList
-    }
-
-    @JvmStatic
-    @Throws(ExecutionException::class, InterruptedException::class)
-    fun listFirestoreNodes(): List<NodeInfoDTO> {
-        val nodeList: MutableList<NodeInfoDTO> = ArrayList()
-        val future = db.collection("nodes").get()
-        val snapshots = future.get()
-        val list = snapshots.documents
-        for (snapshot in list) {
-            val map = snapshot.data
-            val node = NodeInfoDTO()
-            node.webAPIUrl = map["webAPIUrl"] as String?
-            node.serial = (map["serial"] as Long?)!!
-            node.platformVersion = (map["platformVersion"] as Long?)!!
-            node.addresses = ArrayList()
-            (node.addresses as ArrayList<String>).add(map["addresses"].toString())
-            nodeList.add(node)
-        }
         return nodeList
     }
 
@@ -134,7 +117,7 @@ object WorkerBee {
                 if (consumed) StateStatus.CONSUMED else StateStatus.UNCONSUMED)
         val (states) = proxy.vaultQueryByWithPagingSpec(
                 InvoiceState::class.java, criteria,
-                PageSpecification(1, 200))
+                PageSpecification(1, 1000))
         val list: MutableList<InvoiceDTO> = ArrayList()
         logger.info("\uD83D\uDCA6 \uD83D\uDCA6 \uD83D\uDCA6 \uD83D\uDCA6 \uD83D\uDCA6 \uD83D\uDCA6 Total invoices found: " + states.size)
         var cnt = 0
@@ -377,6 +360,13 @@ object WorkerBee {
                     "\uD83C\uDF4F \uD83C\uDF4F \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06  " +
                     "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C  signedTransaction returned: \uD83E\uDD4F "
                     + issueTx.toString() + " \uD83E\uDD4F \uD83E\uDD4F ")
+            try {
+                logger.info("Share the new invoice with other nodes")
+                proxy.startTrackedFlowDynamic(
+                        ShareInvoiceFlow::class.java, invoiceState.invoiceId.toString()).returnValue
+            } catch (e: Exception) {
+               logger.warn("Invoice sharing failed", e)
+            }
             val dto = getDTO(invoiceState)
             //logger.info("Check amount discount total calculations: " + GSON.toJson(dto))
             try {

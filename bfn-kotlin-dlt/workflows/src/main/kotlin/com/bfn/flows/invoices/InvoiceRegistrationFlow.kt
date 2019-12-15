@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList
 import com.template.contracts.InvoiceContract
 import com.template.states.InvoiceState
 import net.corda.core.flows.*
+import net.corda.core.identity.Party
 import net.corda.core.node.ServiceHub
 import net.corda.core.node.services.Vault.StateStatus
 import net.corda.core.node.services.vault.PageSpecification
@@ -35,9 +36,7 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
             return FinalityFlow.tracker()
         }
     }
-    // The progress tracker checkpoints each stage of the flow and outputs the specified messages when each
-// checkpoint is reached in the code. See the 'progressTracker.currentStep' expressions within the call()
-// function.
+
     override val progressTracker = ProgressTracker(
             GENERATING_TRANSACTION,
             VERIFYING_TRANSACTION,
@@ -58,7 +57,6 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
         progressTracker.currentStep = GENERATING_KEYS
 
         //todo - SORT OUT THIS ACCOUNT THING ---> EXAMPLES FUCKED!
-        //val customerAccount = accountService.accountInfo(invoiceState.customerInfo.identifier.id)?.state?.data
         val customerParty = invoiceState.customerInfo.host //subFlow(RequestKeyForAccount(customerAccount!!))
         logger.info(" \uD83E\uDD4F  \uD83E\uDD4F  \uD83E\uDD4F customerAccount: ${invoiceState.customerInfo}")
         logger.info(" \uD83E\uDD4F  \uD83E\uDD4F  \uD83E\uDD4F customerParty: $customerParty")
@@ -112,6 +110,11 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
             return mSignedTransactionDone
         }
 
+        return processRemoteNode(supplierStatus, customerStatus, customerParty, signedTx, supplierParty)
+    }
+
+    @Suspendable
+    private fun processRemoteNode(supplierStatus: Int, customerStatus: Int, customerParty: Party, signedTx: SignedTransaction, supplierParty: Party): SignedTransaction? {
         Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 Supplier and Customer are NOT on the same node ..." +
                 "  \uD83D\uDE21 flowSession(s) required ... \uD83D\uDE21")
         var supplierSession: FlowSession

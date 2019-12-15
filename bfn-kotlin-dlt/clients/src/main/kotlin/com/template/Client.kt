@@ -65,14 +65,14 @@ private class Client {
         getThisNode(proxyReg)
         doNodesAndAggregates(proxyPartyA, proxyPartyB, proxyPartyC, proxyReg)
 
-        startAccounts(true, deleteFirestore = true);
+//        startAccounts(true, deleteFirestore = true);
 //
 //        generateInvoices()
 //        generateOffers()
 
-        runInvoiceOfferAuction(proxyPartyA)
-        runInvoiceOfferAuction(proxyPartyB)
-        runInvoiceOfferAuction(proxyPartyC)
+//        runInvoiceOfferAuction(proxyPartyA)
+//        runInvoiceOfferAuction(proxyPartyB)
+//        runInvoiceOfferAuction(proxyPartyC)
 //
         getOfferAndTokens(proxyPartyA)
         logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
