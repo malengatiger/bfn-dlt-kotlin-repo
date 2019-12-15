@@ -5,14 +5,7 @@ import com.template.states.InvoiceOfferState
 import net.corda.core.flows.*
 import net.corda.core.transactions.SignedTransaction
 import org.slf4j.LoggerFactory
-/*
-ERROR] 13:23:12+0200 [Node thread-1] amqp.DeserializationInput. - Serialization failed direction="Deserialize",
-type="net.corda.core.transactions.SignedTransaction",
-msg="Described type with descriptor net.corda:vlc3i8lJnO7K1i2g0g0+aA==
-was expected to be of type class net.corda.core.transactions.SignedTransaction
-but was class com.r3.corda.lib.tokens.workflows.internal.flows.finality.TransactionRole", ClassChain="net.corda.core.transactions.SignedTransaction" {fiber-id=10000117, flow-id=da0cf7f2-27f8-47d8-bb8b-8e85dbf6b22f, invocation_id=1d698164-a88f-4317-8f6b-58f516e46d37, invocation_timestamp=2019-12-14T11:23:12.675Z, origin=O=PartyC, L=Pretoria, C=ZA, session_id=1d698164-a88f-4317-8f6b-58f516e46d37, session_timestamp=2019-12-14T11:23:12.675Z, thread-id=240}
-[
- */
+
 @InitiatedBy(SelectBestInvoiceOfferFlow::class)
 class SelectBestInvoiceOfferFlowResponder(private val counterPartySession: FlowSession) : FlowLogic<SignedTransaction>() {
     @Suspendable
@@ -22,26 +15,42 @@ class SelectBestInvoiceOfferFlowResponder(private val counterPartySession: FlowS
                "SelectBestInvoiceOfferFlowResponder starting ....")
         val myself = serviceHub.myInfo.legalIdentities.first()
         val party = counterPartySession.counterparty
-        Companion.logger.info("\uD83C\uDF45 \uD83C\uDF45 This party: " + myself.name.toString()
-                + ", party from session: \uD83C\uDF45 " + party.name.toString())
+
+        Companion.logger.info("\uD83C\uDF45 \uD83C\uDF45 SelectBestInvoiceOfferFlowResponder: " +
+                "This party: \uD83C\uDF4E $myself \uD83C\uDF45 \uD83C\uDF45 counterParty: $party" )
 
         val signTransactionFlow: SignTransactionFlow = object : SignTransactionFlow(counterPartySession) {
             @Suspendable
             @Throws(FlowException::class)
             override fun checkTransaction(stx: SignedTransaction) {
-                SelectBestInvoiceOfferFlowResponder.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 checkTransaction here " +
+                SelectBestInvoiceOfferFlowResponder.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 would be checking Transaction here " +
                         "${stx.id} outputStates ${stx.coreTransaction.outputStates.size} ...")
+                stx.coreTransaction.outputStates.forEach() {
+                    SelectBestInvoiceOfferFlowResponder.logger.info("Output State: ${it.participants}")
+                }
             }
         }
-        Companion.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 run subFlow SignTransactionFlow ...")
+
+        Companion.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 about to run subFlow SignTransactionFlow ..." +
+                " \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06")
         subFlow(signTransactionFlow)
+        Companion.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 subFlow SignTransactionFlow completed..." +
+                " \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06")
+
         var signedTransaction: SignedTransaction? =  null
-        if (myself.toString() != counterPartySession.counterparty.name.toString()) {
+        if (myself.toString() != party.toString()) {
             signedTransaction = subFlow(ReceiveFinalityFlow(counterPartySession))
+        } else {
+            Companion.logger.info("\uD83C\uDF36 \uD83C\uDF36  SelectBestInvoiceOfferFlowResponder - \uD83D\uDC7F " +
+                    "HAVE NOT signedTransaction: \uD83C\uDF36 \uD83C\uDF36 counterParty is the same as Party. is this cool?")
         }
         if (signedTransaction != null) {
-            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  SelectBestInvoiceOfferFlowResponder Transaction finalized " +
+            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  " +
+                    "SelectBestInvoiceOfferFlowResponder Transaction finalized " +
                     "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C \uD83E\uDD1F \uD83C\uDF4F \uD83C\uDF4E ${signedTransaction.id}")
+        } else {
+            Companion.logger.info("\uD83D\uDC7F \uD83D\uDC7F SelectBestInvoiceOfferFlowResponder - " +
+                    "\uD83D\uDC7F signedTransaction is NULL")
         }
 
         return signedTransaction!!

@@ -1,7 +1,13 @@
 package com.template
+import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
+import com.r3.corda.lib.tokens.contracts.states.FungibleToken
+import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType
+import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.template.states.InvoiceOfferState
 import com.template.states.InvoiceState
+import com.template.states.OfferAndTokenState
+import com.template.webserver.WorkerBee
 import net.corda.client.rpc.CordaRPCClient
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.node.services.Vault
@@ -22,6 +28,8 @@ fun main(args: Array<String>) = Client().main(args)
 private class Client {
     companion object {
         val logger = loggerFor<Client>()
+        private val GSON = GsonBuilder().setPrettyPrinting().create()
+
     }
 
 
@@ -57,16 +65,55 @@ private class Client {
         getThisNode(proxyReg)
         doNodesAndAggregates(proxyPartyA, proxyPartyB, proxyPartyC, proxyReg)
 
-//        startAccounts(true, deleteFirestore = true);
-///
+        startAccounts(true, deleteFirestore = true);
+//
 //        generateInvoices()
 //        generateOffers()
-        runInvoiceOfferAuction(proxyPartyA)
-//        runInvoiceOfferAuction(proxyPartyB)
-//        runInvoiceOfferAuction(proxyPartyC)
-    }
-    fun recoverUsingFirestore() {
 
+        runInvoiceOfferAuction(proxyPartyA)
+        runInvoiceOfferAuction(proxyPartyB)
+        runInvoiceOfferAuction(proxyPartyC)
+//
+        getOfferAndTokens(proxyPartyA)
+        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
+        getOfferAndTokens(proxyPartyB)
+        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
+        getOfferAndTokens(proxyPartyC)
+        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
+        getOfferAndTokens(proxyReg)
+
+//        getTokens(proxyPartyA)
+//        getTokens(proxyPartyB)
+//        getTokens(proxyPartyC)
+//        getTokens(proxyReg)
+    }
+    fun getTokens(proxy: CordaRPCOps) {
+        val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
+        val page =
+        proxy.vaultQueryByWithPagingSpec(contractStateType = FungibleToken::class.java, criteria = criteria,
+                paging = PageSpecification(pageNumber = 1, pageSize = 200))
+        logger.info("\uD83D\uDE3C \uD83E\uDDE9 \uD83E\uDDE9 Tokens on Node: \uD83E\uDDE9 \uD83E\uDDE9 " +
+                "${proxy.nodeInfo().legalIdentities.first()} \uD83D\uDE3C ${page.totalStatesAvailable} \uD83D\uDE3C ")
+        page.states.forEach() {
+            logger.info("\uD83D\uDE3C \uD83D\uDE3C ${it.state.data}  \uD83C\uDF51 ")
+        }
+    }
+    fun getOfferAndTokens(proxy: CordaRPCOps) {
+        val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
+        val page =
+                proxy.vaultQueryByWithPagingSpec(contractStateType = OfferAndTokenState::class.java, criteria = criteria,
+                        paging = PageSpecification(pageNumber = 1, pageSize = 200))
+        logger.info("\uD83D\uDE3C \uD83E\uDDE9 \uD83E\uDDE9 Tokens on Node: \uD83E\uDDE9 \uD83E\uDDE9 " +
+                "${proxy.nodeInfo().legalIdentities.first()} \uD83D\uDE3C ${page.totalStatesAvailable} \uD83D\uDE3C ")
+
+        val sorted = page.states.sortedBy { it.state.data.invoiceOffer.investor.host.toString() }
+        sorted.forEach() {
+            logger.info("\uD83D\uDE3C \uD83D\uDE3C Investor: ${it.state.data.invoiceOffer.investor.host.name.organisation} " +
+                    "\uD83C\uDF51 ${it.state.data.invoiceOffer.investor.name} \uD83C\uDF51 " +
+                    " from supplier: \uD83D\uDD35  ${it.state.data.invoiceOffer.supplier.host.name.organisation} \uD83D\uDD35 ${it.state.data.invoiceOffer.supplier.name}" +
+                    " invoiceAmt: ${it.state.data.invoiceOffer.originalAmount} :discount: ${it.state.data.invoiceOffer.discount} " +
+                    " \uD83D\uDECE Token amount: ${it.state.data.token.amount} ")
+        }
     }
     private fun startAccounts(generateAccounts: Boolean = false, deleteFirestore: Boolean = false) {
         if (generateAccounts) {
@@ -280,48 +327,45 @@ private class Client {
 
     }
     private fun selectBestOffers() {
-        val map: MutableMap<String,AccountInfo> = mutableMapOf()
+        val map: MutableMap<String,InvoiceOfferState> = mutableMapOf()
         mList.forEach() {
-            map[it.invoiceId.toString()] = it.supplier
+            map[it.invoiceId.toString()] = it
         }
-
 
         var cnt = 1
         map.forEach() {
             logger.info("\uD83C\uDF88 \uD83C\uDF88 Invoice to be processed: #$cnt " +
-                    "\uD83D\uDC9A invoiceId: ${it.key} - account: ${it.value.name}")
+                    "\uD83D\uDC9A account: ${it.value.supplier.name}")
             val params: MutableMap<String, String> = mutableMapOf()
-            params["accountId"] = it.value.identifier.id.toString()
+            params["accountId"] = it.value.supplier.identifier.id.toString()
             params["invoiceId"] = it.key
+            params["invoiceAmount"] = it.value.originalAmount.toString()
 
-            if (it.value.host.name.toString().contains("PartyA")) {
-                logger.info("\uD83D\uDE21  selectBestOffer using PARTY A, account: ${it.value.name}  \uD83D\uDE21  \uD83D\uDE21 ")
+            if (it.value.supplier.host.name.toString().contains("PartyA")) {
+                logger.info("\uD83D\uDE21  selectBestOffer using PARTY A, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
                 val response = httpGet(
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10050/admin/selectBestOffer")
                 val result = response.text
-                logger.info("\uD83C\uDF38 WINNING offer:  #$cnt  \uD83C\uDF38 $result")
+                logger.info("\uD83C\uDF38 RESPONSE offer:  \uD83D\uDC2C #$cnt  \uD83C\uDF38 $result")
             }
-            if (it.value.host.name.toString().contains("PartyB")) {
-                logger.info("\uD83D\uDE21  selectBestOffer using PARTY B, account: ${it.value.name}  \uD83D\uDE21  \uD83D\uDE21 ")
+            if (it.value.supplier.host.name.toString().contains("PartyB")) {
+                logger.info("\uD83D\uDE21  selectBestOffer using PARTY B, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
                 val response = httpGet(
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10053/admin/selectBestOffer")
                 val result = response.text
-                logger.info("\uD83C\uDF38 WINNING offer:  #$cnt  \uD83C\uDF38 $result")
+                logger.info("\uD83C\uDF38 RESPONSE offer:  \uD83D\uDC2C #$cnt  \uD83C\uDF38 $result")
             }
-            if (it.value.host.name.toString().contains("PartyC")) {
-                logger.info("\uD83D\uDE21  selectBestOffer using PARTY C, account: ${it.value.name}  \uD83D\uDE21  \uD83D\uDE21 ")
+            if (it.value.supplier.host.name.toString().contains("PartyC")) {
+                logger.info("\uD83D\uDE21  selectBestOffer using PARTY C, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
                 val response = httpGet(
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10056/admin/selectBestOffer")
                 val result = response.text
-                logger.info("\uD83C\uDF38 WINNING offer:  #$cnt  \uD83C\uDF38 $result")
+                logger.info("\uD83C\uDF38 RESPONSE offer:  \uD83D\uDC2C #$cnt  \uD83C\uDF38 $result")
             }
             cnt++
-            if (cnt > 1) {
-                return
-            }
         }
     }
     private val mList: MutableList<InvoiceOfferState> = ArrayList()

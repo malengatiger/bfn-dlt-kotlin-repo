@@ -112,9 +112,9 @@ object DemoUtil {
                     if (cnt < maxRecords) {
                         val xx = random.nextInt(100)
                         if (xx > 80) {
-                            var discount = random.nextInt(10) * 1.5
+                            var discount = random.nextInt(25) * 1.5
                             if (discount == 0.0) {
-                                discount = 4.3
+                                discount = 4.36
                             }
                             logger.info("\uD83D\uDE21 Processing .... ${invoice.invoiceNumber} " +
                                     "\uD83C\uDF4F ${invoice.amount} for account:  \uD83D\uDC9C ${account.name}")

@@ -1,15 +1,12 @@
 package com.template.states
 
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
-import com.r3.corda.lib.tokens.contracts.types.TokenType
-import com.template.InvoiceContract
-import net.corda.core.contracts.Amount
+import com.template.contracts.InvoiceContract
 import net.corda.core.contracts.BelongsToContract
 import net.corda.core.contracts.ContractState
 import net.corda.core.identity.AbstractParty
 import net.corda.core.serialization.CordaSerializable
 import org.slf4j.LoggerFactory
-import java.math.BigDecimal
 import java.util.*
 
 // *********

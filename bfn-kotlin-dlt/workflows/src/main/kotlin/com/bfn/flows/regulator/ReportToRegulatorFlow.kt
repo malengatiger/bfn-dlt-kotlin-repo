@@ -17,7 +17,7 @@ class ReportToRegulatorFlow(private val signedTransaction: SignedTransaction) : 
                 "reporting to Regulator, Senor!")
         val regulator = serviceHub.networkMapCache.getNodeByLegalName(
                 CordaX500Name(organisation = "Regulator", country = "ZA", locality = "Pretoria"))
-        val x = regulator?.legalIdentities?.get(0)
+        val x = regulator?.legalIdentities?.first()
         val session = x?.let { initiateFlow(it) }
         session?.let { SendTransactionFlow(it, signedTransaction) }?.let { subFlow(it) }
         Companion.logger.info("\uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C" +

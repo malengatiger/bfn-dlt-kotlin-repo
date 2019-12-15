@@ -65,12 +65,13 @@ class AdminController(rpc: NodeRPCConnection) {
     @GetMapping(value = ["/selectBestOffer"], produces = ["application/json"])
     @Throws(Exception::class)
     private fun selectBestOffer(@RequestParam accountId: String,
-                                @RequestParam invoiceId: String): String {
+                                @RequestParam invoiceId: String, @RequestParam invoiceAmount: Double): OfferAndTokenDTO {
         logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 selectBestOffer requested " +
                 "... \uD83C\uDF4F ")
-        val token = WorkerBee.selectBestOffer(proxy,accountId,invoiceId)
-        logger.info("\uD83C\uDF0E \uD83C\uDF0E Token Issued and returned: \uD83C\uDF0E $token")
-        return "Token Issued and returned: ${token.issuedTokenType.tokenType.tokenIdentifier} amount: ${token.amount}";
+        val offerAndTokenDTO = WorkerBee.selectBestOffer(proxy = proxy,
+                accountId = accountId, invoiceId = invoiceId, invoiceAmount = invoiceAmount)
+        logger.info("\uD83C\uDF0E \uD83C\uDF0E Token Issued and returned: \uD83C\uDF0E $offerAndTokenDTO")
+        return offerAndTokenDTO
     }
 
     @PostMapping(value = ["/startAccountRegistrationFlow"], produces = ["application/json"])

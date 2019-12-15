@@ -1,6 +1,8 @@
 package com.template.webserver
 
+import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.CollectionReference
+import com.google.cloud.firestore.DocumentReference
 import com.google.cloud.firestore.Firestore
 import com.google.firebase.auth.ExportedUserRecord
 import com.google.firebase.auth.FirebaseAuth
@@ -12,11 +14,9 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.Notification
 import com.google.gson.GsonBuilder
-import com.template.dto.AccountInfoDTO
-import com.template.dto.InvoiceDTO
-import com.template.dto.InvoiceOfferDTO
-import com.template.dto.NodeInfoDTO
+import com.template.dto.*
 import net.corda.core.messaging.CordaRPCOps
+import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
@@ -75,6 +75,12 @@ object FirebaseUtil {
                 + "Successfully sent FCM ACCOUNT message to topic: \uD83D\uDE21 ") + topic + "; Response: \uD83E\uDD6C \uD83E\uDD6C " + response + " \uD83E\uDD6C \uD83E\uDD6C")
     }
 
+    @JvmStatic
+    @Throws(ExecutionException::class, InterruptedException::class)
+    fun addToken(token: TokenDTO) {
+      val future: ApiFuture<DocumentReference> = db.collection("tokens").add(token);
+        logger.info("\uD83D\uDE3C \uD83D\uDE3C Token added to Firestore: \uD83D\uDC9A ${future.getOrThrow().path}")
+    }
     @JvmStatic
     @Throws(Exception::class)
     fun addNode(node: NodeInfoDTO?) {

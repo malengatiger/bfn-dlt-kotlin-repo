@@ -2,7 +2,6 @@ package com.template.states
 
 import com.google.common.collect.ImmutableList
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
-import com.template.InvoiceContract
 import com.template.InvoiceOfferContract
 import net.corda.core.contracts.BelongsToContract
 import net.corda.core.contracts.ContractState

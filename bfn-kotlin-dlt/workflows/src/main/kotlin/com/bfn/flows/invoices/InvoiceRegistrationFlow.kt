@@ -1,12 +1,9 @@
 package com.bfn.flows.invoices
 
 import co.paralleluniverse.fibers.Suspendable
-import com.google.common.collect.ImmutableList
-import com.template.InvoiceContract
 import com.bfn.flows.regulator.ReportToRegulatorFlow
-import com.r3.corda.lib.accounts.workflows.accountService
-import com.r3.corda.lib.accounts.workflows.flows.RequestAccountInfo
-import com.r3.corda.lib.accounts.workflows.flows.RequestKeyForAccount
+import com.google.common.collect.ImmutableList
+import com.template.contracts.InvoiceContract
 import com.template.states.InvoiceState
 import net.corda.core.flows.*
 import net.corda.core.node.ServiceHub
@@ -62,28 +59,27 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
 
         //todo - SORT OUT THIS ACCOUNT THING ---> EXAMPLES FUCKED!
         //val customerAccount = accountService.accountInfo(invoiceState.customerInfo.identifier.id)?.state?.data
-        val customerAnonymousParty = invoiceState.customerInfo.host //subFlow(RequestKeyForAccount(customerAccount!!))
+        val customerParty = invoiceState.customerInfo.host //subFlow(RequestKeyForAccount(customerAccount!!))
         logger.info(" \uD83E\uDD4F  \uD83E\uDD4F  \uD83E\uDD4F customerAccount: ${invoiceState.customerInfo}")
-        logger.info(" \uD83E\uDD4F  \uD83E\uDD4F  \uD83E\uDD4F customerAnonymousParty: $customerAnonymousParty")
+        logger.info(" \uD83E\uDD4F  \uD83E\uDD4F  \uD83E\uDD4F customerParty: $customerParty")
 
         //val supplierAccount = accountService.accountInfo(invoiceState.supplierInfo.identifier.id)?.state?.data
-        val supplierAnonymousParty = invoiceState.supplierInfo.host //subFlow(RequestKeyForAccount(supplierAccount!!))
+        val supplierParty = invoiceState.supplierInfo.host //subFlow(RequestKeyForAccount(supplierAccount!!))
 
         logger.info("\uD83C\uDF4F \uD83C\uDF4F \uD83C\uDF4F supplierAccount: ${invoiceState.supplierInfo}")
-        logger.info("\uD83C\uDF4F \uD83C\uDF4F \uD83C\uDF4F supplierAnonymousParty: $supplierAnonymousParty")
+        logger.info("\uD83C\uDF4F \uD83C\uDF4F \uD83C\uDF4F supplierParty: $supplierParty")
 
         val customerOrg = invoiceState.customerInfo.host.name.organisation
         val supplierOrg = invoiceState.supplierInfo.host.name.organisation
         val command = InvoiceContract.Register()
         progressTracker.currentStep = GENERATING_TRANSACTION
-        val me = serviceHub.myInfo.legalIdentities.first()
 
         val txBuilder = TransactionBuilder(notary)
                 .addOutputState(invoiceState, InvoiceContract.ID)
                 .addCommand(
                         command,
-                        supplierAnonymousParty.owningKey,
-                        customerAnonymousParty.owningKey)
+                        supplierParty.owningKey,
+                        customerParty.owningKey)
 
         progressTracker.currentStep = VERIFYING_TRANSACTION
         txBuilder.verify(serviceHub)
@@ -123,20 +119,20 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
         var signedTransaction: SignedTransaction? = null
         if (supplierStatus == LOCAL_SUPPLIER && customerStatus == REMOTE_CUSTOMER) {
             Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 LOCAL_SUPPLIER and REMOTE_CUSTOMER \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21")
-            customerSession = initiateFlow(customerAnonymousParty)
+            customerSession = initiateFlow(customerParty)
             signedTransaction = getSignedTransaction(signedTx, ImmutableList.of(customerSession))
         }
         if (supplierStatus == REMOTE_SUPPLIER && customerStatus == LOCAL_CUSTOMER) {
             Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 REMOTE_SUPPLIER and LOCAL_CUSTOMER \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21")
-            supplierSession = initiateFlow(supplierAnonymousParty)
+            supplierSession = initiateFlow(supplierParty)
             signedTransaction = getSignedTransaction(signedTx, ImmutableList.of(supplierSession))
         }
 
         if (supplierStatus == REMOTE_SUPPLIER && customerStatus == REMOTE_CUSTOMER) {
             Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 REMOTE_SUPPLIER and REMOTE_CUSTOMER  \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21")
-            supplierSession = initiateFlow(supplierAnonymousParty)
+            supplierSession = initiateFlow(supplierParty)
             if (invoiceState.supplierInfo.host.name != invoiceState.customerInfo.host.name) {
-                customerSession = initiateFlow(customerAnonymousParty)
+                customerSession = initiateFlow(customerParty)
                 signedTransaction = getSignedTransaction(signedTx, ImmutableList.of(supplierSession, customerSession))
             } else {
                 signedTransaction = getSignedTransaction(signedTx, ImmutableList.of(supplierSession))

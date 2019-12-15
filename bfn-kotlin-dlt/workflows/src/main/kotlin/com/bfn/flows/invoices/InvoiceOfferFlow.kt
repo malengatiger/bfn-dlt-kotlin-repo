@@ -64,6 +64,7 @@ class InvoiceOfferFlow(invoiceOfferState: InvoiceOfferState) : FlowLogic<SignedT
         val supplierAnonymousParty = invoiceOfferState.supplier.host //subFlow(RequestKeyForAccount(supplierAccount))
 
         progressTracker.currentStep = GENERATING_TRANSACTION
+        //get underlying invoice and co
 
         val txBuilder = TransactionBuilder(notary)
         txBuilder.addOutputState(invoiceOfferState, InvoiceOfferContract.ID)

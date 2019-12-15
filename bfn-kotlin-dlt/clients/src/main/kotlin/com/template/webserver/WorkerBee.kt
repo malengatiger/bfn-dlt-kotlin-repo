@@ -12,6 +12,7 @@ import com.template.dto.*
 
 import com.template.states.InvoiceOfferState
 import com.template.states.InvoiceState
+import com.template.states.OfferAndTokenState
 import com.template.webserver.FirebaseUtil.addNode
 import com.template.webserver.FirebaseUtil.createUser
 import com.template.webserver.FirebaseUtil.sendAccountMessage
@@ -531,15 +532,53 @@ object WorkerBee {
     }
 
     fun selectBestOffer(proxy: CordaRPCOps, accountId: String,
-                        invoiceId: String): FungibleToken {
+                        invoiceId: String,
+                        invoiceAmount: Double? = 0.00): OfferAndTokenDTO {
+
 
         val cordaFuture = proxy.startTrackedFlowDynamic(
                 SelectBestInvoiceOfferFlow::class.java, accountId, invoiceId)
                 .returnValue
-        val token = cordaFuture.get()
+        val offerAndToken:OfferAndTokenState = cordaFuture.get()
+        //todo - refactor query -
+        val criteria = VaultQueryCriteria(status = StateStatus.UNCONSUMED)
+        val page =
+                proxy.vaultQueryByWithPagingSpec(
+                        contractStateType = AccountInfo::class.java,
+                        criteria = criteria,
+                        paging = PageSpecification(
+                                pageNumber = 1, pageSize = 400))
+        var account: AccountInfo? = null
+        page.states.forEach() {
+            if (it.state.data.identifier.id.toString() == accountId) {
+                account = it.state.data
+            }
+        }
+        if (account == null) {
+            throw java.lang.Exception("Account not found")
+        }
+
+        val tokenDTO = getDTO(offerAndToken.token, accountId,invoiceId,account!!, invoiceAmount!!)
+        FirebaseUtil.addToken(tokenDTO)
         logger.info("\uD83C\uDF4F \uD83C\uDF4F selectBestOffer completed... token issued " +
-                "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C   $token")
-        return token
+                "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C   ${GSON.toJson(tokenDTO)}")
+        return OfferAndTokenDTO(invoiceOffer = getDTO(offerAndToken.invoiceOffer),
+                token = tokenDTO)
+    }
+    @JvmStatic
+    fun getDTO(token: FungibleToken, accountId: String,
+               invoiceId: String, account: AccountInfo, invoiceAmount: Double): TokenDTO {
+        return TokenDTO(
+                accountId = accountId,
+                invoiceId = invoiceId,
+                tokenIdentifier = token.issuedTokenType.tokenIdentifier,
+                amount = token.amount.toDecimal().toDouble(),
+                issuer = token.issuer.toString(),
+                holder = token.holder.toString(),
+                invoiceAmount = invoiceAmount,
+                account = getDTO(account)
+
+        )
     }
     @JvmStatic
     @Throws(Exception::class)
