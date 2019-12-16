@@ -173,36 +173,7 @@ class SelectBestInvoiceOfferFlow(private val supplierAccountId: String,
         return offerAndToken
     }
 
-    @Suspendable
-    private fun processOfferFlow(selected: StateAndRef<InvoiceOfferState>, signedTx: SignedTransaction): SignedTransaction {
-        val thisNode = serviceHub.myInfo
-        var tx : SignedTransaction? = null
-        if (thisNode.legalIdentities.first().toString() == selected.state.data.investor.host.toString()
-                && thisNode.legalIdentities.first().toString() == selected.state.data.supplier.host.toString()) {
-            Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
-                    "Both participants are LOCAL ... no FlowSessions required \uD83D\uDD06")
-
-            tx = subFlow(FinalityFlow(signedTx, ImmutableList.of<FlowSession>()))
-            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  SAME NODE ==> " +
-                    " \uD83E\uDD66 \uD83E\uDD66  \uD83E\uDD66 \uD83E\uDD66 FinalityFlow has been executed " +
-                    "...\uD83E\uDD66 \uD83E\uDD66")
-        } else {
-            Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
-                    "One or Both participants are REMOTE ... at least one FlowSessions required \uD83D\uDD06")
-            val flowSessions: MutableList<FlowSession> = ArrayList()
-            if (thisNode.legalIdentities.first().toString() != selected.state.data.investor.host.toString()) {
-                val investorSession = initiateFlow(selected.state.data.investor.host)
-                flowSessions.add(investorSession)
-            }
-            if (thisNode.legalIdentities.first().toString() != selected.state.data.supplier.host.toString()) {
-                val supplierSession = initiateFlow(selected.state.data.supplier.host)
-                flowSessions.add(supplierSession)
-            }
-            tx = collectSignatures(signedTx, flowSessions)
-        }
-        return tx!!
-    }
-    @Suspendable
+     @Suspendable
     @Throws(FlowException::class)
     private fun collectSignatures(signedTx: SignedTransaction, sessions: List<FlowSession>): SignedTransaction {
 

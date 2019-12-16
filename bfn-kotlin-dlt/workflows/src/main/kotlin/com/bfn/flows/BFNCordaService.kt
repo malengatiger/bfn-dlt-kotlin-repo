@@ -67,10 +67,8 @@ class BFNCordaService(private val serviceHub: AppServiceHub) : SingletonSerializ
 
     init {
         accountService = serviceHub.cordaService(KeyManagementBackedAccountService::class.java)
-        logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 BFNCordaService Constructor. \uD83D\uDCA6 Read up on service usage  \uD83D\uDE21")
-        logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 BFNCordaService Constructor. accountService: \uD83D\uDCA6 \uD83D\uDE21 $accountService")
-        val (_, notaries) = networkParameters
-        logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 BFNCordaService Constructor. NotaryInfo: "
-                + notaries[0].toString())
+        logger.info("\uD83E\uDD66 \uD83E\uDD66 \uD83E\uDD66 \uD83E\uDD66  BFNCordaService Constructor. \uD83D\uDCA6 " +
+                "Used to distribute AccountInfo to nodes \uD83D\uDE21")
+
     }
 }
