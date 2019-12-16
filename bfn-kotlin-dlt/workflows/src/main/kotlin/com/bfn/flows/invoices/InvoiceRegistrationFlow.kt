@@ -1,6 +1,7 @@
 package com.bfn.flows.invoices
 
 import co.paralleluniverse.fibers.Suspendable
+import com.bfn.flows.regulator.BroadcastTransactionFlow
 import com.bfn.flows.regulator.ReportToRegulatorFlow
 import com.google.common.collect.ImmutableList
 import com.template.contracts.InvoiceContract
@@ -106,7 +107,8 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
                     FinalityFlow(signedTx, ImmutableList.of<FlowSession>()))
             Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  SAME NODE ==> FinalityFlow has been executed " +
                     "... \uD83E\uDD66 \uD83E\uDD66")
-            reportToRegulator(mSignedTransactionDone)
+            broadcastInvoice(mSignedTransactionDone)
+            //reportToRegulator(mSignedTransactionDone)
             return mSignedTransactionDone
         }
 
@@ -142,7 +144,8 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
             }
         }
         if (signedTransaction != null) {
-            reportToRegulator(signedTransaction)
+            broadcastInvoice(signedTransaction)
+            //reportToRegulator(signedTransaction)
         }
         return signedTransaction
     }
@@ -155,6 +158,16 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
         } catch (e: Exception) {
             Companion.logger.error(" \uD83D\uDC7F  \uD83D\uDC7F  \uD83D\uDC7F Regulator fell down.  \uD83D\uDC7F IGNORED  \uD83D\uDC7F ", e)
             throw FlowException("Regulator fell down!")
+        }
+    }
+    @Suspendable
+    @Throws(FlowException::class)
+    private fun broadcastInvoice(mSignedTransactionDone: SignedTransaction) {
+        try {
+            subFlow(BroadcastTransactionFlow(mSignedTransactionDone))
+        } catch (e: Exception) {
+            Companion.logger.error("\uD83D\uDC7F \uD83D\uDC7F \uD83D\uDC7F BroadcastTransactionFlow fell down.  \uD83D\uDC7F IGNORED  \uD83D\uDC7F ", e)
+            throw FlowException("BroadcastTransactionFlow fell down!", e)
         }
     }
 

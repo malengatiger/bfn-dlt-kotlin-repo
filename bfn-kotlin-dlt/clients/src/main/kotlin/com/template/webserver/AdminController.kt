@@ -84,7 +84,7 @@ class AdminController(rpc: NodeRPCConnection) {
     @get:GetMapping(value = ["getAccounts"])
     val accounts: List<AccountInfoDTO>
         get() = getAccounts(proxy)
-//getInvoiceStatesAcrossNodes
+
     @get:GetMapping(value = ["/getStates"], produces = ["application/json"])
     private val states: List<String>
         private get() {

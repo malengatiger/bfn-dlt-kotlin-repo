@@ -1,6 +1,7 @@
 package com.bfn.flows.invoices
 
 import co.paralleluniverse.fibers.Suspendable
+import com.r3.corda.lib.accounts.workflows.ourIdentity
 import com.template.states.InvoiceOfferState
 import net.corda.core.flows.*
 import net.corda.core.transactions.SignedTransaction
@@ -13,7 +14,7 @@ class SelectBestInvoiceOfferFlowResponder(private val counterPartySession: FlowS
     override fun call(): SignedTransaction {
        Companion.logger.info("\uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C " +
                "SelectBestInvoiceOfferFlowResponder starting ....")
-        val myself = serviceHub.myInfo.legalIdentities.first()
+        val myself = serviceHub.ourIdentity
         val party = counterPartySession.counterparty
 
         Companion.logger.info("\uD83C\uDF45 \uD83C\uDF45 SelectBestInvoiceOfferFlowResponder: " +

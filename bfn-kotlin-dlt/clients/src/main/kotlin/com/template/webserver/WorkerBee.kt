@@ -4,7 +4,6 @@ import com.bfn.flows.CreateAccountFlow
 import com.bfn.flows.invoices.SelectBestInvoiceOfferFlow
 import com.bfn.flows.invoices.InvoiceOfferFlow
 import com.bfn.flows.invoices.InvoiceRegistrationFlow
-import com.bfn.flows.invoices.ShareInvoiceFlow
 import com.google.firebase.cloud.FirestoreClient
 import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
@@ -19,7 +18,6 @@ import com.template.webserver.FirebaseUtil.createUser
 import com.template.webserver.FirebaseUtil.sendAccountMessage
 import com.template.webserver.FirebaseUtil.sendInvoiceMessage
 import com.template.webserver.FirebaseUtil.sendInvoiceOfferMessage
-import net.corda.client.rpc.CordaRPCClient
 import net.corda.core.contracts.ContractState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.messaging.CordaRPCOps
@@ -27,10 +25,8 @@ import net.corda.core.node.services.Vault.StateStatus
 import net.corda.core.node.services.vault.PageSpecification
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.node.services.vault.QueryCriteria.VaultQueryCriteria
-import net.corda.core.utilities.NetworkHostAndPort
 import org.slf4j.LoggerFactory
 import java.util.*
-import java.util.concurrent.ExecutionException
 
 object WorkerBee {
     private val logger = LoggerFactory.getLogger(WorkerBee::class.java)
@@ -360,13 +356,13 @@ object WorkerBee {
                     "\uD83C\uDF4F \uD83C\uDF4F \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06  " +
                     "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C  signedTransaction returned: \uD83E\uDD4F "
                     + issueTx.toString() + " \uD83E\uDD4F \uD83E\uDD4F ")
-            try {
-                logger.info("Share the new invoice with other nodes")
-                proxy.startTrackedFlowDynamic(
-                        ShareInvoiceFlow::class.java, invoiceState.invoiceId.toString()).returnValue
-            } catch (e: Exception) {
-               logger.warn("Invoice sharing failed", e)
-            }
+//            try {
+//                logger.info("Share the new invoice with other nodes")
+//                proxy.startTrackedFlowDynamic(
+//                        ShareInvoiceFlow::class.java, invoiceState.invoiceId.toString()).returnValue
+//            } catch (e: Exception) {
+//               logger.warn("Invoice sharing failed", e)
+//            }
             val dto = getDTO(invoiceState)
             //logger.info("Check amount discount total calculations: " + GSON.toJson(dto))
             try {

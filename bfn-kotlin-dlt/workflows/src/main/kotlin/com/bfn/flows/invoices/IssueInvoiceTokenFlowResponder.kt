@@ -1,6 +1,7 @@
 package com.bfn.flows.invoices
 
 import co.paralleluniverse.fibers.Suspendable
+import com.r3.corda.lib.accounts.workflows.ourIdentity
 import com.template.states.InvoiceOfferState
 import net.corda.core.flows.*
 import net.corda.core.transactions.SignedTransaction
@@ -13,7 +14,7 @@ class IssueInvoiceTokenFlowResponder(private val counterPartySession: FlowSessio
     override fun call(): SignedTransaction {
        Companion.logger.info("\uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C " +
                "IssueInvoiceTokenFlowResponder starting ....")
-        val myself = serviceHub.myInfo.legalIdentities.first()
+        val myself = serviceHub.ourIdentity
         val party = counterPartySession.counterparty
         Companion.logger.info("\uD83C\uDF45 \uD83C\uDF45 This party: " + myself.name.toString()
                 + ", party from session: \uD83C\uDF45 " + party.name.toString())
@@ -29,7 +30,7 @@ class IssueInvoiceTokenFlowResponder(private val counterPartySession: FlowSessio
         Companion.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 run subFlow SignTransactionFlow ...")
         subFlow(signTransactionFlow)
         var signedTransaction: SignedTransaction? =  null
-        if (myself.toString() != counterPartySession.counterparty.name.toString()) {
+        if (myself.toString() != party.toString()) {
             signedTransaction = subFlow(ReceiveFinalityFlow(counterPartySession))
         }
         if (signedTransaction != null) {

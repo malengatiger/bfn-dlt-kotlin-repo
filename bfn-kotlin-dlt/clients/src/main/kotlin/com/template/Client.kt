@@ -64,20 +64,25 @@ private class Client {
 
 //        startAccounts(true, deleteFirestore = true);
 //
-//        generateInvoices()
-//        generateOffers()
+//        generateInvoices(0)
+//        generateInvoices(1)
+//        generateInvoices(2)
 //
-        runInvoiceOfferAuction(proxyPartyA)
+        generateOffers(0)
+//        generateOffers(1)
+//        generateOffers(2)
+//
+//        runInvoiceOfferAuction(proxyPartyA)
 //        runInvoiceOfferAuction(proxyPartyB)
 //        runInvoiceOfferAuction(proxyPartyC)
 //
-        getOfferAndTokens(proxyPartyA)
-        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
-        getOfferAndTokens(proxyPartyB)
-        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
-        getOfferAndTokens(proxyPartyC)
-        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
-        getOfferAndTokens(proxyReg)
+//        getOfferAndTokens(proxyPartyA)
+//        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
+//        getOfferAndTokens(proxyPartyB)
+//        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
+//        getOfferAndTokens(proxyPartyC)
+//        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
+//        getOfferAndTokens(proxyReg)
 
 //        getTokens(proxyPartyA)
 //        getTokens(proxyPartyB)
@@ -143,53 +148,70 @@ private class Client {
             logger.info("Generating data .. \uD83D\uDCA6 but we are not generating accounts")
         }
 
-        generateInvoices()
-        generateOffers()
 
     }
-    private fun generateInvoices() {
-        logger.info("\uD83D\uDE21  generateInvoices for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
-        val response = httpGet(
-                timeout = 990000000.0,
-                url = "http://localhost:10050/admin/generateInvoices")
-        logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response.statusCode}  " +
-                "${response.text}")
+    private fun generateInvoices(index:Int) {
 
-        logger.info("\uD83D\uDE21  generateInvoices for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
-        val response2 = httpGet(
-                timeout = 990000000.0,
-                url = "http://localhost:10053/admin/generateInvoices")
-        logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${response2.statusCode}  " +
-                "${response2.text}")
+        when(index) {
+            0 -> {
+                logger.info("\uD83D\uDE21  generateInvoices for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
+                val response = httpGet(
+                        timeout = 990000000.0,
+                        url = "http://localhost:10050/admin/generateInvoices")
+                logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response.statusCode}  " +
+                        "${response.text}")
+            }
+            1 -> {
 
-        logger.info("\uD83D\uDE21  generateInvoices for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
-        val response3 = httpGet(
-                timeout = 990000000.0,
-                url = "http://localhost:10056/admin/generateInvoices")
-        logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response3.statusCode}  " +
-                "${response3.text}")
+                logger.info("\uD83D\uDE21  generateInvoices for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
+                val response2 = httpGet(
+                        timeout = 990000000.0,
+                        url = "http://localhost:10053/admin/generateInvoices")
+                logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${response2.statusCode}  " +
+                        "${response2.text}")
+            }
+            2 -> {
+                logger.info("\uD83D\uDE21  generateInvoices for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
+                val response3 = httpGet(
+                        timeout = 990000000.0,
+                        url = "http://localhost:10056/admin/generateInvoices")
+                logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response3.statusCode}  " +
+                        "${response3.text}")
+            }
+        }
+
+
+
+
     }
-    private fun generateOffers() {
-        logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
-        val response = httpGet(
-                timeout = 990000000.0,
-                url = "http://localhost:10050/admin/generateOffers")
-        logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response.statusCode}  " +
-                "${response.text}")
+    private fun generateOffers(index:Int) {
+        when (index) {
+            0 -> {
+                logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
+                val response = httpGet(
+                        timeout = 990000000.0,
+                        url = "http://localhost:10050/admin/generateOffers")
+                logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response.statusCode}  ${response.text}")
+            }
+            1 -> {
+                logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
+                val response2 = httpGet(
+                        timeout = 990000000.0,
+                        url = "http://localhost:10053/admin/generateOffers")
+                logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response2.statusCode}   ${response2.text}")
 
-        logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
-        val response2 = httpGet(
-                timeout = 990000000.0,
-                url = "http://localhost:10053/admin/generateOffers")
-        logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response2.statusCode}  " +
-                " ${response2.text}")
+            }
+            2 -> {
+                logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
+                val response3 = httpGet(
+                        timeout = 990000000.0,
+                        url = "http://localhost:10056/admin/generateOffers")
+                logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${response3.statusCode}  ${response3.text}")
+            }
+        }
 
-        logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
-        val response3 = httpGet(
-                timeout = 990000000.0,
-                url = "http://localhost:10056/admin/generateOffers")
-        logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${response3.statusCode}  " +
-                "${response3.text}")
+
+
     }
     private fun startAccountsForNode(url: String, deleteFirestore: Boolean ): Int {
         logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 " +
@@ -248,17 +270,22 @@ private class Client {
     }
     private fun getAggregates(proxy: CordaRPCOps) {
         val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
-        val page = proxy.vaultQueryByWithPagingSpec(criteria = criteria, contractStateType = AccountInfo::class.java,
-                paging = PageSpecification(pageNumber = 1, pageSize = 200))
+        val page = proxy.vaultQueryByWithPagingSpec(
+                criteria = criteria, contractStateType = AccountInfo::class.java,
+                paging = PageSpecification(pageNumber = 1, pageSize = 1000))
         logger.info("Accounts on Node: ♻️ ${page.totalStatesAvailable} ♻️")
         //
-        val pageInvoices = proxy.vaultQueryByWithPagingSpec(criteria = criteria, contractStateType = InvoiceState::class.java,
+        val pageInvoices = proxy.vaultQueryByWithPagingSpec(criteria = criteria,
+                contractStateType = InvoiceState::class.java,
                 paging = PageSpecification(pageNumber = 1, pageSize = 200))
         logger.info("Invoices on Node: ♻️ ${pageInvoices.totalStatesAvailable} ♻️")
 
         val pageInvoiceOffers =
-        proxy.vaultQueryByWithPagingSpec(contractStateType = InvoiceOfferState::class.java,
-                criteria = criteria, paging = PageSpecification(pageNumber = 1, pageSize = 200))
+        proxy.vaultQueryByWithPagingSpec(
+                contractStateType = InvoiceOfferState::class.java,
+                criteria = criteria,
+                paging = PageSpecification(
+                    pageNumber = 1, pageSize = 1000))
 
         logger.info("InvoiceOffers on Node: ♻️ ${pageInvoiceOffers.totalStatesAvailable} ♻️")
     }
@@ -344,7 +371,11 @@ private class Client {
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10050/admin/selectBestOffer")
                 val result = response.text
-                logger.info("\uD83C\uDF38 RESPONSE offer:  \uD83D\uDC2C #$cnt  \uD83C\uDF38 $result")
+                if (result.contains("timestamp")) {
+                      logger.error("\uD83D\uDC7F \uD83D\uDC7F \uD83D\uDC7F  ERROR : $result  \uD83D\uDC7F  \uD83D\uDC7F ")
+                } else {
+                    logger.info("\uD83C\uDF38 RESPONSE offer:  \uD83D\uDC2C #$cnt  \uD83C\uDF38 $result")
+                }
             }
             if (it.value.supplier.host.name.toString().contains("PartyB")) {
                 logger.info("\uD83D\uDE21  selectBestOffer using PARTY B, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
@@ -352,7 +383,11 @@ private class Client {
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10053/admin/selectBestOffer")
                 val result = response.text
-                logger.info("\uD83C\uDF38 RESPONSE offer:  \uD83D\uDC2C #$cnt  \uD83C\uDF38 $result")
+                if (result.contains("timestamp")) {
+                    logger.error("\uD83D\uDC7F \uD83D\uDC7F \uD83D\uDC7F  ERROR : $result  \uD83D\uDC7F  \uD83D\uDC7F ")
+                } else {
+                    logger.info("\uD83C\uDF38 RESPONSE offer:  \uD83D\uDC2C #$cnt  \uD83C\uDF38 $result")
+                }
             }
             if (it.value.supplier.host.name.toString().contains("PartyC")) {
                 logger.info("\uD83D\uDE21  selectBestOffer using PARTY C, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
@@ -360,7 +395,11 @@ private class Client {
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10056/admin/selectBestOffer")
                 val result = response.text
-                logger.info("\uD83C\uDF38 RESPONSE offer:  \uD83D\uDC2C #$cnt  \uD83C\uDF38 $result")
+                if (result.contains("timestamp")) {
+                    logger.error("\uD83D\uDC7F \uD83D\uDC7F \uD83D\uDC7F  ERROR : $result  \uD83D\uDC7F  \uD83D\uDC7F ")
+                } else {
+                    logger.info("\uD83C\uDF38 RESPONSE offer:  \uD83D\uDC2C #$cnt  \uD83C\uDF38 $result")
+                }
             }
             cnt++
         }
