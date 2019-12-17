@@ -24,35 +24,16 @@ class ProfileFlowResponder(private val counterPartySession: FlowSession) : FlowL
             override fun checkTransaction(stx: SignedTransaction) {
                 ProfileFlowResponder.logger.info("\uD83D\uDC65 \uD83D\uDC65 checkTransaction here " +
                         "${stx.id} inputStates ${stx.coreTransaction.inputs.size}...")
-//                if (stx.coreTransaction.inputs.size != 1) {
-//                    throw FlowException("There must be only one input state")
-//                }
-//                val message = stx.coreTransaction.outputStates.single() as MessageState
-//                check(message.recipient == ourIdentity) { "I think you got the wrong person" }
-//                check(!message.contents.containsSwearWords()) { "Mind your language" }
-//                check(!message.contents.containsMemes()) { "Only serious messages are accepted" }
-//                check(message.sender.name.organisation != "Nigerian Prince") { "Spam message detected" }
 
             }
         }
         Companion.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 run subFlow SignTransactionFlow ...")
         subFlow(signTransactionFlow)
-        var signedTransaction: SignedTransaction? = null
-        if (myself.toString() != counterPartySession.counterparty.toString()) {
-            signedTransaction = subFlow(ReceiveFinalityFlow(counterPartySession))
-            if (signedTransaction != null) {
-                Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  ProfileFlowResponder Transaction finalized " +
-                        "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC65 \uD83D\uDC65 \uD83C\uDF4E ${signedTransaction.id}")
-            } else {
-                Companion.logger.info(" 👿  👿  👿  👿  👿 Transaction NOT signed")
-                throw IllegalStateException("Houston, we cannot sign Transaction. Not. Good")
-            }
-        } else {
-            Companion.logger.info("\uD83D\uDD35 \uD83D\uDD35 CounterParty ${counterPartySession.counterparty} \uD83D\uDD35  " +
-                    "is on the same node.  \uD83D\uDD35 Is there a need to run ReceiveFinalityFlow")
-        }
+        val signedTransaction = subFlow(ReceiveFinalityFlow(counterPartySession))
+        Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  ProfileFlowResponder Transaction finalized " +
+                "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC65 \uD83D\uDC65 \uD83C\uDF4E ${signedTransaction.id}")
 
-        return signedTransaction!!
+        return signedTransaction
 
     }
 

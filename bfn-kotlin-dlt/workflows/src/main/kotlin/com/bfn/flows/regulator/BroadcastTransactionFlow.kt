@@ -22,20 +22,20 @@ class BroadcastTransactionFlow(private val signedTransaction: SignedTransaction)
             val party = it.legalIdentities.first()
             if (party.name.organisation == meParty.name.organisation
                     || party.name.organisation.contains("Notary")) {
-                logger.info("\uD83D\uDE0E \uD83D\uDE0E ignore notary and $meParty and do not share this invoice")
+                logger.info("\uD83D\uDE0E \uD83D\uDE0E ignore notary and $meParty and do not share this transaction")
             } else {
                 try {
                     val counterPartySession = initiateFlow(party)
                     subFlow(SendTransactionFlow(counterPartySession, signedTransaction))
                     Companion.logger.info("\uD83E\uDD16 \uD83E\uDD16 \uD83C\uDF3F " +
-                            "\uD83C\uDF3F \uD83C\uDF3F Invoice has been shared with $party !! \uD83E\uDD16 ")
+                            "\uD83C\uDF3F \uD83C\uDF3F transaction has been shared with $party !! \uD83E\uDD16 ")
                 } catch (e: Exception) {
-                    Companion.logger.warn("\uD83D\uDE0E \uD83D\uDE0E Unable to send invoice sharing transaction to $party")
+                    Companion.logger.warn("\uD83D\uDE0E \uD83D\uDE0E Unable to send transaction to $party")
                 }
             }
         }
         Companion.logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35  " +
-                "\uD83E\uDD1F Invoice sharing with  ${otherNodes.size - 2} other nodes is \uD83E\uDD1F COMPLETE \uD83E\uDD1F")
+                "\uD83E\uDD1F transaction sharing with  ${otherNodes.size - 2} other nodes is \uD83E\uDD1F COMPLETE \uD83E\uDD1F")
 
         return null
     }

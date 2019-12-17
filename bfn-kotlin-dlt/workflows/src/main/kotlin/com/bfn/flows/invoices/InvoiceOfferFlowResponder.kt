@@ -35,16 +35,11 @@ class InvoiceOfferFlowResponder(private val counterPartySession: FlowSession) : 
             }
         }
         subFlow(signTransactionFlow)
-        var signedTransaction: SignedTransaction? =  null
-        if (myself.toString() != counterPartySession.counterparty.toString()) {
-            signedTransaction = subFlow(ReceiveFinalityFlow(counterPartySession))
-        }
-        if (signedTransaction != null) {
-            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  InvoiceOfferFlowResponder Transaction finalized " +
-                    "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C \uD83E\uDD1F \uD83C\uDF4F \uD83C\uDF4E ${signedTransaction.id}")
-        }
+        val signedTransaction = subFlow(ReceiveFinalityFlow(counterPartySession))
+        Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  InvoiceOfferFlowResponder Transaction finalized " +
+                "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C \uD83E\uDD1F \uD83C\uDF4F \uD83C\uDF4E ${signedTransaction.id}")
 
-        return signedTransaction!!
+        return signedTransaction
     }
 
     companion object {

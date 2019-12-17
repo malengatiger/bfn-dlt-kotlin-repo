@@ -2,16 +2,13 @@ package com.bfn.flows.invoices
 
 import co.paralleluniverse.fibers.Suspendable
 import com.bfn.flows.regulator.ReportToRegulatorFlow
+import com.bfn.flows.services.InvoiceOfferFinderService
 import com.google.common.collect.ImmutableList
-import com.r3.corda.lib.accounts.workflows.accountService
-import com.r3.corda.lib.accounts.workflows.flows.RequestKeyForAccount
 import com.template.InvoiceOfferContract
 import com.template.states.InvoiceOfferState
 import net.corda.core.flows.*
+import net.corda.core.identity.Party
 import net.corda.core.node.ServiceHub
-import net.corda.core.node.services.Vault.StateStatus
-import net.corda.core.node.services.vault.PageSpecification
-import net.corda.core.node.services.vault.QueryCriteria.VaultQueryCriteria
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
@@ -53,24 +50,22 @@ class InvoiceOfferFlow(invoiceOfferState: InvoiceOfferState) : FlowLogic<SignedT
         val serviceHub = serviceHub
         Companion.logger.info(" \uD83E\uDD1F \uD83E\uDD1F  \uD83E\uDD1F \uD83E\uDD1F  ... InvoiceOfferFlow call started ...")
         val notary = serviceHub.networkMapCache.notaryIdentities[0]
-//        checkDuplicate(serviceHub)
+        checkDuplicate()
        
         val command = InvoiceOfferContract.MakeOffer()
-
-        //val investorAccount = accountService.accountInfo(invoiceOfferState.investor.name).single().state.data
-        val investorAnonymousParty = invoiceOfferState.investor.host //subFlow(RequestKeyForAccount(investorAccount))
-
-        //val supplierAccount = accountService.accountInfo(invoiceOfferState.supplier.name).single().state.data
-        val supplierAnonymousParty = invoiceOfferState.supplier.host //subFlow(RequestKeyForAccount(supplierAccount))
-
-        progressTracker.currentStep = GENERATING_TRANSACTION
-        //get underlying invoice and co
+        val investorParty = invoiceOfferState.investor.host //subFlow(RequestKeyForAccount(investorAccount))
+        val supplierParty = invoiceOfferState.supplier.host //subFlow(RequestKeyForAccount(supplierAccount))
 
         val txBuilder = TransactionBuilder(notary)
         txBuilder.addOutputState(invoiceOfferState, InvoiceOfferContract.ID)
-        txBuilder.addCommand(command, supplierAnonymousParty.owningKey,
-                investorAnonymousParty.owningKey)
+        txBuilder.addCommand(command, supplierParty.owningKey,
+                investorParty.owningKey)
 
+        return processFlow(txBuilder, investorParty, supplierParty)
+    }
+
+    @Suspendable
+    private fun processFlow(txBuilder: TransactionBuilder, investorParty: Party, supplierParty: Party): SignedTransaction {
         progressTracker.currentStep = VERIFYING_TRANSACTION
         txBuilder.verify(serviceHub)
         progressTracker.currentStep = SIGNING_TRANSACTION
@@ -114,7 +109,7 @@ class InvoiceOfferFlow(invoiceOfferState: InvoiceOfferState) : FlowLogic<SignedT
         if (supplierStatus == LOCAL_SUPPLIER && investorStatus == REMOTE_INVESTOR) {
             Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21 \uD83D\uDE21 " +
                     "Investor is REMOTE \uD83D\uDE21 ")
-            investorSession = initiateFlow(investorAnonymousParty)
+            investorSession = initiateFlow(investorParty)
             signedTransaction = collectSignatures(signedTx, ImmutableList.of(
                     investorSession))
             return signedTransaction
@@ -122,14 +117,14 @@ class InvoiceOfferFlow(invoiceOfferState: InvoiceOfferState) : FlowLogic<SignedT
         if (supplierStatus == REMOTE_SUPPLIER && investorStatus == REMOTE_INVESTOR) {
             Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21 \uD83D\uDE21 " +
                     "Supplier and Investor are REMOTE \uD83D\uDE21 ")
-            investorSession = initiateFlow(investorAnonymousParty)
+            investorSession = initiateFlow(investorParty)
 
             return if (invoiceOfferState.investor.host.name == invoiceOfferState.supplier.host.name) {
                 signedTransaction = collectSignatures(signedTx, ImmutableList.of(
                         investorSession))
                 signedTransaction
             } else {
-                supplierSession = initiateFlow(supplierAnonymousParty)
+                supplierSession = initiateFlow(supplierParty)
                 signedTransaction = collectSignatures(signedTx, ImmutableList.of(
                         investorSession, supplierSession))
                 signedTransaction
@@ -139,7 +134,7 @@ class InvoiceOfferFlow(invoiceOfferState: InvoiceOfferState) : FlowLogic<SignedT
         if (supplierStatus == REMOTE_SUPPLIER && investorStatus == LOCAL_INVESTOR) {
             Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21 \uD83D\uDE21 " +
                     "Supplier is REMOTE \uD83D\uDE21 ")
-            supplierSession = initiateFlow(supplierAnonymousParty)
+            supplierSession = initiateFlow(supplierParty)
             signedTransaction = collectSignatures(signedTx, ImmutableList.of(
                     supplierSession))
             return signedTransaction
@@ -161,28 +156,27 @@ class InvoiceOfferFlow(invoiceOfferState: InvoiceOfferState) : FlowLogic<SignedT
         }
     }
 
-//    @Suspendable
-//    @Throws(FlowException::class)
-//    private fun checkDuplicate(serviceHub: ServiceHub) {
-//        val criteria = VaultQueryCriteria(StateStatus.UNCONSUMED)
-//        val (refs) = serviceHub.vaultService.queryBy(InvoiceOfferState::class.java, criteria,
-//                PageSpecification(1, 200))
-//        var isFound = false
-//        Companion.logger.info(" \uD83D\uDCA6  \uD83D\uDCA6 Number of InvoiceOfferStates:  \uD83D\uDCA6 " + refs.size + "  \uD83D\uDCA6")
-//        for ((state1) in refs) {
-//            val state: InvoiceOfferState = state1.data
-//            if (invoiceOfferState.invoiceId.toString()
-//                            == state.invoiceId.toString()
-//                    && invoiceOfferState.investor.identifier.id.toString()
-//                           == state.investor.identifier.id.toString()
-//                    && invoiceOfferState.offerAmount == state.offerAmount) {
-//                isFound = true
-//            }
-//        }
-//        if (isFound) {
-//            throw FlowException("InvoiceOfferState is already on file")
-//        }
-//    }
+    @Suspendable
+    @Throws(FlowException::class)
+    private fun checkDuplicate() {
+        val srv = serviceHub.cordaService(InvoiceOfferFinderService::class.java)
+        val list = srv.getOffersOnNode();
+        var isFound = false
+        Companion.logger.info(" \uD83D\uDCA6  \uD83D\uDCA6 Number of InvoiceOfferStates:  \uD83D\uDCA6 ${list.size} \uD83D\uDCA6")
+
+        list.forEach() {
+            if (invoiceOfferState.invoiceId.toString()
+                    == it.invoiceId.toString()
+                    && invoiceOfferState.investor.identifier.id.toString()
+                    == it.investor.identifier.id.toString()
+                    && invoiceOfferState.offerAmount == it.offerAmount) {
+                isFound = true
+            }
+        }
+        if (isFound) {
+            throw FlowException("\uD83D\uDC7F InvoiceOfferState is already on file")
+        }
+    }
 
     @Suspendable
     @Throws(FlowException::class)

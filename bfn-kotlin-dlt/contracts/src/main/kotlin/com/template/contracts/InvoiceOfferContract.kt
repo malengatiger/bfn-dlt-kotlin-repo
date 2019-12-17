@@ -20,15 +20,6 @@ class InvoiceOfferContract : Contract {
     override fun verify(tx: LedgerTransaction) {
         logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 InvoiceOfferContract: verify starting" +
                 " ..... \uD83E\uDD6C \uD83E\uDD6C ")
-//        val (value, requiredSigners) = tx.getCommand<CommandData>(0)
-//
-//        logger.info("Number ofCommands: ${tx.commands.size}")
-//
-//        if (value is MakeOffer || value is CloseOffers || value is InvestorSelected || value is IssueTokenCommand) {
-//            logger.info("\uD83D\uDD06 Command is of type: \uD83D\uDD06  $value \uD83D\uDD06 ")
-//        } else {
-//            throw IllegalArgumentException("Only MakeOffer or CloseOffers or InvestorSelected or IssueTokenCommand command allowed")
-//        }
 
         logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 InvoiceOfferContract: verification ( \uD83D\uDC7A none at this stage :)) done OK! " +
                 ".....\uD83E\uDD1F \uD83E\uDD1F ")

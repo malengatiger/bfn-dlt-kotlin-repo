@@ -20,17 +20,17 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
 
     @Suspendable
     @Throws(Exception::class)
-    fun findInvoicesForInvestor(investorAccountId: String): List<InvoiceState> {
+    fun findInvoicesForInvestor(investorId: String): List<InvoiceState> {
         logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E InvoiceFinderService: findInvoices ... " +
                 "\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ")
 
-        val account = accountService.accountInfo(UUID.fromString(investorAccountId))?.state?.data
+        val account = accountService.accountInfo(UUID.fromString(investorId))?.state?.data
                 ?: throw IllegalArgumentException("\uD83D\uDC7F Account not found")
         logger.info("\uD83D\uDCA6 Finding invoices for investor: \uD83D\uDC7D \uD83D\uDC7D " +
                 " ${account.name} - ${account.host}")
-        val sortedInvoices = getInvoices()
+        val sortedInvoices = getAllInvoices()
         val bestInvoices: MutableList<InvoiceState>? = mutableListOf()
-        val profile = investorAccountId?.let { findProfile(it) }
+        val profile = investorId?.let { findProfile(it) }
         if (profile == null) {
             logger.info("\uD83C\uDF36 No profile available, \uD83C\uDF36 " +
                     "returning all ${sortedInvoices.size} invoices found")
@@ -45,15 +45,16 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
         }
         return bestInvoices!!
     }
-    fun findInvoicesForSupplier(supplierAccountId: String): List<InvoiceState> {
+    @Suspendable
+    fun findInvoicesForSupplier(supplierId: String): List<InvoiceState> {
         logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E InvoiceFinderService: findInvoices ... " +
                 "\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ")
 
-        val account = accountService.accountInfo(UUID.fromString(supplierAccountId))?.state?.data
+        val account = accountService.accountInfo(UUID.fromString(supplierId))?.state?.data
                 ?: throw IllegalArgumentException("\uD83D\uDC7F Account not found")
         logger.info("\uD83D\uDCA6 Finding invoices for supplier: \uD83D\uDC7D \uD83D\uDC7D " +
                 " ${account.name} - ${account.host}")
-        val sortedInvoices = getInvoices()
+        val sortedInvoices = getAllInvoices()
         val supplierInvoices: MutableList<InvoiceState>? = mutableListOf()
 
         sortedInvoices.forEach(){
@@ -63,12 +64,31 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
         }
         return supplierInvoices!!
     }
+    @Suspendable
+    fun findInvoicesForCustomer(customerId: String): List<InvoiceState> {
+        logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E InvoiceFinderService: findInvoices ... " +
+                "\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ")
+
+        val account = accountService.accountInfo(UUID.fromString(customerId))?.state?.data
+                ?: throw IllegalArgumentException("\uD83D\uDC7F Account not found")
+        logger.info("\uD83D\uDCA6 Finding invoices for customer: \uD83D\uDC7D \uD83D\uDC7D " +
+                " ${account.name} - ${account.host}")
+        val sortedInvoices = getAllInvoices()
+        val supplierInvoices: MutableList<InvoiceState>? = mutableListOf()
+
+        sortedInvoices.forEach(){
+            if (it.customerInfo.name == account.name) {
+                supplierInvoices!!.add(it)
+            }
+        }
+        return supplierInvoices!!
+    }
+    @Suspendable
     fun findInvoicesForNode(): List<InvoiceState> {
         logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E InvoiceFinderService: findInvoices ... " +
                 "\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ")
         
-        logger.info("\uD83D\uDCA6 Finding invoices for Node: \uD83D\uDC7D \uD83D\uDC7D ")
-        return getInvoices()
+        return getAllInvoices()
     }
     private val pageSize:Int = 1000
 
@@ -101,7 +121,7 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
                 criteria = criteria)
     }
     @Suspendable
-    private fun getInvoices(): List<InvoiceState> {
+    private fun getAllInvoices(): List<InvoiceState> {
         val list: MutableList<InvoiceState> = mutableListOf()
         //get first page
         var pageNumber = 1

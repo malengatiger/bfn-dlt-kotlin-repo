@@ -1,7 +1,7 @@
 package com.template.webserver
 
 import com.bfn.flows.CreateAccountFlow
-import com.bfn.flows.invoices.SelectBestInvoiceOfferFlow
+import com.bfn.flows.invoices.BestOfferForInvoiceFlow
 import com.bfn.flows.invoices.InvoiceOfferFlow
 import com.bfn.flows.invoices.InvoiceRegistrationFlow
 import com.bfn.flows.queries.InvoiceOfferQueryFlow
@@ -549,7 +549,7 @@ object WorkerBee {
 
 
         val cordaFuture = proxy.startTrackedFlowDynamic(
-                SelectBestInvoiceOfferFlow::class.java, accountId, invoiceId)
+                BestOfferForInvoiceFlow::class.java, accountId, invoiceId)
                 .returnValue
         val offerAndToken:OfferAndTokenState = cordaFuture.get()
         //todo - refactor query -

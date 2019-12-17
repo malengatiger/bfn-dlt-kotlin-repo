@@ -3,6 +3,7 @@ package com.bfn.flows.invoices
 import co.paralleluniverse.fibers.Suspendable
 import com.bfn.flows.regulator.ReportToRegulatorFlow
 import com.google.common.collect.ImmutableList
+import com.r3.corda.lib.accounts.workflows.ourIdentity
 import com.template.contracts.InvoiceContract
 import com.template.states.InvoiceOfferState
 import com.template.states.InvoiceState
@@ -16,113 +17,75 @@ import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import org.slf4j.LoggerFactory
+import java.security.PublicKey
 
 @InitiatingFlow
 @StartableByRPC
-class InvoiceOfferCloseFlow(private val stateAndRef: StateAndRef<InvoiceOfferState>) : FlowLogic<SignedTransaction>() {
+class InvoiceOfferCloseFlow(
+        private val stateAndRefs: List<StateAndRef<InvoiceOfferState>>) : FlowLogic<SignedTransaction>() {
 
     @Suspendable
     @Throws(FlowException::class)
     override fun call(): SignedTransaction {
         val serviceHub = serviceHub
-        Companion.logger.info(" \uD83E\uDD1F \uD83E\uDD1F  \uD83E\uDD1F \uD83E\uDD1F  ... InvoiceOfferCloseFlow call started ...")
+        Companion.logger.info(" \uD83E\uDD1F \uD83E\uDD1F  \uD83E\uDD1F \uD83E\uDD1F  ... InvoiceOfferCloseFlow to CONSUME " +
+                "\uD83D\uDC7A ${stateAndRefs.size} \uD83D\uDC7A InvoiceOfferStates...")
         val notary = serviceHub.networkMapCache.notaryIdentities[0]
 
-
         val command = InvoiceContract.Close()
-        val investorParty = stateAndRef.state.data.investor.host
-        val supplierParty = stateAndRef!!.state.data.supplier.host
-
+        val keys: MutableList<PublicKey>  = mutableListOf()
         val txBuilder = TransactionBuilder(notary)
-        txBuilder.addInputState(stateAndRef)
-        txBuilder.addCommand(command, supplierParty.owningKey,
-                investorParty.owningKey)
+        val map: MutableMap<String, Party> = mutableMapOf()
 
+        stateAndRefs.forEach() {
+            txBuilder.addInputState(it)
+            map[it.state.data.investor.host.toString()] = it.state.data.investor.host
+            map[it.state.data.supplier.host.toString()] = it.state.data.supplier.host
+        }
+        val parties = map.values.toList()
+        parties.forEach() {
+            keys.add(it.owningKey)
+        }
+        txBuilder.addCommand(command, keys)
+        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C Verify transaction ... \uD83D\uDE3C ")
         txBuilder.verify(serviceHub)
+        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C signInitialTransaction ... \uD83D\uDE3C ")
         val signedTx = serviceHub.signInitialTransaction(txBuilder)
-
-        val mTx = finalizeTransaction(serviceHub, investorParty, supplierParty, signedTx)
+        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C finalizeTransaction ... \uD83D\uDE3C ")
+        val mTx = finalizeTransaction(serviceHub, parties, signedTx)
         Companion.logger.info("\uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16  " +
-                "${stateAndRef.state.data.supplier.name} offerAmount: ${stateAndRef.state.data.offerAmount} investor: ${stateAndRef.state.data.investor.name} " +
                 "\uD83E\uDD16 CONSUMED !! \uD83E\uDD16 ")
         return mTx;
     }
 
     @Suspendable
     private fun finalizeTransaction(serviceHub: ServiceHub,
-                                    investorParty: Party,
-                                    supplierParty: Party,
+                                    parties: List<Party>,
                                     signedTx: SignedTransaction): SignedTransaction {
-        val nodeInfo = serviceHub.myInfo
-        val investorOrg: String = investorParty.name.organisation
-        val supplierOrg: String = supplierParty.name.organisation
-        val thisNodeOrg = nodeInfo.legalIdentities.first().name.organisation
 
-        val supplierStatus: Int
-        val investorStatus: Int
-        val supplierSession: FlowSession
-        val investorSession: FlowSession
-        var signedTransaction: SignedTransaction? = null
-        supplierStatus = if (supplierOrg.equals(thisNodeOrg, ignoreCase = true)) {
-            LOCAL_SUPPLIER
-        } else {
-            REMOTE_SUPPLIER
+        val flowSessions: MutableList<FlowSession> = mutableListOf()
+        parties.forEach() {
+            if (it.toString() != serviceHub.ourIdentity.toString()) {
+                flowSessions.add(initiateFlow(it))
+            }
         }
-        investorStatus = if (investorOrg.equals(thisNodeOrg, ignoreCase = true)) {
-            LOCAL_investor
+        return if (flowSessions.isNotEmpty()) {
+            val tx = collectSignatures(signedTx,flowSessions)
+            val mSignedTransactionDone = subFlow(
+                    FinalityFlow(tx, flowSessions))
+            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  ${flowSessions.size} remote NODES involved ==> " +
+                    " \uD83E\uDD66 \uD83E\uDD66  \uD83E\uDD66 \uD83E\uDD66 FinalityFlow has been executed " +
+                    "...\uD83E\uDD66 \uD83E\uDD66")
+            mSignedTransactionDone
         } else {
-            REMOTE_investor
-        }
-        if (supplierStatus == LOCAL_SUPPLIER && investorStatus == LOCAL_investor) {
-            Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
-                    "All participants are LOCAL ... \uD83D\uDD06")
             val mSignedTransactionDone = subFlow(
                     FinalityFlow(signedTx, ImmutableList.of<FlowSession>()))
             Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  SAME NODE ==> " +
                     " \uD83E\uDD66 \uD83E\uDD66  \uD83E\uDD66 \uD83E\uDD66 FinalityFlow has been executed " +
                     "...\uD83E\uDD66 \uD83E\uDD66")
-            return mSignedTransactionDone
-
-        }
-        Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 " +
-                "Supplier and/or investor are NOT on the same node ..." +
-                "  \uD83D\uDE21 flowSession(s) required \uD83D\uDE21")
-
-        if (supplierStatus == LOCAL_SUPPLIER && investorStatus == REMOTE_investor) {
-            Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21 \uD83D\uDE21 " +
-                    "investor is REMOTE - Supplier is LOCAL \uD83D\uDE21 ")
-            investorSession = initiateFlow(investorParty)
-            signedTransaction = collectSignatures(signedTx, ImmutableList.of(
-                    investorSession))
-            return signedTransaction
-        }
-        if (supplierStatus == REMOTE_SUPPLIER && investorStatus == REMOTE_investor) {
-            Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21 \uD83D\uDE21 " +
-                    "Supplier and investor are REMOTE \uD83D\uDE21 ")
-            investorSession = initiateFlow(investorParty)
-
-            return if (investorOrg == supplierOrg) {
-                signedTransaction = collectSignatures(signedTx, ImmutableList.of(
-                        investorSession))
-                signedTransaction
-            } else {
-                supplierSession = initiateFlow(supplierParty)
-                signedTransaction = collectSignatures(signedTx, ImmutableList.of(
-                        investorSession, supplierSession))
-                signedTransaction
-            }
-
-        }
-        if (supplierStatus == REMOTE_SUPPLIER && investorStatus == LOCAL_investor) {
-            Companion.logger.info(" \uD83D\uDE21  \uD83D\uDE21 \uD83D\uDE21 " +
-                    "Supplier is REMOTE - investor is LOCAL \uD83D\uDE21 ")
-            supplierSession = initiateFlow(supplierParty)
-            signedTransaction = collectSignatures(signedTx, ImmutableList.of(
-                    supplierSession))
-            return signedTransaction
+            mSignedTransactionDone
         }
 
-        return signedTransaction!!
     }
 
     @Suspendable

@@ -61,7 +61,7 @@ private class Client {
 
         getThisNode(proxyReg)
         doNodesAndAggregates(proxyPartyA, proxyPartyB, proxyPartyC, proxyReg)
-
+////
 //        startAccounts(true, deleteFirestore = true);
 //
 //        generateInvoices(0)
@@ -71,10 +71,10 @@ private class Client {
 //        generateOffers(0)
 //        generateOffers(1)
 //        generateOffers(2)
-////
+//
         runInvoiceOfferAuction(proxyPartyA)
-        runInvoiceOfferAuction(proxyPartyB)
-        runInvoiceOfferAuction(proxyPartyC)
+//        runInvoiceOfferAuction(proxyPartyB)
+//        runInvoiceOfferAuction(proxyPartyC)
 ////
         getOfferAndTokens(proxyPartyA)
         logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
@@ -359,14 +359,17 @@ private class Client {
         var cnt = 1
         map.forEach() {
             logger.info("\uD83C\uDF88 \uD83C\uDF88 Invoice to be processed: #$cnt " +
-                    "\uD83D\uDC9A account: ${it.value.supplier.name}")
+                    "\uD83D\uDC9A supplier: ${it.value.supplier.name} ${it.value.supplier.host} " +
+                    "\uD83D\uDE21 \uD83D\uDE21 customer: ${it.value.customer.name} - ${it.value.customer.host}")
             val params: MutableMap<String, String> = mutableMapOf()
             params["accountId"] = it.value.supplier.identifier.id.toString()
             params["invoiceId"] = it.key
             params["invoiceAmount"] = it.value.originalAmount.toString()
 
             if (it.value.supplier.host.name.toString().contains("PartyA")) {
-                logger.warn("\uD83D\uDE21  selectBestOffer using PARTY A, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
+                logger.warn("\uD83C\uDF88 \uD83C\uDF88 selectBestOffer using PARTY A, : " +
+                        "\uD83D\uDC9A supplier: ${it.value.supplier.name} ${it.value.supplier.host} " +
+                        "\uD83D\uDE21 \uD83D\uDE21 investor: ${it.value.investor.name} - ${it.value.investor.host}")
                 val response = httpGet(
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10050/admin/selectBestOffer")
@@ -378,7 +381,9 @@ private class Client {
                 }
             }
             if (it.value.supplier.host.name.toString().contains("PartyB")) {
-                logger.warn("\uD83D\uDE21  selectBestOffer using PARTY B, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
+                logger.warn("\uD83C\uDF88 \uD83C\uDF88 selectBestOffer using PARTY B : " +
+                        "\uD83D\uDC9A supplier: ${it.value.supplier.name} ${it.value.supplier.host} " +
+                        "\uD83D\uDE21 \uD83D\uDE21 investor: ${it.value.investor.name} - ${it.value.investor.host}")
                 val response = httpGet(
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10053/admin/selectBestOffer")
@@ -390,7 +395,9 @@ private class Client {
                 }
             }
             if (it.value.supplier.host.name.toString().contains("PartyC")) {
-                logger.warn("\uD83D\uDE21  selectBestOffer using PARTY C, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
+                logger.warn("\uD83C\uDF88 \uD83C\uDF88 selectBestOffer using PARTY C, : " +
+                        "\uD83D\uDC9A supplier: ${it.value.supplier.name} ${it.value.supplier.host} " +
+                        "\uD83D\uDE21 \uD83D\uDE21 investor: ${it.value.investor.name} - ${it.value.investor.host}")
                 val response = httpGet(
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10056/admin/selectBestOffer")

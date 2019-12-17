@@ -14,45 +14,11 @@ class InvoiceContract : Contract {
     override fun verify(tx: LedgerTransaction) {
         logger.info(
                 " \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 InvoiceContract: verify starting ..... \uD83E\uDD6C \uD83E\uDD6C ")
-//
-//        val registerCommand = tx.getCommand<Register>(0)
-//
-//        if (registerCommand != null) {
-//            val state = tx.getOutput(0) as? InvoiceState
-//                    ?: throw IllegalArgumentException("Output state must be an InvoiceState")
-//            val requiredSigners = registerCommand.signers
-//            checkInvoiceSignatures(state, requiredSigners)
-//        }
-//        val closeCommand = tx.getCommand<Close>(0)
-//
-//        if (closeCommand != null) {
-//            val stateAndRef = tx.getInput(0) as? StateAndRef<InvoiceState>
-//                    ?: throw IllegalArgumentException("Output state must be an InvoiceState")
-//            val requiredSigners = closeCommand.signers
-//            checkInvoiceSignatures(stateAndRef.state.data, requiredSigners)
-//        }
 
         logger.info(" \uD83D\uDD06 \uD83D\uDD06 InvoiceContract: " +
                 "\uD83C\uDF4E verification done OK! .....\uD83E\uDD1F \uD83E\uDD1F ")
     }
-//
-//    @Suspendable
-//    fun checkInvoiceSignatures(requiredSigners: List<PublicKey>) {
-//
-//        val supplierPublicKey = invoiceState.supplierInfo.host.owningKey
-////        logger.info(" \uD83D\uDD34 Supplier publicKey: $supplierPublicKey ☘️ Node: "
-////                + invoiceState.supplierInfo.name + " - " + invoiceState.supplierInfo.host.name.organisation)
-//        if (!requiredSigners.contains(supplierPublicKey)) {
-//            throw IllegalArgumentException("Supplier Party must sign")
-//        }
-//        val customerPublicKey = invoiceState.customerInfo.host.owningKey
-////        logger.info(" \uD83D\uDD34 Customer publicKey: $customerPublicKey ☘️ Node: " + invoiceState.customerInfo.name
-////                + " - " + invoiceState.customerInfo.host.name.organisation)
-//        if (!requiredSigners.contains(customerPublicKey)) {
-//            throw IllegalArgumentException("Customer Party must sign")
-//        }
-//
-//    }
+
     class Register : CommandData
     class Close : CommandData
     companion object {
