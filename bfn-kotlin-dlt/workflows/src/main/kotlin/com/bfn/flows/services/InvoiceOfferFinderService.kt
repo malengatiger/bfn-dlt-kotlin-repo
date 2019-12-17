@@ -1,9 +1,8 @@
-package com.bfn.flows.auction
+package com.bfn.flows.services
 
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.accounts.workflows.services.KeyManagementBackedAccountService
 import com.template.states.InvoiceOfferState
-import com.template.states.InvoiceState
 import com.template.states.ProfileState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.node.AppServiceHub
@@ -15,27 +14,62 @@ import net.corda.core.serialization.SingletonSerializeAsToken
 import org.slf4j.LoggerFactory
 
 @CordaService
-class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSerializeAsToken() {
-    private val accountService: KeyManagementBackedAccountService = serviceHub.cordaService(KeyManagementBackedAccountService::class.java)
+class InvoiceOfferFinderService(private val serviceHub: AppServiceHub) : SingletonSerializeAsToken() {
+    private val accountService: KeyManagementBackedAccountService =
+            serviceHub.cordaService(KeyManagementBackedAccountService::class.java)
 
+
+    fun getOffersOnNode(): List<InvoiceOfferState> {
+        val list:  MutableList<InvoiceOfferState> = mutableListOf()
+        val allOffers = getOffers()
+        allOffers.forEach() {
+            list.add(it.state.data)
+        }
+        return list
+    }
+    fun getOffersForSupplier(supplierId: String): List<InvoiceOfferState> {
+        val list:  MutableList<InvoiceOfferState> = mutableListOf()
+        val allOffers = getOffers()
+        allOffers.forEach() {
+            if (it.state.data.supplier.identifier.id.toString() == supplierId) {
+                list.add(it.state.data)
+            }
+        }
+        return list
+    }
+    fun getOffersForInvestor(investorId: String): List<InvoiceOfferState> {
+        val list:  MutableList<InvoiceOfferState> = mutableListOf()
+        val allOffers = getOffers()
+        allOffers.forEach() {
+            if (it.state.data.investor.identifier.id.toString() == investorId) {
+                list.add(it.state.data)
+            }
+        }
+        return list
+    }
     @Suspendable
     @Throws(Exception::class)
-    fun findBestInvoices(supplierAccountId: String,
-                      invoiceId: String): List<InvoiceState> {
-        logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E InvoiceFinderService:selectBestOffer ... " +
-                "\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ")
+    fun findBestOffer(supplierAccountId: String,
+                      invoiceId: String): InvoiceOfferState {
+        logger.info(" \uD83D\uDC2C \uD83D\uDC2C BestOfferFinderService:selectBestOffer ... " +
+                "\uD83D\uDC2C \uD83D\uDC2C \uD83D\uDC2C \uD83D\uDC2C")
         this.supplierAccountId = supplierAccountId
         this.invoiceId = invoiceId
 
-        val sortedOffers = filterOffersByParams()
-        var bestInvoices: MutableList<InvoiceState>? = mutableListOf()
+        val sortedOffers = getOffers()
+        var bestOffer: InvoiceOfferState? = null
         //
         val profile = findProfile()
-
+        if (profile == null) {
+            return sortedOffers.last().state.data
+        } else {
+            logger.info("Profile used to select best Offer $profile")
+            bestOffer = selectOffer(profile)
+        }
         //todo - use profile to filter offers
         //todo - if ties found - take random offer
 
-        return bestInvoices!!
+        return bestOffer!!
     }
     @Suspendable
     private fun selectOffer(profile: ProfileState) : InvoiceOfferState{
@@ -64,7 +98,7 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
         return profile!!
     }
     @Suspendable
-    fun queryOffers(pageNumber: Int): Vault.Page<InvoiceOfferState> {
+    private fun queryOffers(pageNumber: Int): Vault.Page<InvoiceOfferState> {
         val criteria = QueryCriteria.VaultQueryCriteria(
                 status = Vault.StateStatus.UNCONSUMED)
 
@@ -74,7 +108,7 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
                 criteria = criteria)
     }
     @Suspendable
-    private fun filterOffersByParams(): List<StateAndRef<InvoiceOfferState>> {
+    private fun getOffers(): List<StateAndRef<InvoiceOfferState>> {
         val list: MutableList<StateAndRef<InvoiceOfferState>> = ArrayList()
         //get first page
         var pageNumber = 1
@@ -109,12 +143,12 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(InvoiceFinderService::class.java)
+        private val logger = LoggerFactory.getLogger(InvoiceOfferFinderService::class.java)
     }
 
     init {
-        logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E InvoiceFinderService: " +
-                "Investor finds best invoices via Profile. \uD83C\uDF4E \uD83C\uDF4E ")
+        logger.info("\uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9  InvoiceOfferFinderService: " +
+                "\uD83D\uDCA6 Supplier finds best Offer  \uD83D\uDE21")
 
     }
 }

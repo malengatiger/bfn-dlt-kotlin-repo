@@ -25,9 +25,9 @@ class CreateAccountFlow(
         val nodes = serviceHub.networkMapCache.allNodes
         val me = serviceHub.myInfo;
 
+        logger.warn("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 " +
+                "Sharing new account across ${nodes.size - 2} nodes")
         nodes.forEach() {
-            logger.info(" \uD83E\uDDE9 \uD83E\uDDE9 Node in network: " +
-                    "${it.legalIdentities.first().name}")
             if (me.legalIdentities[0].name == it.legalIdentities.first().name) {
                 logger.info("Ignore: account on this node, no need to share with self")
             } else {
@@ -44,7 +44,7 @@ class CreateAccountFlow(
         }
 
         logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  account : $acctInfo " +
-                "-   \uD83D\uDC9A created and shared \uD83D\uDC7D ")
+                "-   \uD83D\uDC9A created and shared across nodes \uD83D\uDC7D ")
         return acctInfo
 
     }

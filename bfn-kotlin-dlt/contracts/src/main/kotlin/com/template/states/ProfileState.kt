@@ -17,10 +17,10 @@ import java.util.*
 class ProfileState(var issuedBy: Party,
                    val accountId: String,
                    val minimumDiscount: Double,
-                   val minimumInvoiceAmount: BigDecimal,
-                   val maximumInvoiceAmount: BigDecimal,
-                   val maximumInvestmentPerInvoice: BigDecimal,
-                   val maximumTotalInvestment: BigDecimal,
+                   val minimumInvoiceAmount: Double,
+                   val maximumInvoiceAmount: Double,
+                   val maximumInvestmentPerInvoice: Double,
+                   val maximumTotalInvestment: Double,
                    var date: Date
                    ) : ContractState {
 

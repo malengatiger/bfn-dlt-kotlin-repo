@@ -35,7 +35,6 @@ class InvoiceCloseFlowResponder(private val counterPartySession: FlowSession) : 
 
             }
         }
-        Companion.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 run subFlow SignTransactionFlow ...")
         subFlow(signTransactionFlow)
         var signedTransaction: SignedTransaction? = null
         if (myself.toString() != counterPartySession.counterparty.toString()) {

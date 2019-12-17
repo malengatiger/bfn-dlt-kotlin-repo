@@ -67,15 +67,15 @@ private class Client {
 //        generateInvoices(0)
 //        generateInvoices(1)
 //        generateInvoices(2)
-//
+////
 //        generateOffers(0)
 //        generateOffers(1)
 //        generateOffers(2)
-//
+////
         runInvoiceOfferAuction(proxyPartyA)
         runInvoiceOfferAuction(proxyPartyB)
         runInvoiceOfferAuction(proxyPartyC)
-//
+////
         getOfferAndTokens(proxyPartyA)
         logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
         getOfferAndTokens(proxyPartyB)
@@ -366,7 +366,7 @@ private class Client {
             params["invoiceAmount"] = it.value.originalAmount.toString()
 
             if (it.value.supplier.host.name.toString().contains("PartyA")) {
-                logger.info("\uD83D\uDE21  selectBestOffer using PARTY A, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
+                logger.warn("\uD83D\uDE21  selectBestOffer using PARTY A, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
                 val response = httpGet(
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10050/admin/selectBestOffer")
@@ -378,7 +378,7 @@ private class Client {
                 }
             }
             if (it.value.supplier.host.name.toString().contains("PartyB")) {
-                logger.info("\uD83D\uDE21  selectBestOffer using PARTY B, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
+                logger.warn("\uD83D\uDE21  selectBestOffer using PARTY B, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
                 val response = httpGet(
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10053/admin/selectBestOffer")
@@ -390,7 +390,7 @@ private class Client {
                 }
             }
             if (it.value.supplier.host.name.toString().contains("PartyC")) {
-                logger.info("\uD83D\uDE21  selectBestOffer using PARTY C, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
+                logger.warn("\uD83D\uDE21  selectBestOffer using PARTY C, account: ${it.value}  \uD83D\uDE21  \uD83D\uDE21 ")
                 val response = httpGet(
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10056/admin/selectBestOffer")

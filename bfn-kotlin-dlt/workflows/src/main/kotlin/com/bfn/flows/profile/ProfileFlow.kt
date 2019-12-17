@@ -27,7 +27,8 @@ class ProfileFlow(private val profileState: ProfileState, private val action: In
     @Suspendable
     @Throws(FlowException::class)
     override fun call(): SignedTransaction? {
-        Companion.logger.info(" \uD83E\uDD1F \uD83E\uDD1F  \uD83E\uDD1F \uD83E\uDD1F  ... ProfileFlow call started ...")
+        Companion.logger.info("\uD83E\uDD1F \uD83E\uDD1F \uD83E\uDD1F \uD83E\uDD1F  " +
+                "... ProfileFlow call started .. action: $action ")
         val notary = serviceHub.networkMapCache.notaryIdentities[0]
 
         var tx: SignedTransaction? = null

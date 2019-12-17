@@ -4,6 +4,8 @@ import com.bfn.flows.CreateAccountFlow
 import com.bfn.flows.invoices.SelectBestInvoiceOfferFlow
 import com.bfn.flows.invoices.InvoiceOfferFlow
 import com.bfn.flows.invoices.InvoiceRegistrationFlow
+import com.bfn.flows.queries.InvoiceOfferQueryFlow
+import com.bfn.flows.queries.InvoiceQueryFlow
 import com.google.firebase.cloud.FirestoreClient
 import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
@@ -105,70 +107,94 @@ object WorkerBee {
 
     @JvmStatic
     @Throws(Exception::class)
-    fun getInvoiceStates(proxy: CordaRPCOps,
-                         accountId: String?,
-                         consumed: Boolean): List<InvoiceDTO> {
-        logger.info("........................ accountId:  \uD83D\uDC9A " + if (accountId == null) "null" else "$accountId consumed:  \uD83D\uDC9A $consumed")
-        val criteria: QueryCriteria = VaultQueryCriteria(
-                if (consumed) StateStatus.CONSUMED else StateStatus.UNCONSUMED)
-        val (states) = proxy.vaultQueryByWithPagingSpec(
-                InvoiceState::class.java, criteria,
-                PageSpecification(1, 1000))
-        val list: MutableList<InvoiceDTO> = ArrayList()
-        logger.info("\uD83D\uDCA6 \uD83D\uDCA6 \uD83D\uDCA6 \uD83D\uDCA6 \uD83D\uDCA6 \uD83D\uDCA6 Total invoices found: " + states.size)
-        var cnt = 0
-        for ((state) in states) {
-            val m = state.data
-            val invoice = getDTO(m)
-            cnt++
-            //            logger.info("\uD83D\uDCA6 \uD83D\uDCA6 \uD83D\uDCA6 Invoice #"
-//                    +cnt+" from stateAndRef, before check: " + GSON.toJson(invoice));
-            if (accountId == null) {
-                list.add(invoice)
-                //                logger.warn("........... accountId is null ... list: " + list.size());
-            } else {
-                if (invoice.supplier!!.identifier.equals(accountId, ignoreCase = true)
-                        || invoice.customer!!.identifier.equals(accountId, ignoreCase = true)) {
-                    list.add(invoice)
-                    //                    logger.warn("........... accountId is ".concat(accountId)
-//                    .concat(" list: " + list.size()));
-                }
+    fun findInvoicesForCustomer(proxy: CordaRPCOps,
+                         accountId: String): List<InvoiceDTO> {
+        val fut = proxy.startTrackedFlowDynamic(
+                InvoiceQueryFlow::class.java, accountId, null).returnValue
+        val invoices = fut.get()
+        val  dtos :  MutableList<InvoiceDTO> = mutableListOf()
+        invoices.forEach() {
+           if (it.customerInfo.identifier.id.toString() == accountId) {
+               dtos.add(getDTO(it))
+           }
+        }
+        val m = " \uD83C\uDF3A  \uD83C\uDF3A  \uD83C\uDF3A  done listing InvoiceStates:  \uD83C\uDF3A " + invoices.size
+        logger.info(m)
+        return dtos
+    }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun findInvoicesForSupplier(proxy: CordaRPCOps,
+                                accountId: String): List<InvoiceDTO> {
+        val fut = proxy.startTrackedFlowDynamic(
+                InvoiceQueryFlow::class.java, null, accountId).returnValue
+        val invoices = fut.get()
+        val  dtos :  MutableList<InvoiceDTO> = mutableListOf()
+        invoices.forEach() {
+            if (it.customerInfo.identifier.id.toString() == accountId) {
+                dtos.add(getDTO(it))
             }
         }
-        val m = " \uD83C\uDF3A  \uD83C\uDF3A  \uD83C\uDF3A  done listing InvoiceStates:  \uD83C\uDF3A " + list.size
+        val m = " \uD83C\uDF3A  \uD83C\uDF3A  \uD83C\uDF3A  done listing InvoiceStates:  \uD83C\uDF3A " + invoices.size
         logger.info(m)
-        return list
+        return dtos
+    }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun findInvoicesForNode(proxy: CordaRPCOps): List<InvoiceDTO> {
+        val fut = proxy.startTrackedFlowDynamic(
+                InvoiceQueryFlow::class.java, null, null).returnValue
+        val invoices = fut.get()
+        val  dtos :  MutableList<InvoiceDTO> = mutableListOf()
+        invoices.forEach() {
+            dtos.add(getDTO(it))
+        }
+        val m = " \uD83C\uDF3A  \uD83C\uDF3A  \uD83C\uDF3A  done listing InvoiceStates:  \uD83C\uDF3A " + invoices.size
+        logger.info(m)
+        return dtos
     }
 
     @JvmStatic
     @Throws(Exception::class)
-    fun getInvoiceOfferStates(proxy: CordaRPCOps, accountId: String?, consumed: Boolean): List<InvoiceOfferDTO> {
-        logger.info("...................... accountId:  \uD83D\uDC9A " + if (accountId == null) "null" else "$accountId consumed:  \uD83D\uDC9A $consumed")
-        val criteria: QueryCriteria = VaultQueryCriteria(
-                if (consumed) StateStatus.CONSUMED else StateStatus.ALL)
-        val (states) = proxy.vaultQueryByWithPagingSpec(
-                InvoiceOfferState::class.java, criteria,
-                PageSpecification(1, 200))
-        val list: MutableList<InvoiceOfferDTO> = ArrayList()
-        logger.info("\uD83D\uDCA6 \uD83D\uDCA6 \uD83D\uDCA6 Total offers found: " + states.size)
-        var cnt = 0
-        for ((state) in states) {
-            val offerState = state.data
-            cnt++
-            val offer = getDTO(offerState)
-            if (accountId == null) {
-                list.add(offer)
-            } else {
-                if (offer.supplier!!.identifier.equals(accountId, ignoreCase = true)
-                        || offer.investor!!.identifier.equals(accountId, ignoreCase = true)
-                        || offer.customer!!.identifier.equals(accountId, ignoreCase = true)) {
-                    list.add(offer)
-                }
-            }
+    fun findOffersForInvestor(proxy: CordaRPCOps, accountId: String): List<InvoiceOfferDTO> {
+        val fut = proxy.startTrackedFlowDynamic(
+                InvoiceOfferQueryFlow::class.java, accountId, null).returnValue
+        val offers = fut.get()
+        val  dtos :  MutableList<InvoiceOfferDTO> = mutableListOf()
+        offers.forEach() {
+            dtos.add(getDTO(it))
         }
-        val m = "\uD83D\uDCA6  done listing InvoiceOfferStates:  \uD83C\uDF3A " + list.size
+        val m = "\uD83D\uDCA6  done listing InvoiceOfferStates:  \uD83C\uDF3A " + offers.size
         logger.info(m)
-        return list
+        return dtos
+    }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun findOffersForSupplier(proxy: CordaRPCOps, accountId: String): List<InvoiceOfferDTO> {
+        val fut = proxy.startTrackedFlowDynamic(
+                InvoiceOfferQueryFlow::class.java, null, accountId).returnValue
+        val offers = fut.get()
+        val  dtos :  MutableList<InvoiceOfferDTO> = mutableListOf()
+        offers.forEach() {
+            dtos.add(getDTO(it))
+        }
+        val m = "\uD83D\uDCA6  done listing InvoiceOfferStates:  \uD83C\uDF3A " + offers.size
+        logger.info(m)
+        return dtos
+    }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun findOffersForNode(proxy: CordaRPCOps): List<InvoiceOfferDTO> {
+        val fut = proxy.startTrackedFlowDynamic(
+                InvoiceOfferQueryFlow::class.java, null, null).returnValue
+        val offers = fut.get()
+        val  dtos :  MutableList<InvoiceOfferDTO> = mutableListOf()
+        offers.forEach() {
+            dtos.add(getDTO(it))
+        }
+        val m = "\uD83D\uDCA6  done listing InvoiceOfferStates:  \uD83C\uDF3A " + offers.size
+        logger.info(m)
+        return dtos
     }
 
     //todo extend paging query where appropriate

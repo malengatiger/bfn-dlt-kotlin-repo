@@ -10,15 +10,15 @@ import org.slf4j.LoggerFactory
 
 @InitiatedBy(InvoiceRegistrationFlow::class)
 class InvoiceRegistrationFlowResponder(private val counterPartySession: FlowSession) : FlowLogic<SignedTransaction>() {
+
     @Suspendable
     @Throws(FlowException::class)
     override fun call(): SignedTransaction {
         Companion.logger.info("\uD83E\uDD6C \uD83E\uDD6C InvoiceRegistrationFlowResponder call method at ")
         val myself = serviceHub.ourIdentity
         val party = counterPartySession.counterparty
-        Companion.logger.info("\uD83C\uDF45 \uD83C\uDF45 This party: " + myself.name.toString() + ", party from session: \uD83C\uDF45 " + party.name.toString())
-        Companion.logger.info("\uD83C\uDF45 \uD83C\uDF45 getCounterPartyFlowInfo: " +
-                counterPartySession.getCounterpartyFlowInfo().toString())
+        Companion.logger.info("\uD83C\uDF45 \uD83C\uDF45 This party: ${myself.name} " +
+                "party from session: \uD83C\uDF45 ${party.name}")
 
         val signTransactionFlow: SignTransactionFlow = object : SignTransactionFlow(counterPartySession) {
             @Suspendable
@@ -35,7 +35,8 @@ class InvoiceRegistrationFlowResponder(private val counterPartySession: FlowSess
             signedTransaction = subFlow(ReceiveFinalityFlow(counterPartySession))
         }
         if (signedTransaction != null) {
-            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  InvoiceRegistrationFlowResponder Transaction finalized " +
+            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  " +
+                    "InvoiceRegistrationFlowResponder Transaction finalized " +
                     "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C \uD83E\uDD1F \uD83C\uDF4F \uD83C\uDF4E ${signedTransaction.id}")
         }
 

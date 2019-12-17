@@ -6,8 +6,6 @@ import com.template.dto.*
 import com.template.webserver.WorkerBee.getAccount
 import com.template.webserver.WorkerBee.getAccounts
 import com.template.webserver.WorkerBee.getDashboardData
-import com.template.webserver.WorkerBee.getInvoiceOfferStates
-import com.template.webserver.WorkerBee.getInvoiceStates
 import com.template.webserver.WorkerBee.getStates
 import com.template.webserver.WorkerBee.listFlows
 import com.template.webserver.WorkerBee.listNodes
@@ -94,19 +92,38 @@ class AdminController(rpc: NodeRPCConnection) {
             return getStates(proxy)
         }
 
-    @GetMapping(value = ["getInvoiceStates"])
+    @GetMapping(value = ["findInvoicesForCustomer"])
     @Throws(Exception::class)
-    fun getInvoiceStates(@RequestParam(value = "consumed", required = false) consumed: Boolean,
-                         @RequestParam(value = "accountId", required = false) accountId: String?): List<InvoiceDTO> {
-        return getInvoiceStates(proxy, accountId, consumed)
+    fun findInvoicesForCustomer(
+                         @RequestParam(value = "accountId", required = true) accountId: String): List<InvoiceDTO> {
+        return WorkerBee.findInvoicesForCustomer(proxy, accountId)
+    }
+    @GetMapping(value = ["findInvoicesForSupplier"])
+    @Throws(Exception::class)
+    fun findInvoicesForSupplier(
+            @RequestParam(value = "accountId", required = true) accountId: String): List<InvoiceDTO> {
+        return WorkerBee.findInvoicesForSupplier(proxy, accountId)
+    }
+    @GetMapping(value = ["findInvoicesForNode"])
+    @Throws(Exception::class)
+    fun findInvoicesForNode(): List<InvoiceDTO> {
+        return WorkerBee.findInvoicesForNode(proxy)
     }
 
-
-    @GetMapping(value = ["getInvoiceOfferStates"])
+    @GetMapping(value = ["findOffersForInvestor"])
     @Throws(Exception::class)
-    fun getInvoiceOfferStates(@RequestParam(value = "consumed", required = false) consumed: Boolean,
-                              @RequestParam(value = "accountId", required = false) accountId: String?): List<InvoiceOfferDTO> {
-        return getInvoiceOfferStates(proxy, accountId, consumed)
+    fun findOffersForInvestor(@RequestParam(value = "accountId", required = true) accountId: String): List<InvoiceOfferDTO> {
+        return WorkerBee.findOffersForInvestor(proxy, accountId)
+    }
+    @GetMapping(value = ["findOffersForSupplier"])
+    @Throws(Exception::class)
+    fun findOffersForSupplier(@RequestParam(value = "accountId", required = true) accountId: String): List<InvoiceOfferDTO> {
+        return WorkerBee.findOffersForSupplier(proxy, accountId)
+    }
+    @GetMapping(value = ["findOffersForNode"])
+    @Throws(Exception::class)
+    fun findOffersForNode(): List<InvoiceOfferDTO> {
+        return WorkerBee.findOffersForNode(proxy)
     }
 
     @GetMapping(value = ["getUser"])

@@ -24,20 +24,12 @@ class SelectBestInvoiceOfferFlowResponder(private val counterPartySession: FlowS
             @Suspendable
             @Throws(FlowException::class)
             override fun checkTransaction(stx: SignedTransaction) {
-                SelectBestInvoiceOfferFlowResponder.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 would be checking Transaction here " +
-                        "${stx.id} outputStates ${stx.coreTransaction.outputStates.size} ...")
-                stx.coreTransaction.outputStates.forEach() {
-                    SelectBestInvoiceOfferFlowResponder.logger.info("Output State: ${it.participants}")
-                }
+                //todo - any validation here?
+
             }
         }
 
-        Companion.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 about to run subFlow SignTransactionFlow ..." +
-                " \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06")
         subFlow(signTransactionFlow)
-        Companion.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 subFlow SignTransactionFlow completed..." +
-                " \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06")
-
         var signedTransaction: SignedTransaction? =  null
         if (myself.toString() != party.toString()) {
             signedTransaction = subFlow(ReceiveFinalityFlow(counterPartySession))

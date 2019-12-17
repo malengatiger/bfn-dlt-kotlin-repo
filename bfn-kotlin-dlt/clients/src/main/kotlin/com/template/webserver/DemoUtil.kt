@@ -8,7 +8,6 @@ import com.template.webserver.FirebaseUtil.deleteCollections
 import com.template.webserver.FirebaseUtil.deleteUsers
 import com.template.webserver.FirebaseUtil.users
 import com.template.webserver.WorkerBee.getAccounts
-import com.template.webserver.WorkerBee.getInvoiceStates
 import com.template.webserver.WorkerBee.startAccountRegistrationFlow
 import com.template.webserver.WorkerBee.startInvoiceOfferFlow
 import com.template.webserver.WorkerBee.startInvoiceRegistrationFlow
@@ -271,7 +270,7 @@ object DemoUtil {
             }
         }
 
-        val invoiceStates = getInvoiceStates(this.proxy!!, null, false)
+        val invoiceStates = WorkerBee.findInvoicesForNode(this.proxy!!)
         logger.info(" \uD83C\uDF4A  \uD83C\uDF4A " + invoiceStates.size + " InvoiceStates on node ...  \uD83C\uDF4A ")
         demoSummary.numberOfInvoices = invoiceStates.size
         return "\uD83D\uDC9A \uD83D\uDC99 \uD83D\uDC9C Invoices Generated: ${invoiceStates.size} \uD83D\uDC9C"
