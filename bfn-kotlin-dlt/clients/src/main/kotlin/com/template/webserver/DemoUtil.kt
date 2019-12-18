@@ -1,21 +1,17 @@
 package com.template.webserver
 
 import com.google.gson.GsonBuilder
-import com.r3.corda.lib.accounts.contracts.states.AccountInfo
 import com.template.dto.*
-import com.template.states.InvoiceState
 import com.template.webserver.FirebaseUtil.deleteCollections
 import com.template.webserver.FirebaseUtil.deleteUsers
 import com.template.webserver.FirebaseUtil.users
-import com.template.webserver.WorkerBee.getAccounts
+import com.template.webserver.WorkerBee.getNetworkAccounts
+import com.template.webserver.WorkerBee.getNodeAccounts
 import com.template.webserver.WorkerBee.startAccountRegistrationFlow
 import com.template.webserver.WorkerBee.startInvoiceOfferFlow
 import com.template.webserver.WorkerBee.startInvoiceRegistrationFlow
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.node.NodeInfo
-import net.corda.core.node.services.Vault
-import net.corda.core.node.services.vault.PageSpecification
-import net.corda.core.node.services.vault.QueryCriteria
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -69,9 +65,9 @@ object DemoUtil {
         }
         //
         logger.info(" 👽 👽 👽 👽 start data generation:  👽 👽 👽 👽  ")
-        generateAccounts(2)
+        generateAccounts(10)
         //
-        val list = getAccounts(proxy!!)
+        val list = getNodeAccounts(proxy!!)
         var cnt = 0
         logger.info(" \uD83C\uDF4E  \uD83C\uDF4E Total Number of Accounts on Node after sharing:" +
                 " \uD83C\uDF4E  \uD83C\uDF4E " + list.size)
@@ -86,44 +82,40 @@ object DemoUtil {
 
     private var nodes: List<NodeInfoDTO>? = null
 
-    fun generateOffers(proxy: CordaRPCOps, maxRecords: Int = 300): String {
+    fun generateOffers(proxy: CordaRPCOps, maxRecords: Int = 3000): String {
         this.proxy = proxy
-        val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
-        val pageInvoices = proxy.vaultQueryByWithPagingSpec(criteria = criteria, contractStateType = InvoiceState::class.java,
-                paging = PageSpecification(pageNumber = 1, pageSize = 400))
-        logger.info("Invoices on Node:  \uD83D\uDE21 \uD83D\uDE21 ️ ${pageInvoices.totalStatesAvailable} ♻️")
-        val page = proxy.vaultQueryByWithPagingSpec(criteria = criteria, contractStateType = AccountInfo::class.java,
-                paging = PageSpecification(pageNumber = 1, pageSize = 200))
-        logger.info("Accounts on Node:  \uD83D\uDE21 \uD83D\uDE21 ️ ${page.totalStatesAvailable} ♻️")
-        logger.info("\uD83D\uDD35 max records to generate: \uD83D\uDCA6 $maxRecords \uD83D\uDCA6");
-        var cnt = 0
-        val shuffledInvoices = pageInvoices.states.shuffled()
-        val shuffledAccts = page.states.shuffled()
-        shuffledInvoices.forEach() {
-            val invoice = it.state.data
-            shuffledAccts.forEach() {
-                val account = it.state.data
-                if (invoice.supplierInfo.name == account.name) {
-                    logger.info("\uD83D\uDD35 Ignore: ${it.state.data.name} Account is the supplier. " +
-                            "\uD83D\uDD35 Cannot offer invoice to self: \uD83C\uDF3A ${account.name}")
-                } else {
 
-                    if (cnt < maxRecords) {
-                        val xx = random.nextInt(100)
-                        if (xx > 80) {
+        logger.info("\uD83D\uDD35 max records to generate: \uD83D\uDCA6 $maxRecords \uD83D\uDCA6");
+        val acctList = getNodeAccounts(proxy)
+        val mList = WorkerBee.findInvoicesForNode(proxy)
+        logger.info("Accounts on Node:  \uD83D\uDE21 \uD83D\uDE21 ️ ${acctList.size} ♻️")
+        logger.info("Invoices on Node:  \uD83D\uDE21 \uD83D\uDE21 ️ ${mList.size} ♻️")
+
+        var cnt = 0
+        val shuffledInvoices = mList.shuffled()
+        val shuffledAccts = acctList.shuffled()
+        shuffledInvoices.forEach() { invoice ->
+            if (invoice.supplier!!.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
+                shuffledAccts.forEach() {
+                    val account = it
+                    if (invoice.supplier!!.name == account.name) {
+                        logger.info("\uD83D\uDD35 Ignore: ${it.name} Account is the supplier. " +
+                                "\uD83D\uDD35 Cannot offer invoice to self: \uD83C\uDF3A ${account.name}")
+                    } else {
+                        if (cnt < maxRecords) {
                             var discount = random.nextInt(25) * 1.5
                             if (discount == 0.0) {
-                                discount = 4.36
+                                discount = 4.5
                             }
                             logger.info("\uD83D\uDE21 Processing .... ${invoice.invoiceNumber} " +
                                     "\uD83C\uDF4F ${invoice.amount} for account:  \uD83D\uDC9C ${account.name}")
                             registerInvoiceOffer(
-                                    supplier = WorkerBee.getDTO(invoice.supplierInfo),
-                                    investor = WorkerBee.getDTO(account),
-                                    invoice = WorkerBee.getDTO(invoice),
+                                    supplier = invoice.supplier!!,
+                                    investor = account,
+                                    invoice = invoice,
                                     discount = discount)
                             logger.info("\uD83D\uDE21 registered InvoiceOffer for supplier: \uD83C\uDF4F " +
-                                    "${invoice.supplierInfo.name} ${invoice.supplierInfo.host} " +
+                                    "${invoice.supplier!!.name} ${invoice.supplier!!.host} " +
                                     "\uD83C\uDF4F \uD83D\uDCA6 investor: ${account.name} \uD83D\uDCA6 ${account.host} ")
                             cnt++
                         }
@@ -206,7 +198,7 @@ object DemoUtil {
 
     @Throws(Exception::class)
     private fun generateAccounts(count: Int) {
-        logger.info("\n\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 registerSupplierAccounts started ...  " +
+        logger.info("\n\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 generateAccounts started ...  " +
                 "\uD83D\uDD06 \uD83D\uDD06 ")
         for (x in 0..count) {
             var phone = phone
@@ -239,41 +231,107 @@ object DemoUtil {
 
     private val random = Random(System.currentTimeMillis())
     @Throws(Exception::class)
-    fun generateInvoices(proxy: CordaRPCOps, count: Int): String {
+    fun generateInvoices(proxy: CordaRPCOps, count: Int = 1): String {
         this.proxy = proxy
-        val accounts = getAccounts(this.proxy!!)
-        val shuffled = accounts.shuffled()
+        val accounts = getNodeAccounts(this.proxy!!).shuffled()
         var cnt = 0;
-        shuffled.forEach() {
-            if (cnt < count) {
-                val index = random.nextInt(accounts.size - 1)
-                val supplier = accounts[index]
-                val index2 = random.nextInt(accounts.size - 1)
-                val customer = accounts[index2]
-                if (supplier.name != it.name && customer.name != it.name) {
-                    val invoice = InvoiceDTO()
-                    invoice.invoiceNumber = "INV_" + System.currentTimeMillis()
-                    invoice.supplier = supplier
-                    invoice.customer = customer
-                    var num = random.nextInt(1500)
-                    if (num == 0) num = 92
-                    invoice.amount = num * 1000.0
-                    invoice.valueAddedTax = 15.0
-                    invoice.totalAmount = num * 1.15
-                    invoice.description = "Demo Invoice at " + Date().toString()
-                    invoice.dateRegistered = Date()
-                    val result = startInvoiceRegistrationFlow(this.proxy!!, invoice)
-                    cnt++
-                    logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C invoice generated, result: ${result.invoiceId}")
-
-                }
+        logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C accounts to have invoices generated: ${accounts.size}")
+        if (count == 1) {
+            repeatCount = 0
+            val invoice = buildInvoice(accounts, accounts, accounts.first())
+            if (invoice != null) {
+                val result = startInvoiceRegistrationFlow(this.proxy!!, invoice!!)
+                cnt++
+                logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C invoice generated, result: ${result.invoiceId}")
+            }
+            return "\uD83D\uDC9A CrossNode Invoice Generated: ${GSON.toJson(invoice)} \uD83D\uDC9C"
+        }
+        accounts.forEach() {
+            repeatCount = 0
+            val invoice = buildInvoice(accounts, accounts, it)
+            if (invoice != null) {
+                val result = startInvoiceRegistrationFlow(this.proxy!!, invoice!!)
+                cnt++
+                logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C invoice generated, result: ${result.invoiceId}")
+            }
+            if (cnt > count) {
+                return "\uD83D\uDC9A Node Invoices Generated: ${cnt - 1}  \uD83D\uDC9C"
             }
         }
 
         val invoiceStates = WorkerBee.findInvoicesForNode(this.proxy!!)
         logger.info(" \uD83C\uDF4A  \uD83C\uDF4A " + invoiceStates.size + " InvoiceStates on node ...  \uD83C\uDF4A ")
         demoSummary.numberOfInvoices = invoiceStates.size
-        return "\uD83D\uDC9A \uD83D\uDC99 \uD83D\uDC9C Invoices Generated: ${invoiceStates.size} \uD83D\uDC9C"
+        return "\uD83D\uDC9A Invoices Generated: ${invoiceStates.size} \uD83D\uDC9C"
+    }
+
+    @Throws(Exception::class)
+    fun generateCrossNodeInvoices(proxy: CordaRPCOps, count: Int = 1): String {
+        this.proxy = proxy
+        val accounts = getNetworkAccounts(proxy).shuffled()
+        val suppliers = getNodeAccounts(proxy)
+        var cnt = 0;
+        logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C accounts to have invoices generated: ${accounts.size}")
+        if (count == 1) {
+            repeatCount = 0
+            val invoice = buildInvoice(accounts, suppliers, accounts.first())
+            if (invoice != null) {
+                val result = startInvoiceRegistrationFlow(this.proxy!!, invoice!!)
+                return "\uD83D\uDC9A CrossNode Invoice Generated: ${GSON.toJson(result)} \uD83D\uDC9C"
+            } else {
+                generateCrossNodeInvoices(proxy,count)
+            }
+
+        }
+        accounts.forEach() {
+            repeatCount = 0
+            val invoice = buildInvoice(accounts, suppliers, it)
+            if (invoice != null) {
+                val result = startInvoiceRegistrationFlow(this.proxy!!, invoice!!)
+                cnt++
+                logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C invoice generated:  ${GSON.toJson(result)} ")
+            }
+            if (cnt > count) {
+                return "\uD83D\uDC9A CrossNode Invoices Generated: ${cnt - 1}  \uD83D\uDC9C"
+            }
+
+        }
+
+        val invoiceStates = WorkerBee.findInvoicesForNode(this.proxy!!)
+        logger.info(" \uD83C\uDF4A  \uD83C\uDF4A " + invoiceStates.size + " InvoiceStates on node ...  \uD83C\uDF4A ")
+        demoSummary.numberOfInvoices = invoiceStates.size
+        return "\uD83D\uDC9A Invoices Generated: ${invoiceStates.size} \uD83D\uDC9C"
+    }
+
+    var repeatCount = 0
+    private fun buildInvoice(accounts: List<AccountInfoDTO>, suppliers: List<AccountInfoDTO>, it: AccountInfoDTO): InvoiceDTO? {
+        val index = random.nextInt(suppliers.size - 1)
+        val supplier = suppliers[index]
+        val index2 = random.nextInt(accounts.size - 1)
+        val customer = accounts[index2]
+        var invoice: InvoiceDTO? = null
+        if (supplier.name != it.name && customer.name != it.name) {
+            invoice = InvoiceDTO()
+            invoice.invoiceNumber = "INV_" + System.currentTimeMillis()
+            invoice.supplier = supplier
+            invoice.customer = customer
+            var num = random.nextInt(500)
+            if (num == 0) num = 92
+            invoice.amount = num * 1000.0
+            invoice.valueAddedTax = 15.0
+            invoice.totalAmount = num * 1.15
+            invoice.description = "Demo Invoice at " + Date().toString()
+            invoice.dateRegistered = Date()
+        }
+        if (invoice == null && repeatCount < 5) {
+            logger.info("Invoice is null, repeating build .... repeatCount: $repeatCount")
+            repeatCount++
+            buildInvoice(accounts, suppliers, it)
+        }
+
+        return invoice
+
+
     }
 
     private val nodeInvoiceOffers: MutableList<InvoiceOfferDTO> = ArrayList()

@@ -5,11 +5,13 @@ import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 import com.template.states.InvoiceOfferState
 import com.template.states.InvoiceState
 import com.template.states.OfferAndTokenState
+import com.template.webserver.WorkerBee
 import net.corda.client.rpc.CordaRPCClient
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.PageSpecification
 import net.corda.core.node.services.vault.QueryCriteria
+import net.corda.core.node.services.vault.Sort
 import net.corda.core.utilities.NetworkHostAndPort
 import net.corda.core.utilities.loggerFor
 import khttp.get as httpGet
@@ -61,21 +63,34 @@ private class Client {
 
         getThisNode(proxyReg)
         doNodesAndAggregates(proxyPartyA, proxyPartyB, proxyPartyC, proxyReg)
-////
-//        startAccounts(true, deleteFirestore = true);
+
+//        getNodeTotals(proxyPartyA)
+//        getNodeTotals(proxyPartyB)
+//        getNodeTotals(proxyPartyC)
+//        getNodeTotals(proxyReg)
 //
+//        startAccounts(true, deleteFirestore = true);
 //        generateInvoices(0)
 //        generateInvoices(1)
 //        generateInvoices(2)
+
+//        generateCrossNodeInvoices(0, 1)
+        generateCrossNodeInvoices(1, 2)
+//        generateCrossNodeInvoices(2, 2)
 ////
 //        generateOffers(0)
 //        generateOffers(1)
 //        generateOffers(2)
-//
-        runInvoiceOfferAuction(proxyPartyA)
+
+//        runInvoiceOfferAuction(proxyPartyA)
 //        runInvoiceOfferAuction(proxyPartyB)
 //        runInvoiceOfferAuction(proxyPartyC)
 ////
+        getNodeTotals(proxyPartyA)
+        getNodeTotals(proxyPartyB)
+        getNodeTotals(proxyPartyC)
+        getNodeTotals(proxyReg)
+
         getOfferAndTokens(proxyPartyA)
         logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
         getOfferAndTokens(proxyPartyB)
@@ -88,6 +103,29 @@ private class Client {
 //        getTokens(proxyPartyB)
 //        getTokens(proxyPartyC)
 //        getTokens(proxyReg)
+    }
+    fun getRegulatorTotals(proxy: CordaRPCOps) {
+        logger.info("\n\uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A REGULATOR STATES \uD83C\uDF3A ")
+        val page = proxy.vaultQuery(AccountInfo::class.java)
+        logger.info("\uD83C\uDF3A Total Accounts on Regulator: ${page.states.size} \uD83C\uDF3A ")
+        val page1 = proxy.vaultQuery(InvoiceState::class.java)
+        logger.info("\uD83C\uDF3A Total InvoiceStates on Regulator: ${page1.states.size} \uD83C\uDF3A ")
+        val page2 = proxy.vaultQuery(InvoiceOfferState::class.java)
+        logger.info("\uD83C\uDF3A Total InvoiceOfferStates on Regulator: ${page2.states.size} \uD83C\uDF3A ")
+        val page3 = proxy.vaultQuery(OfferAndTokenState::class.java)
+        logger.info("\uD83C\uDF3A Total OfferAndTokenStates on Regulator: ${page3.states.size} \uD83C\uDF3A \n")
+    }
+    fun getNodeTotals(proxy: CordaRPCOps) {
+        val name = proxy.nodeInfo().legalIdentities.first().name.organisation
+        logger.info("\n\uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A ${name.toUpperCase()} STATES \uD83C\uDF3A ")
+        val page = proxy.vaultQuery(AccountInfo::class.java)
+        logger.info("\uD83C\uDF3A Total Accounts on ${name.toUpperCase()}: ${page.states.size} \uD83C\uDF3A ")
+        val page1 = proxy.vaultQuery(InvoiceState::class.java)
+        logger.info("\uD83C\uDF3A Total InvoiceStates on ${name.toUpperCase()}: ${page1.states.size} \uD83C\uDF3A ")
+        val page2 = proxy.vaultQuery(InvoiceOfferState::class.java)
+        logger.info("\uD83C\uDF3A Total InvoiceOfferStates on ${name.toUpperCase()}: ${page2.states.size} \uD83C\uDF3A ")
+        val page3 = proxy.vaultQuery(OfferAndTokenState::class.java)
+        logger.info("\uD83C\uDF3A Total OfferAndTokenStates on ${name.toUpperCase()}: ${page3.states.size} \uD83C\uDF3A \n")
     }
     fun getTokens(proxy: CordaRPCOps) {
         val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
@@ -150,13 +188,14 @@ private class Client {
 
 
     }
-    private fun generateInvoices(index:Int) {
-
+    private fun generateInvoices(index:Int, max: Int = 1) {
+        var params : MutableMap<String, String> = mutableMapOf()
+        params["max"] = max.toString()
         when(index) {
             0 -> {
                 logger.info("\uD83D\uDE21  generateInvoices for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
                 val response = httpGet(
-                        timeout = 990000000.0,
+                        timeout = 990000000.0, params = params,
                         url = "http://localhost:10050/admin/generateInvoices")
                 logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response.statusCode}  " +
                         "${response.text}")
@@ -165,7 +204,7 @@ private class Client {
 
                 logger.info("\uD83D\uDE21  generateInvoices for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
                 val response2 = httpGet(
-                        timeout = 990000000.0,
+                        timeout = 990000000.0, params = params,
                         url = "http://localhost:10053/admin/generateInvoices")
                 logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${response2.statusCode}  " +
                         "${response2.text}")
@@ -173,8 +212,43 @@ private class Client {
             2 -> {
                 logger.info("\uD83D\uDE21  generateInvoices for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
                 val response3 = httpGet(
-                        timeout = 990000000.0,
+                        timeout = 990000000.0, params = params,
                         url = "http://localhost:10056/admin/generateInvoices")
+                logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response3.statusCode}  " +
+                        "${response3.text}")
+            }
+        }
+
+
+
+
+    }
+    private fun generateCrossNodeInvoices(index:Int, max: Int = 1) {
+        var params : MutableMap<String, String> = mutableMapOf()
+        params["max"] = max.toString()
+        when(index) {
+            0 -> {
+                logger.info("\uD83D\uDE21  generateCrossNodeInvoices for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
+                val response = httpGet(
+                        timeout = 990000000.0, params = params,
+                        url = "http://localhost:10050/admin/generateCrossNodeInvoices")
+                logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response.statusCode}  " +
+                        "${response.text}")
+            }
+            1 -> {
+
+                logger.info("\uD83D\uDE21  generateCrossNodeInvoices for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
+                val response2 = httpGet(
+                        timeout = 990000000.0, params = params,
+                        url = "http://localhost:10053/admin/generateCrossNodeInvoices")
+                logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${response2.statusCode}  " +
+                        "${response2.text}")
+            }
+            2 -> {
+                logger.info("\uD83D\uDE21  generateCrossNodeInvoices for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
+                val response3 = httpGet(
+                        timeout = 990000000.0, params = params,
+                        url = "http://localhost:10056/admin/generateCrossNodeInvoices")
                 logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response3.statusCode}  " +
                         "${response3.text}")
             }
@@ -273,21 +347,39 @@ private class Client {
         val page = proxy.vaultQueryByWithPagingSpec(
                 criteria = criteria, contractStateType = AccountInfo::class.java,
                 paging = PageSpecification(pageNumber = 1, pageSize = 1000))
-        logger.info("Accounts on Node: ♻️ ${page.totalStatesAvailable} ♻️")
+        var cnt = 0
+        page.states.forEach() {
+            if (it.state.data.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
+                cnt++
+            }
+        }
+        logger.info("Accounts on Node: ♻️ $cnt ♻️")
         //
         val pageInvoices = proxy.vaultQueryByWithPagingSpec(criteria = criteria,
                 contractStateType = InvoiceState::class.java,
-                paging = PageSpecification(pageNumber = 1, pageSize = 200))
-        logger.info("Invoices on Node: ♻️ ${pageInvoices.totalStatesAvailable} ♻️")
+                paging = PageSpecification(pageNumber = 1, pageSize = 2000))
+        cnt = 0
+        pageInvoices.states.forEach() {
+            if (it.state.data.supplierInfo.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
+                cnt++
+            }
+        }
+        logger.info("Invoices on Node: ♻️ $cnt♻️")
 
         val pageInvoiceOffers =
         proxy.vaultQueryByWithPagingSpec(
                 contractStateType = InvoiceOfferState::class.java,
                 criteria = criteria,
                 paging = PageSpecification(
-                    pageNumber = 1, pageSize = 1000))
+                    pageNumber = 1, pageSize = 2000))
+        cnt = 0
+        pageInvoiceOffers.states.forEach() {
+            if (it.state.data.investor.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
+                cnt++
+            }
+        }
 
-        logger.info("InvoiceOffers on Node: ♻️ ${pageInvoiceOffers.totalStatesAvailable} ♻️")
+        logger.info("InvoiceOffers on Node: ♻️ $cnt ♻️")
     }
     private fun getAccountDetails(proxy: CordaRPCOps) {
         val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)

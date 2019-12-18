@@ -1,19 +1,14 @@
 package com.bfn.flows.invoices
 
 import co.paralleluniverse.fibers.Suspendable
+import com.bfn.flows.regulator.BroadcastTransactionFlow
 import com.bfn.flows.regulator.ReportToRegulatorFlow
-import com.google.common.collect.ImmutableList
 import com.r3.corda.lib.accounts.workflows.ourIdentity
 import com.template.contracts.InvoiceContract
 import com.template.states.InvoiceOfferState
-import com.template.states.InvoiceState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
-import net.corda.core.node.ServiceHub
-import net.corda.core.node.services.Vault
-import net.corda.core.node.services.vault.PageSpecification
-import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import org.slf4j.LoggerFactory
@@ -28,8 +23,8 @@ class InvoiceOfferCloseFlow(
     @Throws(FlowException::class)
     override fun call(): SignedTransaction {
         val serviceHub = serviceHub
-        Companion.logger.info(" \uD83E\uDD1F \uD83E\uDD1F  \uD83E\uDD1F \uD83E\uDD1F  ... InvoiceOfferCloseFlow to CONSUME " +
-                "\uD83D\uDC7A ${stateAndRefs.size} \uD83D\uDC7A InvoiceOfferStates...")
+        Companion.logger.info("\uD83E\uDD1F \uD83E\uDD1F \uD83E\uDD1F \uD83E\uDD1F InvoiceOfferCloseFlow to CONSUME " +
+                "\uD83D\uDC7A ${stateAndRefs.size} \uD83D\uDC7A InvoiceOfferStates ...")
         val notary = serviceHub.networkMapCache.notaryIdentities[0]
 
         val command = InvoiceContract.Close()
@@ -47,21 +42,23 @@ class InvoiceOfferCloseFlow(
             keys.add(it.owningKey)
         }
         txBuilder.addCommand(command, keys)
-        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C Verify transaction ... \uD83D\uDE3C ")
+        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C Verify transaction ... parties: ${parties.size} \uD83D\uDE3C ")
         txBuilder.verify(serviceHub)
+
         Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C signInitialTransaction ... \uD83D\uDE3C ")
         val signedTx = serviceHub.signInitialTransaction(txBuilder)
-        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C finalizeTransaction ... \uD83D\uDE3C ")
-        val mTx = finalizeTransaction(serviceHub, parties, signedTx)
+
+        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C start finalizeTransaction ... \uD83D\uDE3C ")
+        val finalTx = setFlowSessions(parties, signedTx )
+        subFlow(BroadcastTransactionFlow(finalTx))
         Companion.logger.info("\uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16  " +
                 "\uD83E\uDD16 CONSUMED !! \uD83E\uDD16 ")
-        return mTx;
+        return signedTx;
     }
 
     @Suspendable
-    private fun finalizeTransaction(serviceHub: ServiceHub,
-                                    parties: List<Party>,
-                                    signedTx: SignedTransaction): SignedTransaction {
+    private fun setFlowSessions(parties: List<Party>,
+                                signedTx: SignedTransaction): SignedTransaction {
 
         val flowSessions: MutableList<FlowSession> = mutableListOf()
         parties.forEach() {
@@ -69,21 +66,10 @@ class InvoiceOfferCloseFlow(
                 flowSessions.add(initiateFlow(it))
             }
         }
-        return if (flowSessions.isNotEmpty()) {
-            val tx = collectSignatures(signedTx,flowSessions)
-            val mSignedTransactionDone = subFlow(
-                    FinalityFlow(tx, flowSessions))
-            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  ${flowSessions.size} remote NODES involved ==> " +
-                    " \uD83E\uDD66 \uD83E\uDD66  \uD83E\uDD66 \uD83E\uDD66 FinalityFlow has been executed " +
-                    "...\uD83E\uDD66 \uD83E\uDD66")
-            mSignedTransactionDone
+        return if (flowSessions.isEmpty()) {
+            signedTx
         } else {
-            val mSignedTransactionDone = subFlow(
-                    FinalityFlow(signedTx, ImmutableList.of<FlowSession>()))
-            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  SAME NODE ==> " +
-                    " \uD83E\uDD66 \uD83E\uDD66  \uD83E\uDD66 \uD83E\uDD66 FinalityFlow has been executed " +
-                    "...\uD83E\uDD66 \uD83E\uDD66")
-            mSignedTransactionDone
+            collectSignatures(signedTx,flowSessions)
         }
 
     }

@@ -67,28 +67,47 @@ object WorkerBee {
     }
 
     @JvmStatic
-    fun getAccounts(proxy: CordaRPCOps): List<AccountInfoDTO> {
+    fun getNodeAccounts(proxy: CordaRPCOps): List<AccountInfoDTO> {
         val accounts = proxy.vaultQuery(AccountInfo::class.java).states
+        logger.info("\uD83C\uDF3A Total Accounts in Network: ${accounts.size} \uD83C\uDF3A ")
         var cnt = 0
         val list: MutableList<AccountInfoDTO> = ArrayList()
         for ((state) in accounts) {
             cnt++
-            //            logger.info(" \uD83C\uDF3A AccountInfo: #".concat("" + cnt + " :: ").concat(ref.getState().getData().toString()
-//                    .concat(" \uD83E\uDD4F ")));
+            val (name, host, identifier) = state.data
+            val dto = AccountInfoDTO(identifier.id.toString(),
+                    host.toString(), name, null)
+            if (dto.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
+                list.add(dto)
+            }
+        }
+        val msg = "\uD83C\uDF3A \uD83C\uDF3A done listing ${list.size} accounts on Node: \uD83C\uDF3A " +
+                proxy.nodeInfo().legalIdentities.first().toString()
+        logger.info(msg)
+        return list
+    }
+    @JvmStatic
+    fun getNetworkAccounts(proxy: CordaRPCOps): List<AccountInfoDTO> {
+        val accounts = proxy.vaultQuery(AccountInfo::class.java).states
+        logger.info("\uD83C\uDF3A Total Accounts in Network: ${accounts.size} \uD83C\uDF3A ")
+        var cnt = 0
+        val list: MutableList<AccountInfoDTO> = ArrayList()
+        for ((state) in accounts) {
+            cnt++
             val (name, host, identifier) = state.data
             val dto = AccountInfoDTO(identifier.id.toString(),
                     host.toString(), name, null)
             list.add(dto)
         }
-        val msg = "\uD83C\uDF3A  \uD83C\uDF3A done listing accounts:  \uD83C\uDF3A " + list.size
+        val msg = "\uD83C\uDF3A \uD83C\uDF3A done listing ${list.size} accounts on Node: \uD83C\uDF3A " +
+                proxy.nodeInfo().legalIdentities.first().toString()
         logger.info(msg)
         return list
     }
-
     @JvmStatic
     @Throws(Exception::class)
     fun getAccount(proxy: CordaRPCOps, accountId: String?): AccountInfoDTO {
-        val list = getAccounts(proxy)
+        val list = getNodeAccounts(proxy)
         var dto: AccountInfoDTO? = null
         for (info in list) {
             if (info.identifier.equals(accountId, ignoreCase = true)) {
@@ -135,7 +154,7 @@ object WorkerBee {
                 dtos.add(getDTO(it))
             }
         }
-        val m = " \uD83C\uDF3A  \uD83C\uDF3A  \uD83C\uDF3A  done listing InvoiceStates:  \uD83C\uDF3A " + invoices.size
+        val m = "\uD83C\uDF3A done listing InvoiceStates:  \uD83C\uDF3A " + invoices.size
         logger.info(m)
         return dtos
     }
@@ -147,9 +166,12 @@ object WorkerBee {
         val invoices = fut.get()
         val  dtos :  MutableList<InvoiceDTO> = mutableListOf()
         invoices.forEach() {
-            dtos.add(getDTO(it))
+            if (it.supplierInfo.host.toString() ==
+                    proxy.nodeInfo().legalIdentities.first().toString()) {
+                dtos.add(getDTO(it))
+            }
         }
-        val m = " \uD83C\uDF3A  \uD83C\uDF3A  \uD83C\uDF3A  done listing InvoiceStates:  \uD83C\uDF3A " + invoices.size
+        val m = "\uD83C\uDF3A done listing InvoiceStates:  \uD83C\uDF3A " + invoices.size
         logger.info(m)
         return dtos
     }
@@ -176,7 +198,10 @@ object WorkerBee {
         val offers = fut.get()
         val  dtos :  MutableList<InvoiceOfferDTO> = mutableListOf()
         offers.forEach() {
-            dtos.add(getDTO(it))
+            if (proxy.nodeInfo().legalIdentities.first().toString()
+                    == it.supplier.host.toString()) {
+                dtos.add(getDTO(it))
+            }
         }
         val m = "\uD83D\uDCA6  done listing InvoiceOfferStates:  \uD83C\uDF3A " + offers.size
         logger.info(m)
@@ -190,7 +215,10 @@ object WorkerBee {
         val offers = fut.get()
         val  dtos :  MutableList<InvoiceOfferDTO> = mutableListOf()
         offers.forEach() {
-            dtos.add(getDTO(it))
+           if (proxy.nodeInfo().legalIdentities.first().toString()
+                   == it.investor.host.toString()) {
+               dtos.add(getDTO(it))
+           }
         }
         val m = "\uD83D\uDCA6  done listing InvoiceOfferStates:  \uD83C\uDF3A " + offers.size
         logger.info(m)

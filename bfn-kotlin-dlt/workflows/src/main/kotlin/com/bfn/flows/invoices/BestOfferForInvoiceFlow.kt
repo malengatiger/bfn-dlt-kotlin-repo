@@ -116,8 +116,8 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceCloseFlow")
         subFlow(InvoiceCloseFlow(invoiceId = invoiceId))
 
-//        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceOfferCloseFlow")
-//        subFlow(InvoiceOfferCloseFlow(offers))
+        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceOfferCloseFlow")
+        subFlow(InvoiceOfferCloseFlow(offers))
 
         logger.warn("\uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38 Finally ready to finish this ...")
         return finalizeToken(parties, signedTokenTx)

@@ -4,7 +4,7 @@ import com.google.firebase.auth.UserRecord
 import com.google.gson.GsonBuilder
 import com.template.dto.*
 import com.template.webserver.WorkerBee.getAccount
-import com.template.webserver.WorkerBee.getAccounts
+import com.template.webserver.WorkerBee.getNodeAccounts
 import com.template.webserver.WorkerBee.getDashboardData
 import com.template.webserver.WorkerBee.getStates
 import com.template.webserver.WorkerBee.listFlows
@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.web.bind.annotation.*
 import java.util.*
-import java.util.concurrent.ExecutionException
 
 /**
  * Define your API endpoints here.
@@ -44,7 +43,7 @@ class AdminController(rpc: NodeRPCConnection) {
     @Throws(Exception::class)
     private fun generateOffers(@RequestParam max: Int?): String {
         logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 starting DemoUtil: generateOffers ... \uD83C\uDF4F ")
-        var maximumRecords = 2000;
+        var maximumRecords = 200;
         if (max != null) maximumRecords = max
         val result = DemoUtil.generateOffers(proxy, maximumRecords)
         logger.info(result)
@@ -52,11 +51,21 @@ class AdminController(rpc: NodeRPCConnection) {
     }
     @GetMapping(value = ["/generateInvoices"], produces = ["application/json"])
     @Throws(Exception::class)
-    private fun generateInvoices(@RequestParam max: Int?): String {
+    private fun generateInvoices(@RequestParam max: String = "1"): String {
         logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 generateInvoices ... \uD83C\uDF4F ")
-        var maximumRecords = 10;
-        if (max != null) maximumRecords = max
+        var maximumRecords = 1;
+        if (max != null) maximumRecords = max.toInt()
         val result = DemoUtil.generateInvoices(proxy, maximumRecords)
+        logger.info(result)
+        return result
+    }
+    @GetMapping(value = ["/generateCrossNodeInvoices"], produces = ["application/json"])
+    @Throws(Exception::class)
+    private fun generateCrossNodeInvoices(@RequestParam max: String = "1"): String {
+        logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 generateCrossNodeInvoices ... \uD83C\uDF4F ")
+        var maximumRecords = 1;
+        if (max != null) maximumRecords = max.toInt()
+        val result = DemoUtil.generateCrossNodeInvoices(proxy, maximumRecords)
         logger.info(result)
         return result
     }
@@ -81,7 +90,7 @@ class AdminController(rpc: NodeRPCConnection) {
 
     @get:GetMapping(value = ["getAccounts"])
     val accounts: List<AccountInfoDTO>
-        get() = getAccounts(proxy)
+        get() = getNodeAccounts(proxy)
 
     @get:GetMapping(value = ["/getStates"], produces = ["application/json"])
     private val states: List<String>

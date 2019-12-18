@@ -3,14 +3,12 @@ package com.bfn.flows.invoices
 import co.paralleluniverse.fibers.Suspendable
 import com.bfn.flows.regulator.BroadcastTransactionFlow
 import com.bfn.flows.regulator.ReportToRegulatorFlow
-import com.google.common.collect.ImmutableList
 import com.r3.corda.lib.accounts.workflows.ourIdentity
 import com.template.contracts.InvoiceContract
 import com.template.states.InvoiceState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
-import net.corda.core.node.ServiceHub
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.PageSpecification
 import net.corda.core.node.services.vault.QueryCriteria
@@ -69,9 +67,9 @@ class InvoiceCloseFlow(private val invoiceId: String) : FlowLogic<SignedTransact
         txBuilder.verify(serviceHub)
 
         val signedTx = serviceHub.signInitialTransaction(txBuilder)
-        //Companion.logger.info("\uD83D\uDD8D \uD83D\uDD8D \uD83D\uDD8D finalizeTransaction ... ")
-        //val mTx = finalizeTransaction(parties, signedTx)
-        subFlow(BroadcastTransactionFlow(signedTx))
+        Companion.logger.info("\uD83D\uDD8D \uD83D\uDD8D \uD83D\uDD8D finalizeTransaction ... ")
+        val mTx = setFlowSessions(parties, signedTx)
+        subFlow(BroadcastTransactionFlow(mTx))
 
         Companion.logger.info("\uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16  " +
                 "${invoiceState!!.state.data.supplierInfo.name} totalAmount: ${invoiceState!!.state.data.totalAmount}  " +
@@ -80,7 +78,7 @@ class InvoiceCloseFlow(private val invoiceId: String) : FlowLogic<SignedTransact
     }
 
     @Suspendable
-    private fun finalizeTransaction(
+    private fun setFlowSessions(
             parties: List<Party>,
             signedTx: SignedTransaction): SignedTransaction {
         val flowSessions: MutableList<FlowSession> = mutableListOf()
@@ -92,22 +90,11 @@ class InvoiceCloseFlow(private val invoiceId: String) : FlowLogic<SignedTransact
         if (flowSessions.isEmpty()) {
             Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
                     "All participants are LOCAL ... \uD83D\uDD06")
-            val mSignedTransactionDone = subFlow(
-                    FinalityFlow(signedTx, ImmutableList.of<FlowSession>()))
-            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  SAME NODE ==> " +
-                    " \uD83E\uDD66 \uD83E\uDD66  \uD83E\uDD66 \uD83E\uDD66 FinalityFlow has been executed " +
-                    "...\uD83E\uDD66 \uD83E\uDD66")
-            return mSignedTransactionDone
+            return signedTx
         } else {
             Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
                     "Participants are LOCAL/REMOTE ... \uD83D\uDD06")
-            val tx = collectSignatures(signedTx, flowSessions)
-            val mSignedTransactionDone = subFlow(
-                    FinalityFlow(tx,flowSessions))
-            Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  ${flowSessions.size} remote NODES involved ==> " +
-                    " \uD83E\uDD66 \uD83E\uDD66  \uD83E\uDD66 \uD83E\uDD66 FinalityFlow has been executed " +
-                    "...\uD83E\uDD66 \uD83E\uDD66")
-            return mSignedTransactionDone
+           return collectSignatures(signedTx, flowSessions)
         }
     }
 
