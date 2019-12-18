@@ -70,21 +70,21 @@ private class Client {
 //        getNodeTotals(proxyReg)
 //
 //        startAccounts(true, deleteFirestore = true);
-//        generateInvoices(0)
-//        generateInvoices(1)
-//        generateInvoices(2)
-
-//        generateCrossNodeInvoices(0, 1)
-        generateCrossNodeInvoices(1, 2)
-//        generateCrossNodeInvoices(2, 2)
+//////        generateInvoices(0)
+//////        generateInvoices(1)
+//////        generateInvoices(2)
 ////
+//        generateCrossNodeInvoices(0, 1)
+//        generateCrossNodeInvoices(1, 1)
+//        generateCrossNodeInvoices(2, 1)
+//////
 //        generateOffers(0)
 //        generateOffers(1)
 //        generateOffers(2)
 
-//        runInvoiceOfferAuction(proxyPartyA)
-//        runInvoiceOfferAuction(proxyPartyB)
-//        runInvoiceOfferAuction(proxyPartyC)
+        runInvoiceOfferAuction(proxyPartyA)
+        runInvoiceOfferAuction(proxyPartyB)
+        runInvoiceOfferAuction(proxyPartyC)
 ////
         getNodeTotals(proxyPartyA)
         getNodeTotals(proxyPartyB)
@@ -119,13 +119,36 @@ private class Client {
         val name = proxy.nodeInfo().legalIdentities.first().name.organisation
         logger.info("\n\uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A ${name.toUpperCase()} STATES \uD83C\uDF3A ")
         val page = proxy.vaultQuery(AccountInfo::class.java)
-        logger.info("\uD83C\uDF3A Total Accounts on ${name.toUpperCase()}: ${page.states.size} \uD83C\uDF3A ")
-        val page1 = proxy.vaultQuery(InvoiceState::class.java)
-        logger.info("\uD83C\uDF3A Total InvoiceStates on ${name.toUpperCase()}: ${page1.states.size} \uD83C\uDF3A ")
-        val page2 = proxy.vaultQuery(InvoiceOfferState::class.java)
-        logger.info("\uD83C\uDF3A Total InvoiceOfferStates on ${name.toUpperCase()}: ${page2.states.size} \uD83C\uDF3A ")
+        logger.info("\uD83D\uDC65  Total Accounts on \uD83D\uDC65 ${name.toUpperCase()}: ${page.states.size}  \uD83D\uDC65  ")
+        val unConsumedInvoices = proxy.vaultQueryByWithPagingSpec(
+                contractStateType = InvoiceState::class.java,
+                criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED),
+                paging = PageSpecification(1,5000))
+        val consumedInvoices = proxy.vaultQueryByWithPagingSpec(
+                contractStateType = InvoiceState::class.java,
+                criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.CONSUMED),
+                paging = PageSpecification(1,5000))
+        val unConsumedOffers = proxy.vaultQueryByWithPagingSpec(
+                contractStateType = InvoiceOfferState::class.java,
+                criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED),
+                paging = PageSpecification(1,5000))
+        val consumedOffers = proxy.vaultQueryByWithPagingSpec(
+                contractStateType = InvoiceOfferState::class.java,
+                criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.CONSUMED),
+                paging = PageSpecification(1,5000))
+
+        val allInvoices = proxy.vaultQuery(InvoiceState::class.java)
+        val allOffers = proxy.vaultQuery(InvoiceOfferState::class.java)
+        logger.info("\uD83C\uDF3A Total ConsumedInvoices on ${name.toUpperCase()}: ${consumedInvoices.states.size} \uD83C\uDF3A ")
+        logger.info("\uD83C\uDF3A Total unConsumedInvoices on ${name.toUpperCase()}: ${unConsumedInvoices.states.size} \uD83C\uDF3A ")
+        logger.info("\uD83C\uDF3A Total Invoices on ${name.toUpperCase()}: ${allInvoices.states.size} \uD83C\uDF3A \n")
+
+        logger.info("\uD83C\uDF81 Total consumedOffers on ${name.toUpperCase()}: ${consumedOffers.states.size} \uD83C\uDF3A ")
+        logger.info("\uD83C\uDF81 Total unConsumedOffers on ${name.toUpperCase()}: ${unConsumedOffers.states.size} \uD83C\uDF3A ")
+        logger.info("\uD83C\uDF81 Total Offers on ${name.toUpperCase()}: ${allOffers.states.size} \uD83C\uDF3A \n")
+
         val page3 = proxy.vaultQuery(OfferAndTokenState::class.java)
-        logger.info("\uD83C\uDF3A Total OfferAndTokenStates on ${name.toUpperCase()}: ${page3.states.size} \uD83C\uDF3A \n")
+        logger.info("\uD83D\uDECE Total OfferAndTokenStates on ${name.toUpperCase()}: ${page3.states.size} \uD83D\uDECE \n")
     }
     fun getTokens(proxy: CordaRPCOps) {
         val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
@@ -348,23 +371,31 @@ private class Client {
                 criteria = criteria, contractStateType = AccountInfo::class.java,
                 paging = PageSpecification(pageNumber = 1, pageSize = 1000))
         var cnt = 0
+        var cnt2 = 0
         page.states.forEach() {
             if (it.state.data.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
                 cnt++
+            } else {
+                cnt2++
             }
         }
-        logger.info("Accounts on Node: ♻️ $cnt ♻️")
+        logger.info("Local Accounts on Node: ♻️ $cnt ♻️")
+        logger.info("Remote Accounts on Node: ♻️ $cnt2 ♻️")
         //
         val pageInvoices = proxy.vaultQueryByWithPagingSpec(criteria = criteria,
                 contractStateType = InvoiceState::class.java,
                 paging = PageSpecification(pageNumber = 1, pageSize = 2000))
         cnt = 0
+        cnt2 = 0
         pageInvoices.states.forEach() {
             if (it.state.data.supplierInfo.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
                 cnt++
+            } else {
+                cnt2++
             }
         }
-        logger.info("Invoices on Node: ♻️ $cnt♻️")
+        logger.info("Local Invoices on Node: ♻️ $cnt♻️")
+        logger.info("Remote Invoices on Node: ♻️ $cnt2♻️")
 
         val pageInvoiceOffers =
         proxy.vaultQueryByWithPagingSpec(
@@ -373,13 +404,17 @@ private class Client {
                 paging = PageSpecification(
                     pageNumber = 1, pageSize = 2000))
         cnt = 0
+        cnt2 = 0
         pageInvoiceOffers.states.forEach() {
             if (it.state.data.investor.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
                 cnt++
+            } else {
+                cnt2++
             }
         }
 
-        logger.info("InvoiceOffers on Node: ♻️ $cnt ♻️")
+        logger.info("Local InvoiceOffers on Node: ♻️ $cnt ♻️")
+        logger.info("Remote InvoiceOffers on Node: ♻️ $cnt2 ♻️")
     }
     private fun getAccountDetails(proxy: CordaRPCOps) {
         val criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)

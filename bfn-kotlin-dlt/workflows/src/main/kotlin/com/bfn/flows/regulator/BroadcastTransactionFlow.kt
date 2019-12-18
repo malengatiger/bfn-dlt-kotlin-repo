@@ -18,12 +18,6 @@ class BroadcastTransactionFlow(private val signedTransaction: SignedTransaction)
         val meParty = serviceHub.ourIdentity
         val otherNodes = serviceHub.networkMapCache.allNodes
 
-        signedTransaction.coreTransaction.inputs.forEach() {
-            logger.warn("\uD83D\uDD0A \uD83D\uDD0A Broadcast input: \uD83D\uDD0A $it")
-        }
-        signedTransaction.coreTransaction.outputStates.forEach() {
-            logger.warn("\uD83D\uDD07 \uD83D\uDD07 Broadcast output: \uD83D\uDD07 $it")
-        }
         otherNodes.forEach() {
             val party = it.legalIdentities.first()
             if (party.name.organisation == meParty.name.organisation
@@ -32,6 +26,7 @@ class BroadcastTransactionFlow(private val signedTransaction: SignedTransaction)
             } else {
                 try {
                     val counterPartySession = initiateFlow(party)
+                    logger.info("\uD83D\uDE0E \uD83D\uDE0E Sending transaction to \uD83C\uDF3F $party  \uD83C\uDF3F")
                     subFlow(SendTransactionFlow(counterPartySession, signedTransaction))
                     Companion.logger.info("\uD83E\uDD16 \uD83E\uDD16 \uD83C\uDF3F " +
                             "\uD83C\uDF3F \uD83C\uDF3F transaction has been shared with $party !! \uD83E\uDD16 ")

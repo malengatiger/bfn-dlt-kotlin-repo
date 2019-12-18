@@ -87,14 +87,15 @@ class InvoiceCloseFlow(private val invoiceId: String) : FlowLogic<SignedTransact
                 flowSessions.add(initiateFlow(it))
             }
         }
-        if (flowSessions.isEmpty()) {
+        return if (flowSessions.isEmpty()) {
             Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
                     "All participants are LOCAL ... \uD83D\uDD06")
-            return signedTx
+            subFlow(FinalityFlow(signedTx, listOf()))
         } else {
             Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
                     "Participants are LOCAL/REMOTE ... \uD83D\uDD06")
-           return collectSignatures(signedTx, flowSessions)
+            collectSignatures(signedTx, flowSessions)
+            //subFlow(FinalityFlow(tx, flowSessions))
         }
     }
 

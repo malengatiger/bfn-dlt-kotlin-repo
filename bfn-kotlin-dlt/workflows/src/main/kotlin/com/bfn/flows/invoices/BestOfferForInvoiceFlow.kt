@@ -79,7 +79,8 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         val tx = buildAndVerifyTransactions(tokenCommand, offerAndTokenCmd, token,
                 offerAndToken, list, publicKeys, parties)
 
-        Companion.logger.info("\uD83C\uDF6F \uD83C\uDF6F Yebo! OfferAndToken sorted out!!!: ${selected.state.data.offerAmount} " +
+        Companion.logger.info("\uD83C\uDF6F \uD83C\uDF6F \uD83C\uDF6F \uD83C\uDF6F " +
+                "Yebo! OfferAndToken sorted out!!!: \uD83C\uDF6F \uD83C\uDF6F ${selected.state.data.offerAmount} " +
                 " supplier : ${selected.state.data.supplier.name}  ${selected.state.data.supplier.host} \uD83D\uDC4C " +
                 " investor: ${selected.state.data.investor.name} ${selected.state.data.investor.host} \uD83E\uDDE9 " +
                 "Token issued:  \uD83C\uDF40 $token \uD83E\uDDE9 txId: ${tx.id}")
@@ -128,7 +129,8 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
     private fun finalizeToken(parties: List<Party>,
                               partlySignedTransaction: SignedTransaction): SignedTransaction {
 
-        Companion.logger.info("\uD83D\uDC33 \uD83D\uDC33 \uD83D\uDC33 \uD83D\uDC33 finalizeToken ... ${parties.size} parties")
+        Companion.logger.info("\uD83D\uDC33 \uD83D\uDC33 \uD83D\uDC33 \uD83D\uDC33 " +
+                "finalizeToken ... ${parties.size} parties")
         val flowSessions: MutableList<FlowSession> = mutableListOf()
         parties.forEach() {
             if (it.toString() != serviceHub.ourIdentity.toString()) {

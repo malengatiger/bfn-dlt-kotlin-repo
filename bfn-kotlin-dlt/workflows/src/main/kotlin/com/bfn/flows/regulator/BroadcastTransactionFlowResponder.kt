@@ -19,7 +19,7 @@ class BroadcastTransactionFlowResponder(private val counterPartySession: FlowSes
                 "party from session: \uD83C\uDF45  $party")
 
         subFlow(ReceiveTransactionFlow(counterPartySession,
-                true, StatesToRecord.ALL_VISIBLE))
+                false, StatesToRecord.ALL_VISIBLE))
         Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  BroadcastTransactionFlowResponder Transaction received " +
                 "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C \uD83E\uDD1F \uD83C\uDF4F \uD83C\uDF4E ")
         return null

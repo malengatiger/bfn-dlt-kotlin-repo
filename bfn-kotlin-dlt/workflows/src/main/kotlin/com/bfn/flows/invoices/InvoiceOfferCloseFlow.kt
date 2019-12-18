@@ -50,10 +50,10 @@ class InvoiceOfferCloseFlow(
 
         Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C start finalizeTransaction ... \uD83D\uDE3C ")
         val finalTx = setFlowSessions(parties, signedTx )
-        subFlow(BroadcastTransactionFlow(finalTx))
+
         Companion.logger.info("\uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16  " +
                 "\uD83E\uDD16 CONSUMED !! \uD83E\uDD16 ")
-        return signedTx;
+        return finalTx
     }
 
     @Suspendable
@@ -67,20 +67,20 @@ class InvoiceOfferCloseFlow(
             }
         }
         return if (flowSessions.isEmpty()) {
-            signedTx
+            subFlow(FinalityFlow(signedTx, listOf()))
         } else {
-            collectSignatures(signedTx,flowSessions)
+            val tx = collectSignatures(signedTx, flowSessions)
+            subFlow(FinalityFlow(tx, flowSessions))
         }
+
 
     }
 
     @Suspendable
     @Throws(FlowException::class)
     private fun reportToRegulator(mSignedTransactionDone: SignedTransaction) {
-        Companion.logger.info("\uD83D\uDCCC \uD83D\uDCCC \uD83D\uDCCC  Talking to the Regulator, for compliance, Senor! .............")
         try {
             subFlow(ReportToRegulatorFlow(mSignedTransactionDone))
-            Companion.logger.info("\uD83D\uDCCC \uD83D\uDCCC \uD83D\uDCCC  DONE talking to the Regulator, Phew!")
         } catch (e: Exception) {
             Companion.logger.error(" \uD83D\uDC7F  \uD83D\uDC7F  \uD83D\uDC7F Regulator fell down.  \uD83D\uDC7F IGNORED  \uD83D\uDC7F ", e)
             throw FlowException("Regulator fell down!")
@@ -95,27 +95,17 @@ class InvoiceOfferCloseFlow(
         val signedTransaction = subFlow(CollectSignaturesFlow(
                 partiallySignedTx = signedTx, sessionsToCollectFrom = sessions))
         Companion.logger.info("\uD83C\uDFBD \uD83C\uDFBD \uD83C\uDFBD \uD83C\uDFBD  " +
-                "Signatures collected OK!  \uD83D\uDE21 \uD83D\uDE21 " +
-                ".... will call FinalityFlow ... \uD83C\uDF3A \uD83C\uDF3A txId: "
+                "Signatures collected OK!  \uD83D\uDE21 \uD83D\uDE21 "
                 + signedTransaction.id.toString())
-        val mSignedTransactionDone = subFlow(
-                FinalityFlow(signedTransaction, sessions))
 
-        Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  " +
-                " \uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C  \uD83E\uDD66 \uD83E\uDD66  " +
-                "\uD83E\uDD66 \uD83E\uDD66  \uD83E\uDD66 \uD83E\uDD66 MULTIPLE NODE(S): FinalityFlow has been executed ... " +
-                "\uD83E\uDD66 \uD83E\uDD66")
 
-        return mSignedTransactionDone
+        return signedTransaction
     }
 
 
     companion object {
         private val logger = LoggerFactory.getLogger(InvoiceOfferCloseFlow::class.java)
-        private const val LOCAL_SUPPLIER = 1
-        private const val LOCAL_investor = 2
-        private const val REMOTE_SUPPLIER = 3
-        private const val REMOTE_investor= 4
+
     }
 
 
