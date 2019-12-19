@@ -38,7 +38,7 @@ private class Client {
         val nodeAddressPartyA = NetworkHostAndPort(host = "localhost", port = 10006)
         val nodeAddressPartyB = NetworkHostAndPort(host = "localhost", port = 10009)
         val nodeAddressPartyC = NetworkHostAndPort(host = "localhost", port = 10012)
-        val nodeAddressRegulator = NetworkHostAndPort(host = "localhost", port = 10015)
+        val nodeAddressRegulator = NetworkHostAndPort(host = "localhost", port = 10017)
         val rpcUsername = "user1"
         val rpcPassword = "test"
 
@@ -74,14 +74,14 @@ private class Client {
 ////////        generateInvoices(1)
 ////////        generateInvoices(2)
 //////
-//        startAccounts(true, deleteFirestore = false);
-//        generateCrossNodeInvoices(0, 1)
-//        generateCrossNodeInvoices(1, 1)
-//        generateCrossNodeInvoices(2, 1)
+        startAccounts(true, deleteFirestore = false);
+        generateCrossNodeInvoices(0, 4)
+        generateCrossNodeInvoices(1, 3)
+        generateCrossNodeInvoices(2, 5)
 //////
-//        generateOffers(0)
-//        generateOffers(1)
-//        generateOffers(2)
+        generateOffers(0)
+        generateOffers(1)
+        generateOffers(2)
 
 //        runInvoiceOfferAuction(proxyPartyA)
 //        runInvoiceOfferAuction(proxyPartyB)

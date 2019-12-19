@@ -17,4 +17,5 @@ class OfferAndTokenState(val invoiceOffer: InvoiceOfferState,
     override val participants: List<AbstractParty>
         get() = ImmutableList.of<AbstractParty>(issuer)
 
+
 }

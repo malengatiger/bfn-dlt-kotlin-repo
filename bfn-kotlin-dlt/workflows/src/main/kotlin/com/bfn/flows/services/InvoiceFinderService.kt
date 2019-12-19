@@ -23,18 +23,12 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
             serviceHub.cordaService(KeyManagementBackedAccountService::class.java)
 
     @Suspendable
-     fun findInvoice(invoiceId: String): StateAndRef<InvoiceState>? {
+     fun findInvoiceStateAndRef(invoiceId: String): StateAndRef<InvoiceState>? {
 
-        val page = serviceHub.vaultService.queryBy(
-                criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED),
-                contractStateType = InvoiceState::class.java,
-                paging = PageSpecification(
-                        pageNumber = 1, pageSize = 5000
-                )
-        )
         var invoiceState: StateAndRef<InvoiceState>? = null
-        page.states.forEach() {
-            if (it.state.data.invoiceId.toString() == invoiceId) {
+        val list = getAllInvoiceStateAnRefs()
+        list.forEach() {
+            if (invoiceId == it.state.data.invoiceId.toString()) {
                 invoiceState = it
             }
         }
@@ -78,14 +72,14 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
         logger.info("\uD83D\uDCA6 Finding invoices for supplier: \uD83D\uDC7D \uD83D\uDC7D " +
                 " ${account.name} - ${account.host}")
         val sortedInvoices = getAllInvoices()
-        val supplierInvoices: MutableList<InvoiceState>? = mutableListOf()
+        val supplierInvoices: MutableList<InvoiceState> = mutableListOf()
 
         sortedInvoices.forEach(){
             if (it.supplierInfo.name == account.name) {
-                supplierInvoices!!.add(it)
+                supplierInvoices.add(it)
             }
         }
-        return supplierInvoices!!
+        return supplierInvoices
     }
     @Suspendable
     fun getAllNodes(): List<Party> {
@@ -104,7 +98,6 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
         }
         return map.values.toList()
     }
-
     @Suspendable
     fun findInvoicesForCustomer(customerId: String): List<InvoiceState> {
         logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E InvoiceFinderService: findInvoices ... " +
@@ -131,7 +124,7 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
         
         return getAllInvoices()
     }
-    private val pageSize:Int = 1000
+    private val pageSize:Int = 5000
 
     @Suspendable
     fun findProfile(investorAccountId: String): ProfileState? {
@@ -156,10 +149,22 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
         val criteria = QueryCriteria.VaultQueryCriteria(
                 status = Vault.StateStatus.UNCONSUMED)
 
-        return serviceHub.vaultService.queryBy(
+        val page = serviceHub.vaultService.queryBy(
                 contractStateType = InvoiceState::class.java,
                 paging = PageSpecification(pageNumber = pageNumber, pageSize = pageSize),
                 criteria = criteria)
+        return page
+    }
+    @Suspendable
+    fun queryInvoiceStateAndRef(pageNumber: Int): Pair<List<StateAndRef<InvoiceState>>, Long> {
+        val criteria = QueryCriteria.VaultQueryCriteria(
+                status = Vault.StateStatus.UNCONSUMED)
+
+        val page = serviceHub.vaultService.queryBy(
+                contractStateType = InvoiceState::class.java,
+                paging = PageSpecification(pageNumber = pageNumber, pageSize = pageSize),
+                criteria = criteria)
+        return Pair(page.states, page.totalStatesAvailable )
     }
     @Suspendable
     private fun getAllInvoices(): List<InvoiceState> {
@@ -181,6 +186,33 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
             }
         }
         val sorted = list.sortedBy { it.totalAmount }
+        logger.info("\uD83E\uDDE9 Invoices found on node:  \uD83C\uDF00 ${sorted.size} " )
+        return sorted
+    }
+    @Suspendable
+    private fun getAllInvoiceStateAnRefs(): List<StateAndRef<InvoiceState>> {
+        val list: MutableList<StateAndRef<InvoiceState>> = mutableListOf()
+        //get first page
+        var pageNumber = 1
+        val pair = queryInvoiceStateAndRef(pageNumber)
+        pair.first.forEach() {
+            list.add(it)
+        }
+
+        val remainder: Int = (pair.second % pageSize).toInt()
+        var pageCnt: Int = (pair.second/ pageSize).toInt()
+        if (remainder > 0) pageCnt++
+
+        if (pageCnt > 1)  {
+            while (pageNumber < pageCnt) {
+                pageNumber++
+                val pageX = queryInvoiceStateAndRef(pageNumber)
+                pageX.first.forEach() {
+                    list.add(it)
+                }
+            }
+        }
+        val sorted = list.sortedBy { it.state.data.dateRegistered }
         logger.info("\uD83E\uDDE9 Invoices found on node:  \uD83C\uDF00 ${sorted.size} " )
         return sorted
     }

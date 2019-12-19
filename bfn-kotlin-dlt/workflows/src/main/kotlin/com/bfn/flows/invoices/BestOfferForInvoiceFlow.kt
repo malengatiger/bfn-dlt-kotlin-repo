@@ -37,12 +37,13 @@ import kotlin.collections.ArrayList
  */
 @InitiatingFlow
 @StartableByRPC
+@SchedulableFlow
 class BestOfferForInvoiceFlow(private val supplierAccountId: String,
-                              private val invoiceId: String) : FlowLogic<OfferAndTokenState>() {
+                              private val invoiceId: String) : FlowLogic<OfferAndTokenState?>() {
 
     @Suspendable
     @Throws(FlowException::class)
-    override fun call(): OfferAndTokenState {
+    override fun call(): OfferAndTokenState? {
         Companion.logger.info(" \uD83E\uDD1F \uD83E\uDD1F  \uD83E\uDD1F \uD83E\uDD1F  " +
                 "... \uD83D\uDE3C \uD83D\uDE3C BestOfferForInvoiceFlow call started ... \uD83D\uDE3C \uD83D\uDE3C ")
         val accountService = serviceHub.cordaService(KeyManagementBackedAccountService::class.java)
@@ -53,18 +54,25 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
             logger.info("\uD83D\uDECE \uD83D\uDECE Returning existing token: \uD83D\uDECE ${oat.token}")
             return oat
         }
-        val (list: MutableList<StateAndRef<InvoiceOfferState>>, selected) = filterOffersByParams()
+        val pair = filterOffersByParams() ?: return null
+        val list = pair.first
+        val selected = pair.second
+        if (list.isEmpty()) {
+            Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21  " +
+                    "No invoiceOffers found on node. returning NULL")
+            return null
+        }
         //issue tokens
         val token: FungibleToken = createToken(selected.state.data)
         //create tx to share token with holder
-        Companion.logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
+        Companion.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
                 "creating transactionBuilder with token  \uD83C\uDF38 $token ...  \uD83D\uDD06")
 
         val tokenCommand = IssueTokenCommand(token = token.issuedTokenType, outputs = listOf(0))
         val offerAndTokenCmd = OfferAndTokenStateContract.CreateOfferAndToken()
 
-        val publicKeys : MutableList<PublicKey> = mutableListOf()
-        val parties : MutableList<Party> = mutableListOf()
+        val publicKeys: MutableList<PublicKey> = mutableListOf()
+        val parties: MutableList<Party> = mutableListOf()
         publicKeys.add(serviceHub.ourIdentity.owningKey)
         if (selected.state.data.supplier.host.name.toString() != serviceHub.ourIdentity.name.toString()) {
             publicKeys.add(selected.state.data.supplier.host.owningKey)
@@ -74,7 +82,7 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
             publicKeys.add(selected.state.data.investor.host.owningKey)
             parties.add(selected.state.data.investor.host)
         }
-        val offerAndToken = OfferAndTokenState(selected.state.data,token,serviceHub.ourIdentity)
+        val offerAndToken = OfferAndTokenState(selected.state.data, token, serviceHub.ourIdentity)
 
         val tx = buildAndVerifyTransactions(tokenCommand, offerAndTokenCmd, token,
                 offerAndToken, list, publicKeys, parties)
@@ -181,7 +189,7 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         return offerAndToken
     }
 
-     @Suspendable
+    @Suspendable
     @Throws(FlowException::class)
     private fun collectSignatures(signedTx: SignedTransaction, sessions: List<FlowSession>): SignedTransaction {
 
@@ -202,6 +210,7 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
 
         return mSignedTransactionDone
     }
+
     @Suspendable
     private fun createToken(selected: InvoiceOfferState): FungibleToken {
         Companion.logger.info("\uD83E\uDDE9 \uD83E\uDDE9 Issuing Token: supplier: ${selected.supplier.host}  " +
@@ -215,14 +224,14 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         val myIssuedTokenType: IssuedTokenType = zarTokenType issuedBy issuer
 
         val anonParty = subFlow(RequestKeyForAccount(account))
-        val fungibleToken: FungibleToken =  BigDecimal(selected.offerAmount) of myIssuedTokenType heldBy anonParty
+        val fungibleToken: FungibleToken = BigDecimal(selected.offerAmount) of myIssuedTokenType heldBy anonParty
         Companion.logger.info("\uD83E\uDDE9 \uD83E\uDDE9 Token: ${fungibleToken.issuedTokenType.tokenType.tokenIdentifier} " +
                 "created for \uD83C\uDF3F  $anonParty  \uD83C\uDF3F ")
 
         return fungibleToken
     }
 
-    private val pageSize:Int = 200
+    private val pageSize: Int = 200
     @Suspendable
     fun query(pageNumber: Int): Vault.Page<InvoiceOfferState> {
         val criteria = VaultQueryCriteria(
@@ -233,8 +242,9 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
                 paging = PageSpecification(pageNumber = pageNumber, pageSize = pageSize),
                 criteria = criteria)
     }
+
     @Suspendable
-    private fun filterOffersByParams(): Pair<MutableList<StateAndRef<InvoiceOfferState>>, StateAndRef<InvoiceOfferState>> {
+    private fun filterOffersByParams(): Pair<MutableList<StateAndRef<InvoiceOfferState>>, StateAndRef<InvoiceOfferState>>? {
         val list: MutableList<StateAndRef<InvoiceOfferState>> = ArrayList()
         //get first page
         var pageNumber = 1
@@ -245,7 +255,7 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         var pageCnt: Int = (page.totalStatesAvailable / pageSize).toInt()
         if (remainder > 0) pageCnt++
 
-        if (pageCnt > 1)  {
+        if (pageCnt > 1) {
             while (pageNumber < pageCnt) {
                 pageNumber++
                 val pageX = query(pageNumber)
@@ -254,6 +264,9 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         }
         logger.info(" \uD83C\uDFC0 Offers found for the invoice:  \uD83C\uDFC0 " +
                 "${list.size} offers  \uD83C\uDFC0 ")
+        if (list.isEmpty()) {
+            return null
+        }
         val sorted = list.sortedBy { it.state.data.offerAmount }
         val selected = sorted.last()
         //todo - what if multiple offers have same offerAmount? Who gets the deal????

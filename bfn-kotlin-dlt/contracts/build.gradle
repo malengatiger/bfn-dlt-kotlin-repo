@@ -39,7 +39,7 @@ dependencies {
     cordaCompile "$accounts_release_group:accounts-contracts:$accounts_release_version"
     cordaCompile "$tokens_release_group:tokens-money:$tokens_release_version"
 
-//    cordapp "$tokens_release_group:tokens-money:$tokens_release_version"
+
 }
 
 

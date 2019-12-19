@@ -25,7 +25,7 @@ class InvoiceCloseFlow(private val invoiceId: String) : FlowLogic<SignedTransact
                 "... InvoiceCloseFlow : \uD83D\uDC8B consume this invoice across the network ... \uD83D\uDC8B ")
 
         val finderService = serviceHub.cordaService(InvoiceFinderService::class.java)
-        val invoiceState = finderService.findInvoice(invoiceId)
+        val invoiceState = finderService.findInvoiceStateAndRef(invoiceId)
                 ?: throw IllegalArgumentException("\uD83D\uDD8D \uD83D\uDD8D Invoice not found: $invoiceId")
 
         val mParties = finderService.getAllNodes()

@@ -9,20 +9,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationListener
+import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.scheduling.annotation.Scheduled
+import java.util.*
 import javax.annotation.PostConstruct
+import kotlin.concurrent.fixedRateTimer
 
 /**
  * Our Spring Boot application.
  */
-//@SpringBootApplication
-//@ConfigurationProperties()
-//private open class AppStarter
-//
-//private val logger = LoggerFactory.getLogger(AppStarter::class.java)
-//
-///**
-// * Starts our Spring Boot application.
-// */
+
 fun main(args: Array<String>) {
     val app = SpringApplication(RestApiApplication::class.java)
     app.setBannerMode(Banner.Mode.OFF)
@@ -35,12 +31,25 @@ fun main(args: Array<String>) {
 }
 
 @SpringBootApplication
+@EnableScheduling
 private open class RestApiApplication: ApplicationListener<ApplicationReadyEvent> {
     private val logger = LoggerFactory.getLogger(RestApiApplication::class.java)
 
+    @Autowired
+    lateinit var context: ApplicationContext
     override fun onApplicationEvent(contextRefreshedEvent: ApplicationReadyEvent) {
         logger.info("\uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C  STARTED SPRING BOOT APP:  " +
                 "\uD83E\uDDE9 onApplicationEvent: ")
+
+    }
+
+    @Scheduled(cron = "0 0 0 * * *")
+    fun startAuctionAtMidnight() {
+        logger.info("\uD83D\uDD06 startAuctionAtMidnight: \uD83C\uDF40 0 0 0 * * *")
+    }
+    @Scheduled(cron = "0 55 23 * * *")
+    fun startAuctionAtNow() {
+        logger.info("\uD83D\uDD06 startAuctionAtMidnight: \uD83C\uDF6F 0 55 23 * * * ")
     }
 
 }

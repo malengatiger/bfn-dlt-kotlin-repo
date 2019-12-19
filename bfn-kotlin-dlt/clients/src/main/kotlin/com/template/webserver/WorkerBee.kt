@@ -6,6 +6,8 @@ import com.bfn.flows.invoices.InvoiceOfferFlow
 import com.bfn.flows.invoices.InvoiceRegistrationFlow
 import com.bfn.flows.queries.InvoiceOfferQueryFlow
 import com.bfn.flows.queries.InvoiceQueryFlow
+import com.bfn.flows.queries.TokenQueryFlow
+import com.bfn.flows.scheduled.RunAuctionFlow
 import com.google.firebase.cloud.FirestoreClient
 import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
@@ -86,6 +88,7 @@ object WorkerBee {
         logger.info(msg)
         return list
     }
+
     @JvmStatic
     fun getNetworkAccounts(proxy: CordaRPCOps): List<AccountInfoDTO> {
         val accounts = proxy.vaultQuery(AccountInfo::class.java).states
@@ -104,6 +107,7 @@ object WorkerBee {
         logger.info(msg)
         return list
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun getAccount(proxy: CordaRPCOps, accountId: String?): AccountInfoDTO {
@@ -127,44 +131,65 @@ object WorkerBee {
     @JvmStatic
     @Throws(Exception::class)
     fun findInvoicesForCustomer(proxy: CordaRPCOps,
-                         accountId: String): List<InvoiceDTO> {
+                                accountId: String): List<InvoiceDTO> {
         val fut = proxy.startTrackedFlowDynamic(
-                InvoiceQueryFlow::class.java, accountId, null).returnValue
+                InvoiceQueryFlow::class.java, accountId,
+                InvoiceQueryFlow.FIND_FOR_CUSTOMER).returnValue
         val invoices = fut.get()
-        val  dtos :  MutableList<InvoiceDTO> = mutableListOf()
+        val dtos: MutableList<InvoiceDTO> = mutableListOf()
         invoices.forEach() {
-           if (it.customerInfo.identifier.id.toString() == accountId) {
-               dtos.add(getDTO(it))
-           }
+            dtos.add(getDTO(it))
+
         }
         val m = " \uD83C\uDF3A  \uD83C\uDF3A  \uD83C\uDF3A  done listing InvoiceStates:  \uD83C\uDF3A " + invoices.size
         logger.info(m)
         return dtos
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun findInvoicesForSupplier(proxy: CordaRPCOps,
                                 accountId: String): List<InvoiceDTO> {
         val fut = proxy.startTrackedFlowDynamic(
-                InvoiceQueryFlow::class.java, null, accountId).returnValue
+                InvoiceQueryFlow::class.java, accountId,
+                InvoiceQueryFlow.FIND_FOR_SUPPLIER).returnValue
         val invoices = fut.get()
-        val  dtos :  MutableList<InvoiceDTO> = mutableListOf()
+        val dtos: MutableList<InvoiceDTO> = mutableListOf()
         invoices.forEach() {
-            if (it.customerInfo.identifier.id.toString() == accountId) {
-                dtos.add(getDTO(it))
-            }
+            dtos.add(getDTO(it))
+
         }
         val m = "\uD83C\uDF3A done listing InvoiceStates:  \uD83C\uDF3A " + invoices.size
         logger.info(m)
         return dtos
     }
+
+    @JvmStatic
+    @Throws(Exception::class)
+    fun findInvoicesForInvestor(proxy: CordaRPCOps,
+                                accountId: String): List<InvoiceDTO> {
+        val fut = proxy.startTrackedFlowDynamic(
+                InvoiceQueryFlow::class.java, accountId,
+                InvoiceQueryFlow.FIND_FOR_INVESTOR).returnValue
+        val invoices = fut.get()
+        val dtos: MutableList<InvoiceDTO> = mutableListOf()
+        invoices.forEach() {
+            dtos.add(getDTO(it))
+
+        }
+        val m = "\uD83C\uDF3A done listing InvoiceStates:  \uD83C\uDF3A " + invoices.size
+        logger.info(m)
+        return dtos
+    }
+
     @JvmStatic
     @Throws(Exception::class)
     fun findInvoicesForNode(proxy: CordaRPCOps): List<InvoiceDTO> {
         val fut = proxy.startTrackedFlowDynamic(
-                InvoiceQueryFlow::class.java, null, null).returnValue
+                InvoiceQueryFlow::class.java, null,
+                InvoiceQueryFlow.FIND_FOR_NODE).returnValue
         val invoices = fut.get()
-        val  dtos :  MutableList<InvoiceDTO> = mutableListOf()
+        val dtos: MutableList<InvoiceDTO> = mutableListOf()
         invoices.forEach() {
             if (it.supplierInfo.host.toString() ==
                     proxy.nodeInfo().legalIdentities.first().toString()) {
@@ -178,11 +203,83 @@ object WorkerBee {
 
     @JvmStatic
     @Throws(Exception::class)
+    fun runAuction(proxy: CordaRPCOps): List<OfferAndTokenDTO> {
+        logger.info("\uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A " +
+                "WorkerBee runAuction starting ....")
+        val dtos: MutableList<OfferAndTokenDTO> = mutableListOf()
+        try {
+            val fut = proxy.startTrackedFlowDynamic(
+                    RunAuctionFlow::class.java).returnValue
+            val tokens = fut.get()
+
+            tokens!!.forEach() {
+                val token = getDTO(token = it.token, account = it.invoiceOffer.investor,
+                        invoiceId = it.invoiceOffer.invoiceId.toString(),
+                        accountId = it.invoiceOffer.investor.identifier.id.toString(),
+                        invoiceAmount = it.invoiceOffer.originalAmount)
+                val oat = OfferAndTokenDTO(invoiceOffer = getDTO(it.invoiceOffer),
+                        token = token)
+                dtos.add(oat)
+
+            }
+            val m = "\uD83C\uDF3A done running auction:  \uD83C\uDF3A " + dtos.size
+            logger.info(m)
+        } catch (e: Exception) {
+            logger.error("RunAuction fucked up! : $e")
+        }
+        return dtos
+    }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun findTokensForNode(proxy: CordaRPCOps): List<OfferAndTokenDTO> {
+        val fut = proxy.startTrackedFlowDynamic(
+                TokenQueryFlow::class.java, null).returnValue
+        val tokens = fut.get()
+        val dtos: MutableList<OfferAndTokenDTO> = mutableListOf()
+        tokens.forEach() {
+            val token = getDTO(token = it.token, account = it.invoiceOffer.investor,
+                    invoiceId = it.invoiceOffer.invoiceId.toString(),
+                    accountId = it.invoiceOffer.investor.identifier.id.toString(),
+                    invoiceAmount = it.invoiceOffer.originalAmount)
+            val oat = OfferAndTokenDTO(invoiceOffer = getDTO(it.invoiceOffer),
+                    token = token)
+            dtos.add(oat)
+
+        }
+        val m = "\uD83C\uDF3A done listing Tokens:  \uD83C\uDF3A " + tokens.size
+        logger.info(m)
+        return dtos
+    }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun findTokensForAccount(proxy: CordaRPCOps, accountId: String): List<OfferAndTokenDTO> {
+        val fut = proxy.startTrackedFlowDynamic(
+                TokenQueryFlow::class.java, accountId).returnValue
+        val tokens = fut.get()
+        val dtos: MutableList<OfferAndTokenDTO> = mutableListOf()
+        tokens.forEach() {
+            val token = getDTO(token = it.token, account = it.invoiceOffer.investor,
+                    invoiceId = it.invoiceOffer.invoiceId.toString(),
+                    accountId = it.invoiceOffer.investor.identifier.id.toString(),
+                    invoiceAmount = it.invoiceOffer.originalAmount)
+            val oat = OfferAndTokenDTO(invoiceOffer = getDTO(it.invoiceOffer),
+                    token = token)
+            dtos.add(oat)
+
+        }
+        val m = "\uD83C\uDF3A done listing Tokens:  \uD83C\uDF3A " + tokens.size
+        logger.info(m)
+        return dtos
+    }
+
+    @JvmStatic
+    @Throws(Exception::class)
     fun findOffersForInvestor(proxy: CordaRPCOps, accountId: String): List<InvoiceOfferDTO> {
         val fut = proxy.startTrackedFlowDynamic(
-                InvoiceOfferQueryFlow::class.java, accountId, null).returnValue
+                InvoiceOfferQueryFlow::class.java, accountId,
+                InvoiceOfferQueryFlow.FIND_FOR_INVESTOR).returnValue
         val offers = fut.get()
-        val  dtos :  MutableList<InvoiceOfferDTO> = mutableListOf()
+        val dtos: MutableList<InvoiceOfferDTO> = mutableListOf()
         offers.forEach() {
             dtos.add(getDTO(it))
         }
@@ -190,35 +287,38 @@ object WorkerBee {
         logger.info(m)
         return dtos
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun findOffersForSupplier(proxy: CordaRPCOps, accountId: String): List<InvoiceOfferDTO> {
         val fut = proxy.startTrackedFlowDynamic(
-                InvoiceOfferQueryFlow::class.java, null, accountId).returnValue
+                InvoiceOfferQueryFlow::class.java, accountId,
+                InvoiceOfferQueryFlow.FIND_FOR_SUPPLIER).returnValue
         val offers = fut.get()
-        val  dtos :  MutableList<InvoiceOfferDTO> = mutableListOf()
+        val dtos: MutableList<InvoiceOfferDTO> = mutableListOf()
         offers.forEach() {
-            if (proxy.nodeInfo().legalIdentities.first().toString()
-                    == it.supplier.host.toString()) {
+
                 dtos.add(getDTO(it))
-            }
+
         }
         val m = "\uD83D\uDCA6  done listing InvoiceOfferStates:  \uD83C\uDF3A " + offers.size
         logger.info(m)
         return dtos
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun findOffersForNode(proxy: CordaRPCOps): List<InvoiceOfferDTO> {
         val fut = proxy.startTrackedFlowDynamic(
-                InvoiceOfferQueryFlow::class.java, null, null).returnValue
+                InvoiceOfferQueryFlow::class.java, null,
+                InvoiceOfferQueryFlow.FIND_FOR_NODE).returnValue
         val offers = fut.get()
-        val  dtos :  MutableList<InvoiceOfferDTO> = mutableListOf()
+        val dtos: MutableList<InvoiceOfferDTO> = mutableListOf()
         offers.forEach() {
-           if (proxy.nodeInfo().legalIdentities.first().toString()
-                   == it.investor.host.toString()) {
-               dtos.add(getDTO(it))
-           }
+            if (proxy.nodeInfo().legalIdentities.first().toString()
+                    == it.investor.host.toString()) {
+                dtos.add(getDTO(it))
+            }
         }
         val m = "\uD83D\uDCA6  done listing InvoiceOfferStates:  \uD83C\uDF3A " + offers.size
         logger.info(m)
@@ -573,13 +673,13 @@ object WorkerBee {
 
     fun selectBestOffer(proxy: CordaRPCOps, accountId: String,
                         invoiceId: String,
-                        invoiceAmount: Double? = 0.00): OfferAndTokenDTO {
+                        invoiceAmount: Double? = 0.00): OfferAndTokenDTO? {
 
 
         val cordaFuture = proxy.startTrackedFlowDynamic(
                 BestOfferForInvoiceFlow::class.java, accountId, invoiceId)
                 .returnValue
-        val offerAndToken:OfferAndTokenState = cordaFuture.get()
+        val offerAndToken: OfferAndTokenState = cordaFuture.get() ?: return null
         //todo - refactor query -
         val criteria = VaultQueryCriteria(status = StateStatus.UNCONSUMED)
         val page =
@@ -598,13 +698,14 @@ object WorkerBee {
             throw java.lang.Exception("Account not found")
         }
 
-        val tokenDTO = getDTO(offerAndToken.token, accountId,invoiceId,account!!, invoiceAmount!!)
+        val tokenDTO = getDTO(offerAndToken!!.token, accountId, invoiceId, account!!, invoiceAmount!!)
         FirebaseUtil.addToken(tokenDTO)
         logger.info("\uD83C\uDF4F \uD83C\uDF4F selectBestOffer completed... token issued " +
                 "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C   ${GSON.toJson(tokenDTO)}")
         return OfferAndTokenDTO(invoiceOffer = getDTO(offerAndToken.invoiceOffer),
                 token = tokenDTO)
     }
+
     @JvmStatic
     fun getDTO(token: FungibleToken, accountId: String,
                invoiceId: String, account: AccountInfo, invoiceAmount: Double): TokenDTO {
@@ -620,6 +721,7 @@ object WorkerBee {
 
         )
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun getDTO(state: InvoiceState): InvoiceDTO {
@@ -657,6 +759,7 @@ object WorkerBee {
         }
         return o
     }
+
     @JvmStatic
     fun getDTO(a: AccountInfo): AccountInfoDTO {
         val info = AccountInfoDTO()

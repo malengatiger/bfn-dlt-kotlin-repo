@@ -78,7 +78,7 @@ class AdminController(rpc: NodeRPCConnection) {
         val offerAndTokenDTO = WorkerBee.selectBestOffer(proxy = proxy,
                 accountId = accountId, invoiceId = invoiceId, invoiceAmount = invoiceAmount)
         logger.info("\uD83C\uDF0E \uD83C\uDF0E Token Issued and returned: \uD83C\uDF0E $offerAndTokenDTO")
-        return offerAndTokenDTO
+        return offerAndTokenDTO!!
     }
 
     @PostMapping(value = ["/startAccountRegistrationFlow"], produces = ["application/json"])
@@ -118,6 +118,11 @@ class AdminController(rpc: NodeRPCConnection) {
     fun findInvoicesForNode(): List<InvoiceDTO> {
         return WorkerBee.findInvoicesForNode(proxy)
     }
+    @GetMapping(value = ["findInvoicesForInvestor"])
+    @Throws(Exception::class)
+    fun findInvoicesForInvestor(@RequestParam(value = "accountId", required = true) accountId: String): List<InvoiceDTO> {
+        return WorkerBee.findInvoicesForInvestor(proxy, accountId)
+    }
 
     @GetMapping(value = ["findOffersForInvestor"])
     @Throws(Exception::class)
@@ -133,6 +138,11 @@ class AdminController(rpc: NodeRPCConnection) {
     @Throws(Exception::class)
     fun findOffersForNode(): List<InvoiceOfferDTO> {
         return WorkerBee.findOffersForNode(proxy)
+    }
+    @GetMapping(value = ["runAuction"])
+    @Throws(Exception::class)
+    fun runAuction(): List<OfferAndTokenDTO> {
+        return WorkerBee.runAuction(proxy)
     }
 
     @GetMapping(value = ["getUser"])

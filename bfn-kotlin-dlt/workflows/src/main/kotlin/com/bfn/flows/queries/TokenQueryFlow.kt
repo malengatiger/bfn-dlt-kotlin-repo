@@ -12,7 +12,6 @@ class TokenQueryFlow(
 
     @Throws(FlowException::class)
     override fun call(): List<OfferAndTokenState> {
-        val serviceHub = serviceHub
         val service = serviceHub.cordaService(TokenFinderService::class.java)
         if (accountId != null) {
             return service.findTokensForAccount(accountId)

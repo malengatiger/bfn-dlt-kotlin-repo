@@ -133,7 +133,7 @@ class InvoiceOfferFinderService(private val serviceHub: AppServiceHub) : Singlet
             }
         }
         val sorted = list.sortedBy { it.state.data.offerAmount }
-        logger.info("\uD83E\uDDE9 InvoiceOffers found for invoice:  \uD83C\uDF00 ${sorted.size} " )
+        logger.info("\uD83E\uDDE9 InvoiceOffers found:  \uD83C\uDF00 ${sorted.size} " )
 
         return sorted
     }
