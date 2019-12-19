@@ -69,11 +69,12 @@ private class Client {
 //        getNodeTotals(proxyPartyC)
 //        getNodeTotals(proxyReg)
 //
-//        startAccounts(true, deleteFirestore = true);
-//////        generateInvoices(0)
-//////        generateInvoices(1)
-//////        generateInvoices(2)
-////
+
+////////        generateInvoices(0)
+////////        generateInvoices(1)
+////////        generateInvoices(2)
+//////
+//        startAccounts(true, deleteFirestore = false);
 //        generateCrossNodeInvoices(0, 1)
 //        generateCrossNodeInvoices(1, 1)
 //        generateCrossNodeInvoices(2, 1)
@@ -82,9 +83,9 @@ private class Client {
 //        generateOffers(1)
 //        generateOffers(2)
 
-        runInvoiceOfferAuction(proxyPartyA)
-        runInvoiceOfferAuction(proxyPartyB)
-        runInvoiceOfferAuction(proxyPartyC)
+//        runInvoiceOfferAuction(proxyPartyA)
+//        runInvoiceOfferAuction(proxyPartyB)
+//        runInvoiceOfferAuction(proxyPartyC)
 ////
         getNodeTotals(proxyPartyA)
         getNodeTotals(proxyPartyB)
@@ -469,7 +470,8 @@ private class Client {
         sorted.forEach() {
             logger.info(" \uD83D\uDD06 #$cnt supplier: ${it.supplier.name}" +
                     "host: ${it.supplier.host} \uD83C\uDF88 investor: ${it.investor.name} " +
-                    " \uD83E\uDDE9 host: ${it.investor.host} - \uD83E\uDDA0 offerAmt: ${it.offerAmount} from ${it.originalAmount}")
+                    " \uD83E\uDDE9 host: ${it.investor.host} - \uD83E\uDDA0 offerAmt: ${it.offerAmount} " +
+                    "from ${it.originalAmount} :: discount: ${it.discount}")
             cnt++
         }
         logger.info("\n\nInvoiceOffers on Node: ♻️ ${page.totalStatesAvailable} ♻️")

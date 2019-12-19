@@ -8,7 +8,8 @@ import net.corda.core.transactions.SignedTransaction
 import org.slf4j.LoggerFactory
 
 @InitiatedBy(InvoiceCloseFlow::class)
-class InvoiceCloseFlowResponder(private val counterPartySession: FlowSession) : FlowLogic<SignedTransaction>() {
+class InvoiceCloseFlowResponder(
+        private val counterPartySession: FlowSession) : FlowLogic<SignedTransaction>() {
     @Suspendable
     @Throws(FlowException::class)
     override fun call(): SignedTransaction {
@@ -35,6 +36,10 @@ class InvoiceCloseFlowResponder(private val counterPartySession: FlowSession) : 
 
         return signedTransaction
 
+    }
+    @Suspendable
+    private fun findAndConsume() {
+        counterPartySession
     }
 
     companion object {

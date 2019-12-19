@@ -1,9 +1,12 @@
 package com.bfn.flows.services
 
 import co.paralleluniverse.fibers.Suspendable
+import com.bfn.flows.invoices.InvoiceCloseFlow
 import com.r3.corda.lib.accounts.workflows.services.KeyManagementBackedAccountService
 import com.template.states.InvoiceState
 import com.template.states.ProfileState
+import net.corda.core.contracts.StateAndRef
+import net.corda.core.identity.Party
 import net.corda.core.node.AppServiceHub
 import net.corda.core.node.services.CordaService
 import net.corda.core.node.services.Vault
@@ -11,6 +14,7 @@ import net.corda.core.node.services.vault.PageSpecification
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.serialization.SingletonSerializeAsToken
 import org.slf4j.LoggerFactory
+import java.security.PublicKey
 import java.util.*
 
 @CordaService
@@ -18,6 +22,25 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
     private val accountService: KeyManagementBackedAccountService =
             serviceHub.cordaService(KeyManagementBackedAccountService::class.java)
 
+    @Suspendable
+     fun findInvoice(invoiceId: String): StateAndRef<InvoiceState>? {
+
+        val page = serviceHub.vaultService.queryBy(
+                criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED),
+                contractStateType = InvoiceState::class.java,
+                paging = PageSpecification(
+                        pageNumber = 1, pageSize = 5000
+                )
+        )
+        var invoiceState: StateAndRef<InvoiceState>? = null
+        page.states.forEach() {
+            if (it.state.data.invoiceId.toString() == invoiceId) {
+                invoiceState = it
+            }
+        }
+
+        return invoiceState!!
+    }
     @Suspendable
     @Throws(Exception::class)
     fun findInvoicesForInvestor(investorId: String): List<InvoiceState> {
@@ -64,6 +87,24 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
         }
         return supplierInvoices!!
     }
+    @Suspendable
+    fun getAllNodes(): List<Party> {
+        val map: MutableMap<String, Party> = mutableMapOf()
+        val nodes = serviceHub.networkMapCache.allNodes
+        val keys: MutableList<PublicKey> = mutableListOf()
+        nodes.forEach() {
+            if (it.legalIdentities.first().toString().contains("Notary")) {
+                logger.info(" ☕️  Notary ignored for consuming invoice")
+            } else {
+                map[it.legalIdentities.first().toString()] = it.legalIdentities.first()
+            }
+        }
+        map.forEach() {
+            keys.add(it.value.owningKey)
+        }
+        return map.values.toList()
+    }
+
     @Suspendable
     fun findInvoicesForCustomer(customerId: String): List<InvoiceState> {
         logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E InvoiceFinderService: findInvoices ... " +
