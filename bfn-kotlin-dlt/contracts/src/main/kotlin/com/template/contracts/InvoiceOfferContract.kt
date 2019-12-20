@@ -25,22 +25,6 @@ class InvoiceOfferContract : Contract {
                 ".....\uD83E\uDD1F \uD83E\uDD1F ")
     }
 
-    @Suspendable
-    fun checkSignatures(offerState: InvoiceOfferState, requiredSigners: List<PublicKey>) {
-
-        val supplierPublicKey = offerState.supplier.host.owningKey
-        logger.info(" \uD83D\uDD34 Supplier publicKey: $supplierPublicKey ☘️ Node: "
-                + offerState.supplier.name + " - " + offerState.supplier.host.name.organisation)
-        if (!requiredSigners.contains(supplierPublicKey)) {
-            throw IllegalArgumentException("Supplier Party must sign")
-        }
-        val investorPublicKey = offerState.investor.host.owningKey
-        logger.info(" \uD83D\uDD34 Investor publicKey: $investorPublicKey ☘️ Node: " + offerState.investor.name + " - " + offerState.investor.host.name.organisation)
-        if (!requiredSigners.contains(investorPublicKey)) {
-            throw IllegalArgumentException("Investor Party must sign")
-        }
-
-    }
     class MakeOffer : CommandData
     class CloseOffer : CommandData
     class InvestorSelected: CommandData

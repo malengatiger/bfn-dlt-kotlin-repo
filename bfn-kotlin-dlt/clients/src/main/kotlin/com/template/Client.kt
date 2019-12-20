@@ -1,6 +1,4 @@
 package com.template
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
@@ -14,6 +12,7 @@ import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.PageSpecification
 import net.corda.core.node.services.vault.QueryCriteria
+import net.corda.core.node.services.vault.Sort
 import net.corda.core.utilities.NetworkHostAndPort
 import net.corda.core.utilities.loggerFor
 import java.util.*
@@ -92,10 +91,10 @@ private class Client {
 ////////        generateInvoices(1)
 ////////        generateInvoices(2)
 //////
-//        startAccounts(true, deleteFirestore = false);
-//        generateCrossNodeInvoices(0, 1)
-//        generateCrossNodeInvoices(1, 1)
-//        generateCrossNodeInvoices(2, 1)
+//        startAccounts(true, deleteFirestore = true);
+//        generateCrossNodeInvoices(0, 3)
+//        generateCrossNodeInvoices(1, 4)
+//        generateCrossNodeInvoices(2, 3)
 ////////
 //        generateOffers(0)
 //        generateOffers(1)
@@ -312,29 +311,50 @@ private class Client {
 
     }
     val random = Random(Date().time)
+
+    private fun getAccounts(proxy:CordaRPCOps) : List<AccountInfo> {
+        val accts: MutableList<AccountInfo> = mutableListOf()
+        val page = proxy.vaultQuery(AccountInfo::class.java)
+        page.states.forEach() {
+            if (proxy.nodeInfo().legalIdentities.first().toString() == it.state.data.host.toString()) {
+                accts.add(it.state.data)
+            }
+        }
+        return  accts
+    }
+    private fun makeOffers(accts: List<AccountInfo>, port: String) {
+        logger.info("\uD83D\uDE3C \uD83D\uDE3C accounts from node: \uD83C\uDF3A ${accts.size}, calling makeInvoiceOffers ...")
+        accts.forEach() {
+            val params: MutableMap<String, String> = mutableMapOf()
+            params["investorId"] = it.identifier.id.toString()
+            val response = httpGet(
+                    timeout = 990000000.0, params = params,
+                    url = "http://localhost:$port/admin/makeInvoiceOffers")
+            if (response.statusCode == 200) {
+                logger.info("\uD83D\uDE3C \uD83D\uDE3C Made offers based on profile for: ${it.name} \uD83C\uDF3A \uD83C\uDF3A")
+            } else {
+                logger.warn("\uD83C\uDF4E  RESPONSE: statusCode: ${response.statusCode}  ${response.text}")
+            }
+        }
+    }
     private fun generateOffers(index:Int) {
         when (index) {
             0 -> {
                 logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY A  \uD83D\uDE21  \uD83D\uDE21 ")
-                val response = httpGet(
-                        timeout = 990000000.0,
-                        url = "http://localhost:10050/admin/generateOffers")
-                logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response.statusCode}  ${response.text}")
+                val accts = getAccounts(proxyPartyA)
+                makeOffers(accts, "10050")
+
             }
             1 -> {
                 logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY B  \uD83D\uDE21  \uD83D\uDE21 ")
-                val response2 = httpGet(
-                        timeout = 990000000.0,
-                        url = "http://localhost:10053/admin/generateOffers")
-                logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response2.statusCode}   ${response2.text}")
+                val accts = getAccounts(proxyPartyB)
+                makeOffers(accts, "10053")
 
             }
             2 -> {
                 logger.info("\uD83D\uDE21 \uD83D\uDE21 generateOffers for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
-                val response3 = httpGet(
-                        timeout = 990000000.0,
-                        url = "http://localhost:10056/admin/generateOffers")
-                logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${response3.statusCode}  ${response3.text}")
+                val accts = getAccounts(proxyPartyC)
+                makeOffers(accts, "10056")
             }
         }
 
