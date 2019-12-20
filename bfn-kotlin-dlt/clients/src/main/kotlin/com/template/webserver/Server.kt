@@ -43,13 +43,5 @@ private open class RestApiApplication: ApplicationListener<ApplicationReadyEvent
 
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
-    fun startAuctionAtMidnight() {
-        logger.info("\uD83D\uDD06 startAuctionAtMidnight: \uD83C\uDF40 0 0 0 * * *")
-    }
-    @Scheduled(cron = "0 55 23 * * *")
-    fun startAuctionAtNow() {
-        logger.info("\uD83D\uDD06 startAuctionAtMidnight: \uD83C\uDF6F 0 55 23 * * * ")
-    }
 
 }

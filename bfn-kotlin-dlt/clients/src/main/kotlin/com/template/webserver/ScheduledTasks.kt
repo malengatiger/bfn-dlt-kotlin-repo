@@ -17,8 +17,27 @@ class ScheduledTasks {
     private val dateFormat = SimpleDateFormat("HH:mm:ss")
     @Autowired
     lateinit var context: ApplicationContext
-    @Scheduled(fixedRate = 1000 * 60 * 3)
+
+
+    @Scheduled(cron = "0 0 * * * *")
     fun startFindingBestOffers() {
+        runBestOffers()
+    }
+    @Scheduled(cron = "0 15 * * * *")
+    fun startFindingBestOffersEvery15() {
+        runBestOffers()
+    }
+    @Scheduled(cron = "0 30 * * * *")
+    fun startFindingBestOffersEvery3minutes() {
+        runBestOffers()
+    }
+    @Scheduled(cron = "0 45 * * * *")
+    fun startFindingBestOffersEvery45minutes() {
+        runBestOffers()
+    }
+
+    private fun runBestOffers() {
+        logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 runBestOffers: \uD83C\uDF6F ")
         logger.info("\uD83C\uDF4F \uD83C\uDF4F startFindingBestOffers: " +
                 "\uD83C\uDF4F  The time is now \uD83C\uDF4F  ${dateFormat.format(Date())} \uD83E\uDDE9")
         logger.info("\uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C Starting Auction (Finding Best Offers):  \uD83D\uDC7A ️${Date()} \uD83E\uDD6C")
@@ -26,8 +45,8 @@ class ScheduledTasks {
             val admin = context.getBean(AdminController::class.java)
             val list = admin.runAuction()
             logger.info("\uD83C\uDF77 \uD83C\uDF77 \uD83C\uDF77 admin.runAuction found: \uD83E\uDDE9 ${list.size} tokens \uD83E\uDDE9 using context admin")
-        } finally {
-            //fixedRateTimer.cancel();
+        } catch (e: Exception) {
+            logger.error("Auto Auction failed", e)
         }
     }
 }

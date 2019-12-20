@@ -74,14 +74,14 @@ private class Client {
 ////////        generateInvoices(1)
 ////////        generateInvoices(2)
 //////
-        startAccounts(true, deleteFirestore = false);
-        generateCrossNodeInvoices(0, 4)
-        generateCrossNodeInvoices(1, 3)
-        generateCrossNodeInvoices(2, 5)
+//        startAccounts(true, deleteFirestore = false);
+//        generateCrossNodeInvoices(0, 1)
+//        generateCrossNodeInvoices(1, 1)
+//        generateCrossNodeInvoices(2, 1)
 //////
-        generateOffers(0)
-        generateOffers(1)
-        generateOffers(2)
+//        generateOffers(0)
+//        generateOffers(1)
+//        generateOffers(2)
 
 //        runInvoiceOfferAuction(proxyPartyA)
 //        runInvoiceOfferAuction(proxyPartyB)
