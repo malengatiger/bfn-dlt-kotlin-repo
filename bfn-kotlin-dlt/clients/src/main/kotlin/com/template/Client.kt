@@ -1,20 +1,33 @@
 package com.template
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
+import com.template.dto.ProfileStateDTO
 import com.template.states.InvoiceOfferState
 import com.template.states.InvoiceState
 import com.template.states.OfferAndTokenState
-import com.template.webserver.WorkerBee
+import com.template.states.ProfileState
 import net.corda.client.rpc.CordaRPCClient
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.PageSpecification
 import net.corda.core.node.services.vault.QueryCriteria
-import net.corda.core.node.services.vault.Sort
 import net.corda.core.utilities.NetworkHostAndPort
 import net.corda.core.utilities.loggerFor
+import java.util.*
+import kotlin.collections.MutableList
+import kotlin.collections.MutableMap
+import kotlin.collections.first
+import kotlin.collections.forEach
+import kotlin.collections.mapOf
+import kotlin.collections.mutableListOf
+import kotlin.collections.mutableMapOf
+import kotlin.collections.set
+import kotlin.collections.sortedBy
 import khttp.get as httpGet
+import khttp.post as httpPost
 
 
 /**
@@ -32,6 +45,11 @@ private class Client {
     }
 
 
+    lateinit var proxyPartyA: CordaRPCOps
+    lateinit var proxyPartyB: CordaRPCOps
+    lateinit var proxyPartyC: CordaRPCOps
+    lateinit var proxyReg: CordaRPCOps
+
     fun main(args: Array<String>) {
 
         val nodeAddressNotary = NetworkHostAndPort(host = "localhost", port = 10003)
@@ -47,19 +65,19 @@ private class Client {
         getThisNode(proxyNotary)
 
         val clientA = CordaRPCClient(nodeAddressPartyA)
-        val proxyPartyA = clientA.start(rpcUsername, rpcPassword).proxy
+        proxyPartyA = clientA.start(rpcUsername, rpcPassword).proxy
         getThisNode(proxyPartyA)
 
         val clientB = CordaRPCClient(nodeAddressPartyB)
-        val proxyPartyB = clientB.start(rpcUsername, rpcPassword).proxy
+        proxyPartyB = clientB.start(rpcUsername, rpcPassword).proxy
         getThisNode(proxyPartyB)
 
         val clientC = CordaRPCClient(nodeAddressPartyC)
-        val proxyPartyC = clientC.start(rpcUsername, rpcPassword).proxy
+        proxyPartyC = clientC.start(rpcUsername, rpcPassword).proxy
         getThisNode(proxyPartyC)
 
         val clientReg = CordaRPCClient(nodeAddressRegulator)
-        val proxyReg = clientReg.start(rpcUsername, rpcPassword).proxy
+        proxyReg = clientReg.start(rpcUsername, rpcPassword).proxy
 
         getThisNode(proxyReg)
         doNodesAndAggregates(proxyPartyA, proxyPartyB, proxyPartyC, proxyReg)
@@ -78,7 +96,7 @@ private class Client {
 //        generateCrossNodeInvoices(0, 1)
 //        generateCrossNodeInvoices(1, 1)
 //        generateCrossNodeInvoices(2, 1)
-//////
+////////
 //        generateOffers(0)
 //        generateOffers(1)
 //        generateOffers(2)
@@ -137,9 +155,14 @@ private class Client {
                 contractStateType = InvoiceOfferState::class.java,
                 criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.CONSUMED),
                 paging = PageSpecification(1,5000))
+        val profiles = proxy.vaultQueryByWithPagingSpec(
+                contractStateType = ProfileState::class.java,
+                criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED),
+                paging = PageSpecification(1,5000))
 
         val allInvoices = proxy.vaultQuery(InvoiceState::class.java)
         val allOffers = proxy.vaultQuery(InvoiceOfferState::class.java)
+        logger.info("\uD83C\uDF3A Total Profiles on ${name.toUpperCase()}: ${profiles.states.size} \uD83C\uDF3A ")
         logger.info("\uD83C\uDF3A Total ConsumedInvoices on ${name.toUpperCase()}: ${consumedInvoices.states.size} \uD83C\uDF3A ")
         logger.info("\uD83C\uDF3A Total unConsumedInvoices on ${name.toUpperCase()}: ${unConsumedInvoices.states.size} \uD83C\uDF3A ")
         logger.info("\uD83C\uDF3A Total Invoices on ${name.toUpperCase()}: ${allInvoices.states.size} \uD83C\uDF3A \n")
@@ -182,7 +205,9 @@ private class Client {
     private fun startAccounts(generateAccounts: Boolean = false, deleteFirestore: Boolean = false) {
         if (generateAccounts) {
             logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 accounts for PARTY A")
-            var status = startAccountsForNode(url = "http://localhost:10050",
+            var status = startAccountsForNode(
+                    proxy = proxyPartyA,
+                    url = "http://localhost:10050",
                     deleteFirestore = deleteFirestore)
             if(status == 200) {
                 logger.info(" \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C Successfully generated Party A")
@@ -191,7 +216,9 @@ private class Client {
             }
 
             logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 accounts for PARTY B")
-            status = startAccountsForNode(url = "http://localhost:10053",
+            status = startAccountsForNode(
+                    proxy = proxyPartyB,
+                    url = "http://localhost:10053",
                     deleteFirestore = false)
             if(status == 200) {
                 logger.info(" \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C Successfully generated Party B")
@@ -199,7 +226,9 @@ private class Client {
                 logger.info("Houston, we down, \uD83D\uDCA6 status :  $status ")
             }
             logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 accounts for PARTY C")
-            status = startAccountsForNode(url = "http://localhost:10056",
+            status = startAccountsForNode(
+                    proxy = proxyPartyC,
+                    url = "http://localhost:10056",
                     deleteFirestore = false)
             if(status == 200) {
                 logger.info(" \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C Successfully generated Party C")
@@ -282,6 +311,7 @@ private class Client {
 
 
     }
+    val random = Random(Date().time)
     private fun generateOffers(index:Int) {
         when (index) {
             0 -> {
@@ -311,7 +341,7 @@ private class Client {
 
 
     }
-    private fun startAccountsForNode(url: String, deleteFirestore: Boolean ): Int {
+    private fun startAccountsForNode(proxy: CordaRPCOps, url: String, deleteFirestore: Boolean ): Int {
         logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 " +
                 "\uD83D\uDD35 \uD83D\uDD35 generateAccounts: $url deleteFirestore: $deleteFirestore")
         val response = httpGet(
@@ -321,6 +351,46 @@ private class Client {
 
         logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${response.statusCode}  " +
                 "\uD83C\uDF4E \uD83C\uDF4E ${response.text}")
+        val page = proxy.vaultQuery(AccountInfo::class.java)
+        page.states.forEach() {
+            if (it.state.data.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
+                var disc = random.nextInt(10) * 1.5
+                if (disc == 0.0) {
+                    disc = 5.0
+                }
+                val profile = ProfileStateDTO(
+                        issuedBy = "thisNode", accountId = it.state.data.identifier.id.toString(),
+                        date = Date(), defaultDiscount = disc,
+                        minimumInvoiceAmount = random.nextInt(100) * 1000.0,
+                        minimumDiscount = 4.0,
+                        maximumInvestmentPerInvoice = 1000000.0,
+                        maximumTotalInvestment = 900000000.0,
+                        maximumInvoiceAmount = 750000.0
+                )
+                val params: MutableMap<String,String> = mutableMapOf()
+                params["issuedBy"] = "me"
+                params["accountId"] = profile.accountId
+                params["date"] = "2020-01-01"
+                params["defaultDiscount"] = profile.defaultDiscount.toString()
+                params["minimumInvoiceAmount"] = profile.minimumInvoiceAmount.toString()
+                params["minimumDiscount"] = profile.minimumDiscount.toString()
+                params["maximumInvestmentPerInvoice"] = profile.maximumInvestmentPerInvoice.toString()
+                params["maximumTotalInvestment"] = profile.maximumTotalInvestment.toString()
+                params["maximumInvoiceAmount"] = profile.maximumInvoiceAmount.toString()
+                logger.info("\uD83C\uDF3A  \uD83E\uDD6C  \uD83E\uDD6C Creating profile for \uD83C\uDF3A ${it.state.data.name} ...")
+                logger.info(GSON.toJson(profile))
+
+                val resp = httpPost(
+                        url = "$url/admin/createInvestorProfile",
+                        json = params,
+                        timeout = 8000000000.0
+                )
+                logger.info("\uD83C\uDF4E \uD83C\uDF4E RESPONSE: statusCode: ${resp.statusCode}  " +
+                        "\uD83C\uDF4E \uD83C\uDF4E ${resp.text}")
+            }
+        }
+
+
         return response.statusCode
     }
     private fun doNodesAndAggregates(proxyPartyA: CordaRPCOps, proxyPartyB: CordaRPCOps, proxyPartyC: CordaRPCOps, proxyReg: CordaRPCOps) {
@@ -382,6 +452,12 @@ private class Client {
         }
         logger.info("Local Accounts on Node: ♻️ $cnt ♻️")
         logger.info("Remote Accounts on Node: ♻️ $cnt2 ♻️")
+
+        val profiles = proxy.vaultQueryByWithPagingSpec(criteria = criteria,
+                contractStateType = ProfileState::class.java,
+                paging = PageSpecification(pageNumber = 1, pageSize = 2000))
+
+        logger.info("Local Profiles on Node: ♻️ ${profiles.totalStatesAvailable} ♻️")
         //
         val pageInvoices = proxy.vaultQueryByWithPagingSpec(criteria = criteria,
                 contractStateType = InvoiceState::class.java,
@@ -404,6 +480,7 @@ private class Client {
                 criteria = criteria,
                 paging = PageSpecification(
                     pageNumber = 1, pageSize = 2000))
+
         cnt = 0
         cnt2 = 0
         pageInvoiceOffers.states.forEach() {

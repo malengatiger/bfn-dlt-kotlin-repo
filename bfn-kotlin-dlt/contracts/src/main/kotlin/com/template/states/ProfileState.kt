@@ -21,6 +21,7 @@ class ProfileState(var issuedBy: Party,
                    val maximumInvoiceAmount: Double,
                    val maximumInvestmentPerInvoice: Double,
                    val maximumTotalInvestment: Double,
+                   val defaultDiscount: Double,
                    var date: Date
                    ) : ContractState {
 

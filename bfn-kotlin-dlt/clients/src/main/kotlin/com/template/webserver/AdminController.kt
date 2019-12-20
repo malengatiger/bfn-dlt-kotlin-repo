@@ -144,7 +144,16 @@ class AdminController(rpc: NodeRPCConnection) {
     fun runAuction(): List<OfferAndTokenDTO> {
         return WorkerBee.runAuction(proxy)
     }
-
+    @GetMapping(value = ["makeInvoiceOffers"])
+    @Throws(Exception::class)
+    fun makeInvoiceOffers(@RequestParam investorId: String): List<InvoiceOfferDTO> {
+        return WorkerBee.makeInvoiceOffers(proxy,investorId)
+    }
+    @PostMapping(value = ["createInvestorProfile"])
+    @Throws(Exception::class)
+    fun createInvestorProfile(@RequestBody profile: ProfileStateDTO): String {
+        return WorkerBee.createInvestorProfile(proxy, profile)
+    }
     @GetMapping(value = ["getUser"])
     @Throws(Exception::class)
     fun getUser(@RequestParam(value = "email", required = false) email: String?): UserRecord? {

@@ -1,12 +1,14 @@
 package com.template.webserver
 
 import com.bfn.flows.CreateAccountFlow
+import com.bfn.flows.InvestorProfileFlow
 import com.bfn.flows.invoices.BestOfferForInvoiceFlow
 import com.bfn.flows.invoices.InvoiceOfferFlow
 import com.bfn.flows.invoices.InvoiceRegistrationFlow
 import com.bfn.flows.queries.InvoiceOfferQueryFlow
 import com.bfn.flows.queries.InvoiceQueryFlow
 import com.bfn.flows.queries.TokenQueryFlow
+import com.bfn.flows.scheduled.MakeInvoiceOffersFlow
 import com.bfn.flows.scheduled.RunAuctionFlow
 import com.google.firebase.cloud.FirestoreClient
 import com.google.gson.GsonBuilder
@@ -17,6 +19,7 @@ import com.template.dto.*
 import com.template.states.InvoiceOfferState
 import com.template.states.InvoiceState
 import com.template.states.OfferAndTokenState
+import com.template.states.ProfileState
 import com.template.webserver.FirebaseUtil.addNode
 import com.template.webserver.FirebaseUtil.createUser
 import com.template.webserver.FirebaseUtil.sendAccountMessage
@@ -227,6 +230,43 @@ object WorkerBee {
         } catch (e: Exception) {
             logger.error("RunAuction fucked up! : $e")
         }
+        return dtos
+    }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun createInvestorProfile(proxy: CordaRPCOps, profile: ProfileStateDTO): String{
+
+        val state = ProfileState(
+                issuedBy = proxy.nodeInfo().legalIdentities.first(),
+                accountId = profile.accountId,
+                defaultDiscount = profile.defaultDiscount,
+                minimumDiscount = profile.minimumDiscount,
+                maximumInvestmentPerInvoice = profile.maximumInvestmentPerInvoice,
+                maximumInvoiceAmount = profile.maximumInvoiceAmount,
+                maximumTotalInvestment = profile.maximumTotalInvestment,
+                minimumInvoiceAmount = profile.minimumInvoiceAmount, date = Date()
+        )
+        val fut = proxy.startTrackedFlowDynamic(
+                InvestorProfileFlow::class.java, state).returnValue
+        val tx = fut.get()
+        val m = "\uD83C\uDF3A createInvestorProfile, DONE!:  \uD83C\uDF3A ${tx.id}"
+        logger.info(m)
+        return m
+    }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun makeInvoiceOffers(proxy: CordaRPCOps, investorId: String): List<InvoiceOfferDTO> {
+        val fut = proxy.startTrackedFlowDynamic(
+                MakeInvoiceOffersFlow::class.java, investorId).returnValue
+        val offerStates = fut.get()
+        val dtos: MutableList<InvoiceOfferDTO> = mutableListOf()
+        offerStates!!.forEach() {
+            val offer = getDTO(it)
+            dtos.add(offer)
+
+        }
+        val m = "\uD83C\uDF3A makeInvoiceOffers, DONE!:  \uD83C\uDF3A " + offerStates.size
+        logger.info(m)
         return dtos
     }
     @JvmStatic
@@ -767,5 +807,18 @@ object WorkerBee {
         info.identifier = a.identifier.id.toString()
         info.name = a.name
         return info
+    }
+    @JvmStatic
+    fun getDTO(a:ProfileState): ProfileStateDTO {
+        return ProfileStateDTO(
+                issuedBy = a.issuedBy.toString(),
+                accountId = a.accountId, date = a.date,
+                defaultDiscount = a.defaultDiscount,
+                maximumInvestmentPerInvoice = a.maximumInvestmentPerInvoice,
+                maximumInvoiceAmount = a.maximumInvoiceAmount,
+                maximumTotalInvestment = a.maximumTotalInvestment,
+                minimumDiscount = a.minimumDiscount,
+                minimumInvoiceAmount = a.minimumInvoiceAmount
+        )
     }
 }
