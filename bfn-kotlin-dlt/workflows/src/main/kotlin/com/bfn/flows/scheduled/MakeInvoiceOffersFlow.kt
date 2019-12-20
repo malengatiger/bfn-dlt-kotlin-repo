@@ -109,7 +109,7 @@ class MakeInvoiceOffersFlow(private val investorId: String) : FlowLogic<List<Inv
                     investor = account!!.state.data,
                     discount = profile!!.defaultDiscount,
                     invoiceNumber = it.invoiceNumber,
-                    offerAmount = getOfferAmount(it.totalAmount, profile!!.defaultDiscount),
+                    offerAmount = getOfferAmount(it.totalAmount, profile.defaultDiscount),
                     offerDate = Date(),
                     originalAmount = it.totalAmount,
                     supplier = it.supplierInfo, ownerDate = Date()
@@ -155,8 +155,11 @@ class MakeInvoiceOffersFlow(private val investorId: String) : FlowLogic<List<Inv
     @Suspendable
     @Throws(FlowException::class)
     private fun getOfferAmount(invoiceAmount: Double, discount: Double): Double {
-        val percentage = 100.0 - discount / 100.0
-        return invoiceAmount * percentage
+        val percentage = 100.0 - discount
+        val offerAmt = invoiceAmount * (percentage/100)
+        Companion.logger.info("\uD83D\uDD30 \uD83D\uDD30 Offer amount is " +
+                "$offerAmt calculated from \uD83D\uDD30 $invoiceAmount with discount: $discount")
+        return offerAmt
     }
 
     companion object {

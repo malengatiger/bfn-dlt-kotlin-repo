@@ -266,6 +266,12 @@ object WorkerBee {
 
         }
         val m = "\uD83C\uDF3A makeInvoiceOffers, DONE!:  \uD83C\uDF3A " + offerStates.size
+        dtos.forEach() {
+            logger.info("Investor  \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 ${it.investor!!.name} " +
+                    ":: \uD83C\uDF4E Offer made: ${it.supplier!!.name} " +
+                    "offered: ${it.offerAmount!!} \uD83D\uDD35 \uD83D\uDD35 originalAmt: ${it.originalAmount!!} " +
+                    " discount: ${it.discount!!}  \uD83C\uDF40 delta: ${it.originalAmount!! - it.offerAmount!!} ")
+        }
         logger.info(m)
         return dtos
     }
