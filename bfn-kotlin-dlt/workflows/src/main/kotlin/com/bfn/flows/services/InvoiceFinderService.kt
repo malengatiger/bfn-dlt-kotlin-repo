@@ -32,6 +32,10 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
                 invoiceState = it
             }
         }
+        if (invoiceState == null) {
+            logger.warn("findInvoiceStateAndRef :  " +
+                    "\uD83D\uDE3C  \uD83D\uDE3C  \uD83D\uDE3C  Invoice NOT FOUND: \uD83C\uDF4E $invoiceId \uD83C\uDF4E")
+        }
 
         return invoiceState!!
     }

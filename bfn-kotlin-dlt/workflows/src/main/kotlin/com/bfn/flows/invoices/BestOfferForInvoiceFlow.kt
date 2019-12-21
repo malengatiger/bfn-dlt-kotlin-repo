@@ -122,13 +122,17 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C signInitialTransaction ")
         val signedTokenTx = serviceHub.signInitialTransaction(transactionBuilderToken)
 
-        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceCloseFlow")
-        subFlow(InvoiceCloseFlow(invoiceId = invoiceId))
+        try {
+            Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceCloseFlow")
+            subFlow(InvoiceCloseFlow(invoiceId = invoiceId))
 
-        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceOfferCloseFlow")
-        subFlow(InvoiceOfferCloseFlow(offers))
+            Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceOfferCloseFlow")
+            subFlow(InvoiceOfferCloseFlow(offers))
+        } catch (e: Exception) {
+            Companion.logger.warn(" \uD83D\uDCCC \uD83D\uDCCC Consuming invoice and associated offers \uD83D\uDC7F FAILED: $e")
+        }
 
-        logger.warn("\uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38 Finally ready to finish this ...")
+        Companion.logger.warn("\uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38 Finally. ready. to. finish. this. ...")
         return finalizeToken(parties, signedTokenTx)
 
     }

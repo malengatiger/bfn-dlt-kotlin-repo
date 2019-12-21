@@ -10,7 +10,8 @@ class BeansInitializer : ApplicationContextInitializer<GenericApplicationContext
     override fun initialize(context: GenericApplicationContext)  {
         logger.info(" \uD83C\uDF4E  \uD83C\uDF4E BeansInitializer starting to initialize  \uD83E\uDDE9 Beans")
         beans().initialize(context)
-        logger.info(" \uD83C\uDF4E  \uD83C\uDF4E BeansInitializer done initializing  \uD83E\uDDE9 Beans")
+        logger.info(" \uD83C\uDF4E  \uD83C\uDF4E BeansInitializer done initializing  " +
+                "\uD83E\uDDE9 contextId: ${context.id}  ")
     }
 
 

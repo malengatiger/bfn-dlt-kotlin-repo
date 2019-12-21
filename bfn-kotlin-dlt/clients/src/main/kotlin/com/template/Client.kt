@@ -13,7 +13,6 @@ import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.PageSpecification
 import net.corda.core.node.services.vault.QueryCriteria
-import net.corda.core.node.services.vault.Sort
 import net.corda.core.utilities.NetworkHostAndPort
 import net.corda.core.utilities.loggerFor
 import java.util.*
@@ -52,6 +51,45 @@ private class Client {
 
     fun main(args: Array<String>) {
 
+        setupNodes()
+//        startAccounts(true, deleteFirestore = true);
+//        generateCrossNodeInvoices(0, 1)
+////        generateCrossNodeInvoices(1, 4)
+////        generateCrossNodeInvoices(2, 5)
+//
+        generateInvoices(0, 5)
+        generateInvoices(1, 3)
+        generateInvoices(2, 4)
+////
+//        generateOffers(0)
+//        generateOffers(1)
+//        generateOffers(2)
+////
+//        findBestOffers(proxyPartyA)
+//        findBestOffers(proxyPartyB)
+//        findBestOffers(proxyPartyC)
+////
+        printTotals()
+
+
+    }
+
+    private fun printTotals() {
+        getNodeTotals(proxyPartyA)
+        getNodeTotals(proxyPartyB)
+        getNodeTotals(proxyPartyC)
+        getNodeTotals(proxyReg)
+
+        getOfferAndTokens(proxyPartyA)
+        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
+        getOfferAndTokens(proxyPartyB)
+        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
+        getOfferAndTokens(proxyPartyC)
+        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
+        getOfferAndTokens(proxyReg)
+    }
+
+    private fun setupNodes() {
         val nodeAddressNotary = NetworkHostAndPort(host = "localhost", port = 10003)
         val nodeAddressPartyA = NetworkHostAndPort(host = "localhost", port = 10006)
         val nodeAddressPartyB = NetworkHostAndPort(host = "localhost", port = 10009)
@@ -81,46 +119,6 @@ private class Client {
 
         getThisNode(proxyReg)
         doNodesAndAggregates(proxyPartyA, proxyPartyB, proxyPartyC, proxyReg)
-
-//        getNodeTotals(proxyPartyA)
-//        getNodeTotals(proxyPartyB)
-//        getNodeTotals(proxyPartyC)
-//        getNodeTotals(proxyReg)
-
-        generateInvoices(0, 3)
-        generateInvoices(1, 3)
-        generateInvoices(2,4)
-
-//        startAccounts(true, deleteFirestore = true);
-//        generateCrossNodeInvoices(0, 5)
-//        generateCrossNodeInvoices(1, 5)
-//        generateCrossNodeInvoices(2, 5)
-
-        generateOffers(0)
-        generateOffers(1)
-        generateOffers(2)
-//
-        runInvoiceOfferAuction(proxyPartyA)
-        runInvoiceOfferAuction(proxyPartyB)
-        runInvoiceOfferAuction(proxyPartyC)
-////
-        getNodeTotals(proxyPartyA)
-        getNodeTotals(proxyPartyB)
-        getNodeTotals(proxyPartyC)
-        getNodeTotals(proxyReg)
-
-        getOfferAndTokens(proxyPartyA)
-        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
-        getOfferAndTokens(proxyPartyB)
-        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
-        getOfferAndTokens(proxyPartyC)
-        logger.info("\n \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38  \uD83C\uDF38 ")
-        getOfferAndTokens(proxyReg)
-
-//        getTokens(proxyPartyA)
-//        getTokens(proxyPartyB)
-//        getTokens(proxyPartyC)
-//        getTokens(proxyReg)
     }
 
     fun getRegulatorTotals(proxy: CordaRPCOps) {
@@ -137,9 +135,9 @@ private class Client {
 
     fun getNodeTotals(proxy: CordaRPCOps) {
         val name = proxy.nodeInfo().legalIdentities.first().name.organisation
-        logger.info("\n\uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A ${name.toUpperCase()} STATES \uD83C\uDF3A ")
+        logger.info("\n..............\uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A ${name.toUpperCase()} STATES \uD83C\uDF3A .................... ")
         val page = proxy.vaultQuery(AccountInfo::class.java)
-        logger.info("\uD83D\uDC65  Total Accounts on \uD83D\uDC65 ${name.toUpperCase()}: ${page.states.size}  \uD83D\uDC65  ")
+        logger.info("\uD83D\uDC65 Total Accounts on \uD83D\uDC65 ${name.toUpperCase()}: ${page.states.size}  \uD83D\uDC65  ")
         val unConsumedInvoices = proxy.vaultQueryByWithPagingSpec(
                 contractStateType = InvoiceState::class.java,
                 criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED),
@@ -169,7 +167,7 @@ private class Client {
                 criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.ALL),
                 paging = PageSpecification(1, 5000))
 
-        logger.info("\uD83C\uDF3A Total Profiles on ${name.toUpperCase()}: ${profiles.states.size} \uD83C\uDF3A ")
+        logger.info("\uD83D\uDC65 Total Profiles on ${name.toUpperCase()}: ${profiles.states.size} \uD83D\uDC65\n")
         logger.info("\uD83C\uDF3A Total ConsumedInvoices on ${name.toUpperCase()}: ${consumedInvoices.states.size} \uD83C\uDF3A ")
         logger.info("\uD83C\uDF3A Total unConsumedInvoices on ${name.toUpperCase()}: ${unConsumedInvoices.states.size} \uD83C\uDF3A ")
         logger.info("\uD83C\uDF3A Total Invoices on ${name.toUpperCase()}: ${allInvoices.states.size} \uD83C\uDF3A \n")
@@ -388,9 +386,9 @@ private class Client {
         val page = proxy.vaultQuery(AccountInfo::class.java)
         page.states.forEach() {
             if (it.state.data.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
-                var disc = random.nextInt(15) * 1.5
-                if (disc < 4.0) {
-                    disc = 5.5
+                var disc = random.nextInt(10) * 1.5
+                if (disc < 3.0) {
+                    disc = 3.5
                 }
                 val profile = ProfileStateDTO(
                         issuedBy = "thisNode", accountId = it.state.data.identifier.id.toString(),
@@ -563,7 +561,7 @@ private class Client {
 
     }
 
-    private fun runInvoiceOfferAuction(proxy: CordaRPCOps) {
+    private fun findBestOffers(proxy: CordaRPCOps) {
         mList.clear()
         var pageNumber = 1
         val pageSize = 1200

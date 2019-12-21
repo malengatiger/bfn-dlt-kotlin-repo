@@ -39,6 +39,19 @@ class AdminController(rpc: NodeRPCConnection) {
                 + "    \uD83E\uDDE1 \uD83D\uDC9B \uD83D\uDC9A \uD83D\uDC99 \uD83D\uDC9C\n\n")
         return result
     }
+    @GetMapping(value = ["/getInvoicesAcrossNodes"], produces = ["application/json"])
+    @Throws(Exception::class)
+    private fun getInvoicesAcrossNodes(@RequestParam max: Int?): List<InvoiceDTO> {
+        logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 starting getInvoicesAcrossNodes: ... \uD83C\uDF4F ")
+        val cx = CrossNodeService()
+        val list = cx.getInvoicesAcrossNodes();
+        list.forEach() {
+            logger.info("\uD83C\uDF4E \uD83C\uDF4E ${it.supplier?.host} " +
+                    "\uD83C\uDF51 supplier: ${it.supplier?.name} " +
+                    "\uD83E\uDD66 customer: ${it.customer?.name} amount: ${it.amount}")
+        }
+        return list
+    }
     @GetMapping(value = ["/generateOffers"], produces = ["application/json"])
     @Throws(Exception::class)
     private fun generateOffers(@RequestParam max: Int?): String {
@@ -196,13 +209,13 @@ class AdminController(rpc: NodeRPCConnection) {
     }
 
     @GetMapping(value = ["/hello"], produces = ["text/plain"])
-    private fun hello(): String {
+     fun hello(): String {
         logger.info("/ requested. will say hello  \uD83D\uDC9A  \uD83D\uDC9A  \uD83D\uDC9A")
         return "\uD83D\uDC9A  BFNWebApi: AdminController says  \uD83E\uDD6C HELLO WORLD!  \uD83D\uDC9A  \uD83D\uDC9A"
     }
 
     @GetMapping(value = ["/ping"], produces = ["application/json"])
-    private fun ping(): String {
+     fun ping(): String {
         val msg = ("\uD83E\uDDE1 \uD83D\uDC9B \uD83D\uDC9A AdminController:BFN Web API pinged: " + Date().toString()
                 + " \uD83E\uDDE1 \uD83D\uDC9B \uD83D\uDC9A")
         logger.info(msg)

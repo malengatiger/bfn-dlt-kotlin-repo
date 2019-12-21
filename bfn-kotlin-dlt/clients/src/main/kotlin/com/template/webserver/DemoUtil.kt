@@ -310,7 +310,7 @@ object DemoUtil {
         val index2 = random.nextInt(accounts.size - 1)
         val customer = accounts[index2]
         var invoice: InvoiceDTO? = null
-        if (supplier.name != it.name && customer.name != it.name) {
+        if (supplier.name != it.name && customer.name != it.name && supplier.name != customer.name) {
             invoice = InvoiceDTO()
             invoice.invoiceNumber = "INV_" + System.currentTimeMillis()
             invoice.supplier = supplier

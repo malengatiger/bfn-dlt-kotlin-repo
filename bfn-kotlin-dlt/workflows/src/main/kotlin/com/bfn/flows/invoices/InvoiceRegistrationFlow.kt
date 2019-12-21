@@ -59,17 +59,12 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
 
         //todo - SORT OUT THIS ACCOUNT THING ---> EXAMPLES FUCKED!
         val customerParty = invoiceState.customerInfo.host //subFlow(RequestKeyForAccount(customerAccount!!))
-        logger.info(" \uD83E\uDD4F  \uD83E\uDD4F  \uD83E\uDD4F customerAccount: ${invoiceState.customerInfo}")
-        logger.info(" \uD83E\uDD4F  \uD83E\uDD4F  \uD83E\uDD4F customerParty: $customerParty")
-
-        //val supplierAccount = accountService.accountInfo(invoiceState.supplierInfo.identifier.id)?.state?.data
         val supplierParty = invoiceState.supplierInfo.host //subFlow(RequestKeyForAccount(supplierAccount!!))
-
-        logger.info("\uD83C\uDF4F \uD83C\uDF4F \uD83C\uDF4F supplierAccount: ${invoiceState.supplierInfo}")
-        logger.info("\uD83C\uDF4F \uD83C\uDF4F \uD83C\uDF4F supplierParty: $supplierParty")
 
         val customerOrg = invoiceState.customerInfo.host.name.organisation
         val supplierOrg = invoiceState.supplierInfo.host.name.organisation
+
+
         val command = InvoiceContract.Register()
         progressTracker.currentStep = GENERATING_TRANSACTION
 
@@ -107,8 +102,8 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
                     FinalityFlow(signedTx, ImmutableList.of<FlowSession>()))
             Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  SAME NODE ==> FinalityFlow has been executed " +
                     "... \uD83E\uDD66 \uD83E\uDD66")
-            broadcastInvoice(mSignedTransactionDone)
-            //reportToRegulator(mSignedTransactionDone)
+//            broadcastInvoice(mSignedTransactionDone)
+            reportToRegulator(mSignedTransactionDone)
             return mSignedTransactionDone
         }
 
@@ -144,8 +139,7 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
             }
         }
         if (signedTransaction != null) {
-            broadcastInvoice(signedTransaction)
-            //reportToRegulator(signedTransaction)
+            reportToRegulator(signedTransaction)
         }
         return signedTransaction
     }
@@ -158,16 +152,6 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
         } catch (e: Exception) {
             Companion.logger.error(" \uD83D\uDC7F  \uD83D\uDC7F  \uD83D\uDC7F Regulator fell down.  \uD83D\uDC7F IGNORED  \uD83D\uDC7F ", e)
             throw FlowException("Regulator fell down!")
-        }
-    }
-    @Suspendable
-    @Throws(FlowException::class)
-    private fun broadcastInvoice(mSignedTransactionDone: SignedTransaction) {
-        try {
-            subFlow(BroadcastTransactionFlow(mSignedTransactionDone))
-        } catch (e: Exception) {
-            Companion.logger.error("\uD83D\uDC7F \uD83D\uDC7F \uD83D\uDC7F BroadcastTransactionFlow fell down.  \uD83D\uDC7F IGNORED  \uD83D\uDC7F ", e)
-            throw FlowException("BroadcastTransactionFlow fell down!", e)
         }
     }
 

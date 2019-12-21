@@ -26,15 +26,16 @@ class InvoiceCloseFlow(private val invoiceId: String) : FlowLogic<SignedTransact
 
         val finderService = serviceHub.cordaService(InvoiceFinderService::class.java)
         val invoiceState = finderService.findInvoiceStateAndRef(invoiceId)
-                ?: throw IllegalArgumentException("\uD83D\uDD8D \uD83D\uDD8D Invoice not found: $invoiceId")
-
-        val mParties = finderService.getAllNodes()
-
-        val keys: MutableList<PublicKey> = mutableListOf()
-        mParties.forEach() {
-            keys.add(it.owningKey)
+        if (invoiceState != null) {
+            val mParties = finderService.getAllNodes()
+            val keys: MutableList<PublicKey> = mutableListOf()
+            mParties.forEach() {
+                keys.add(it.owningKey)
+            }
+            Companion.logger.info("\uD83E\uDD1F \uD83E\uDD1F Number of Public Keys: ${keys.size}")
+            return processTransaction(invoiceState, keys, mParties);
         }
-        return processTransaction(invoiceState, keys, mParties);
+        throw IllegalArgumentException("\uD83D\uDD8D \uD83D\uDD8D Invoice not found: $invoiceId")
     }
 
     @Suspendable
@@ -87,15 +88,15 @@ class InvoiceCloseFlow(private val invoiceId: String) : FlowLogic<SignedTransact
 
     @Suspendable
     @Throws(FlowException::class)
-    private fun signBroadcastAndFinalize(signedTx: SignedTransaction, sessions: List<FlowSession>): SignedTransaction {
+    private fun signBroadcastAndFinalize(
+            signedTx: SignedTransaction, sessions: List<FlowSession>): SignedTransaction {
 
 
         val signedTransaction = subFlow(CollectSignaturesFlow(
                 partiallySignedTx = signedTx, sessionsToCollectFrom = sessions))
         Companion.logger.info("\uD83C\uDFBD \uD83C\uDFBD \uD83C\uDFBD \uD83C\uDFBD  " +
                 "Signatures collected OK!  \uD83D\uDE21 \uD83D\uDE21 " +
-                ".... will call FinalityFlow ... \uD83C\uDF3A \uD83C\uDF3A txId: "
-                + signedTransaction.id.toString())
+                ".... will call FinalityFlow ... \uD83C\uDF3A \uD83C\uDF3A ")
         subFlow(BroadcastTransactionFlow(signedTransaction))
         val mSignedTransactionDone = subFlow(
                 FinalityFlow(signedTransaction, sessions))

@@ -3,6 +3,7 @@ package com.bfn.flows.regulator
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.accounts.workflows.ourIdentity
 import net.corda.core.flows.*
+import net.corda.core.identity.Party
 import net.corda.core.transactions.SignedTransaction
 import org.slf4j.LoggerFactory
 import java.lang.Exception
