@@ -8,7 +8,7 @@ import com.bfn.flows.invoices.InvoiceRegistrationFlow
 import com.bfn.flows.queries.InvoiceOfferQueryFlow
 import com.bfn.flows.queries.InvoiceQueryFlow
 import com.bfn.flows.queries.TokenQueryFlow
-import com.bfn.flows.scheduled.MakeInvoiceOffersFlow
+import com.bfn.flows.scheduled.CreateInvoiceOffersFlow
 import com.bfn.flows.scheduled.RunAuctionFlow
 import com.google.firebase.cloud.FirestoreClient
 import com.google.gson.GsonBuilder
@@ -84,6 +84,7 @@ object WorkerBee {
                     host.toString(), name, null)
             if (dto.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
                 list.add(dto)
+                logger.info("${GSON.toJson(dto)}")
             }
         }
         val msg = "\uD83C\uDF3A \uD83C\uDF3A done listing ${list.size} accounts on Node: \uD83C\uDF3A " +
@@ -257,7 +258,7 @@ object WorkerBee {
     @Throws(Exception::class)
     fun makeInvoiceOffers(proxy: CordaRPCOps, investorId: String): List<InvoiceOfferDTO> {
         val fut = proxy.startTrackedFlowDynamic(
-                MakeInvoiceOffersFlow::class.java, investorId).returnValue
+                CreateInvoiceOffersFlow::class.java, investorId).returnValue
         val offerStates = fut.get()
         val dtos: MutableList<InvoiceOfferDTO> = mutableListOf()
         offerStates!!.forEach() {
@@ -493,14 +494,8 @@ object WorkerBee {
 
     @JvmStatic
     fun listFlows(proxy: CordaRPCOps): List<String> {
-        logger.info("🥬 🥬 🥬 🥬 Registered Flows on Corda BFN ...  \uD83E\uDD6C ")
         val flows = proxy.registeredFlows()
-        var cnt = 0
-        for (info in flows) {
-            cnt++
-            logger.info("\uD83E\uDD4F \uD83E\uDD4F #$$cnt \uD83E\uDD6C BFN Corda Flow:  \uD83E\uDD4F$info   \uD83C\uDF4E ")
-        }
-        logger.info("🥬 🥬 🥬 🥬 Total Registered Flows  \uD83C\uDF4E  $cnt  \uD83C\uDF4E \uD83E\uDD6C ")
+        logger.info("🥬 🥬 🥬 🥬 Total Registered Flows  \uD83C\uDF4E  ${flows.size}  \uD83C\uDF4E \uD83E\uDD6C ")
         return flows
     }
 

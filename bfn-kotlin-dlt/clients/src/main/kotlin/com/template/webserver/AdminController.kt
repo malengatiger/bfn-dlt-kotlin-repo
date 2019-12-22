@@ -152,6 +152,11 @@ class AdminController(rpc: NodeRPCConnection) {
     fun findOffersForNode(): List<InvoiceOfferDTO> {
         return WorkerBee.findOffersForNode(proxy)
     }
+    @GetMapping(value = ["getFlows"])
+    @Throws(Exception::class)
+    fun getFlows(): List<String> {
+        return WorkerBee.listFlows(proxy)
+    }
     @GetMapping(value = ["runAuction"])
     @Throws(Exception::class)
     fun runAuction(): List<OfferAndTokenDTO> {

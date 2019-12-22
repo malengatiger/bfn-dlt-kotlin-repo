@@ -54,11 +54,19 @@ private open class RestApiApplication: ApplicationListener<ApplicationReadyEvent
         val sorted2 = collection.sortedBy { it.name }
         sorted2.forEach() {
             cnt++
-            logger.info("\uD83C\uDF4E   WorkerBee Function: #$cnt \t\uD83E\uDDA0  ${it.name} \uD83E\uDDA0 ")
+            logger.info("\uD83C\uDF4E WorkerBee Function: #$cnt \t\uD83E\uDDA0  ${it.name} \uD83E\uDDA0 ")
         }
         logger.info("Pinging self, \uD83C\uDF56 \uD83C\uDF56 just for the hell of it!")
         val bean = context.getBean(AdminController::class.java)
         bean.ping()
+        val flows = bean.getFlows()
+        cnt = 0
+        flows.forEach() {
+            if (it.contains("com.bfn")) {
+                cnt++
+                logger.info("\uD83D\uDD37 Registered Corda Flow #$cnt : \uD83D\uDD37  $it  \uD83C\uDF4F")
+            }
+        }
 
     }
 

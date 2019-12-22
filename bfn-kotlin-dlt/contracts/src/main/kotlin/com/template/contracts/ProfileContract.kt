@@ -13,7 +13,7 @@ class ProfileContract : Contract {
     override fun verify(tx: LedgerTransaction) {
         logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 ProfileContract: verify starting" +
                 " ..... \uD83E\uDD6C \uD83E\uDD6C ")
-        val (value, requiredSigners) = tx.getCommand<CommandData>(0)
+//        val (value, requiredSigners) = tx.getCommand<CommandData>(0)
         logger.info("Number ofCommands: ${tx.commands.size}")
 //
 //        if (

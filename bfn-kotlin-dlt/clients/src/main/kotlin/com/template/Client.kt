@@ -53,21 +53,22 @@ private class Client {
 
         setupNodes()
 //        startAccounts(true, deleteFirestore = true);
+//        startAccounts(true, deleteFirestore = false);
 //        generateCrossNodeInvoices(0, 1)
-////        generateCrossNodeInvoices(1, 4)
-////        generateCrossNodeInvoices(2, 5)
+//        generateCrossNodeInvoices(1, 4)
+//        generateCrossNodeInvoices(2, 5)
 //
-        generateInvoices(0, 5)
-        generateInvoices(1, 3)
-        generateInvoices(2, 4)
+        generateInvoices(0, 24)
+        generateInvoices(1, 20)
+        generateInvoices(2, 14)
+////////
+        generateOffers(0)
+        generateOffers(1)
+        generateOffers(2)
 ////
-//        generateOffers(0)
-//        generateOffers(1)
-//        generateOffers(2)
-////
-//        findBestOffers(proxyPartyA)
-//        findBestOffers(proxyPartyB)
-//        findBestOffers(proxyPartyC)
+        findBestOffers(proxyPartyA)
+        findBestOffers(proxyPartyB)
+        findBestOffers(proxyPartyC)
 ////
         printTotals()
 
@@ -262,7 +263,7 @@ private class Client {
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10050/admin/generateInvoices")
                 logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response.statusCode}  " +
-                        "${response.text}")
+                        response.text)
             }
             1 -> {
 
@@ -271,7 +272,7 @@ private class Client {
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10053/admin/generateInvoices")
                 logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${response2.statusCode}  " +
-                        "${response2.text}")
+                        response2.text)
             }
             2 -> {
                 logger.info("\uD83D\uDE21  generateInvoices for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
@@ -279,7 +280,7 @@ private class Client {
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10056/admin/generateInvoices")
                 logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response3.statusCode}  " +
-                        "${response3.text}")
+                        response3.text)
             }
         }
 
@@ -296,7 +297,7 @@ private class Client {
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10050/admin/generateCrossNodeInvoices")
                 logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response.statusCode}  " +
-                        "${response.text}")
+                        response.text)
             }
             1 -> {
 
@@ -305,7 +306,7 @@ private class Client {
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10053/admin/generateCrossNodeInvoices")
                 logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${response2.statusCode}  " +
-                        "${response2.text}")
+                        response2.text)
             }
             2 -> {
                 logger.info("\uD83D\uDE21  generateCrossNodeInvoices for PARTY C  \uD83D\uDE21  \uD83D\uDE21 ")
@@ -313,7 +314,7 @@ private class Client {
                         timeout = 990000000.0, params = params,
                         url = "http://localhost:10056/admin/generateCrossNodeInvoices")
                 logger.info("\uD83C\uDF4E  RESPONSE: statusCode: ${response3.statusCode}  " +
-                        "${response3.text}")
+                        response3.text)
             }
         }
 
@@ -411,7 +412,7 @@ private class Client {
                 params["maximumTotalInvestment"] = profile.maximumTotalInvestment.toString()
                 params["maximumInvoiceAmount"] = profile.maximumInvoiceAmount.toString()
                 logger.info("\uD83C\uDF3A  \uD83E\uDD6C  \uD83E\uDD6C Creating profile for \uD83C\uDF3A ${it.state.data.name} ...")
-                logger.info(GSON.toJson(profile))
+                // logger.info(GSON.toJson(profile))
 
                 val resp = httpPost(
                         url = "$url/admin/createInvestorProfile",

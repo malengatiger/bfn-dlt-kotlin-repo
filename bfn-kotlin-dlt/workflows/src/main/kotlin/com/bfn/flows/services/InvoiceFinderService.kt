@@ -51,7 +51,7 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
                 " ${account.name} - ${account.host}")
         val sortedInvoices = getAllInvoices()
         val bestInvoices: MutableList<InvoiceState>? = mutableListOf()
-        val profile = investorId?.let { findProfile(it) }
+        val profile = investorId.let { findProfile(it) }
         if (profile == null) {
             logger.info("\uD83C\uDF36 No profile available, \uD83C\uDF36 " +
                     "returning all ${sortedInvoices.size} invoices found")

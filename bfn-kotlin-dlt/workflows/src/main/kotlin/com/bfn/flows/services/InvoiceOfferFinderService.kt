@@ -76,7 +76,7 @@ class InvoiceOfferFinderService(private val serviceHub: AppServiceHub) : Singlet
         //todo - use profile to filter offers
         //todo - if ties found - take random offer
 
-        return bestOffer!!
+        return bestOffer
     }
     @Suspendable
     private fun selectOffer(profile: ProfileState) : InvoiceOfferState{

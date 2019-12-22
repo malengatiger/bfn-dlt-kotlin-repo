@@ -20,8 +20,7 @@ import java.util.*
 
 @InitiatingFlow
 @StartableByRPC
-class MakeInvoiceOffersFlow(private val investorId: String) : FlowLogic<List<InvoiceOfferState>?>() {
-
+class CreateInvoiceOffersFlow(private val investorId: String) : FlowLogic<List<InvoiceOfferState>?>() {
     @Suspendable
     @Throws(FlowException::class)
     override fun call(): List<InvoiceOfferState> {
@@ -30,17 +29,22 @@ class MakeInvoiceOffersFlow(private val investorId: String) : FlowLogic<List<Inv
         val invoiceService = serviceHub.cordaService(InvoiceFinderService::class.java)
         val invoices = invoiceService.findInvoicesForInvestor(investorId)
         if (invoices.isEmpty()) {
+            Companion.logger.warn("️⚠️ ⚠️ ⚠️ No invoices found, no offers made")
             return listOf()
         }
         val account = serviceHub.accountService.accountInfo(UUID.fromString(investorId))
                 ?: throw IllegalArgumentException("Account not found")
         Companion.logger.info("\uD83E\uDD63 \uD83E\uDD63 ${invoices.size} Total invoices selected for investor: " +
-                "\uD83E\uDD66 ${account!!.state.data.name} \uD83E\uDD66")
+                "\uD83E\uDD66 ${account.state.data.name} \uD83E\uDD66")
         val profile = invoiceService.findProfile(investorId)
                 ?: throw IllegalArgumentException("\uD83D\uDC7F Investor Profile not found")
         //make offers
         val partiesMap: MutableMap<String, Party> = mutableMapOf()
         val offers = createOffers(partiesMap, invoices, account, profile)
+        if (offers.isEmpty()) {
+            Companion.logger.warn("️⚠️ ⚠️ ⚠️ ${invoices.size} invoices found, but no offers made")
+            return listOf()
+        }
         val command = InvoiceOfferContract.MakeOffer()
         val parties = partiesMap.values.toList()
         val keys: MutableList<PublicKey> = mutableListOf()
@@ -95,25 +99,29 @@ class MakeInvoiceOffersFlow(private val investorId: String) : FlowLogic<List<Inv
     @Throws(FlowException::class)
     private fun createOffers(partiesMap: MutableMap<String, Party>,
                              invoices: List<InvoiceState>,
-                             account: StateAndRef<AccountInfo>?,
+                             account: StateAndRef<AccountInfo>,
                              profile: ProfileState?): List<InvoiceOfferState> {
         partiesMap[serviceHub.ourIdentity.toString()] = serviceHub.ourIdentity
         val offers: MutableList<InvoiceOfferState> = mutableListOf()
         invoices.forEach() {
-            partiesMap[it.supplierInfo.host.toString()] = it.supplierInfo.host
-            partiesMap[it.customerInfo.host.toString()] = it.customerInfo.host
-
-            offers.add(InvoiceOfferState(
-                    invoiceId = it.invoiceId,
-                    customer = it.customerInfo,
-                    investor = account!!.state.data,
-                    discount = profile!!.defaultDiscount,
-                    invoiceNumber = it.invoiceNumber,
-                    offerAmount = getOfferAmount(it.totalAmount, profile.defaultDiscount),
-                    offerDate = Date(),
-                    originalAmount = it.totalAmount,
-                    supplier = it.supplierInfo, ownerDate = Date()
-            ))
+            if (account.state.data.identifier.id.toString() == it.supplierInfo.identifier.toString()
+                    || account.state.data.identifier.id.toString() == it.customerInfo.identifier.toString()) {
+                logger.info("\uD83D\uDD36 \uD83D\uDD36 Ignore own invoice, either as supplier or customer")
+            } else {
+                partiesMap[it.supplierInfo.host.toString()] = it.supplierInfo.host
+                partiesMap[it.customerInfo.host.toString()] = it.customerInfo.host
+                offers.add(InvoiceOfferState(
+                        invoiceId = it.invoiceId,
+                        customer = it.customerInfo,
+                        investor = account.state.data,
+                        discount = profile!!.defaultDiscount,
+                        invoiceNumber = it.invoiceNumber,
+                        offerAmount = getOfferAmount(it.totalAmount, profile.defaultDiscount),
+                        offerDate = Date(),
+                        originalAmount = it.totalAmount,
+                        supplier = it.supplierInfo, ownerDate = Date()
+                ))
+            }
         }
         return offers
     }
@@ -127,7 +135,7 @@ class MakeInvoiceOffersFlow(private val investorId: String) : FlowLogic<List<Inv
             signedTransaction = subFlow(CollectSignaturesFlow(
                     partiallySignedTx = signedTx, sessionsToCollectFrom = sessions))
             Companion.logger.info("\uD83C\uDFBD \uD83C\uDFBD \uD83C\uDFBD \uD83C\uDFBD  " +
-                    "${sessions.size} Signatures collected OK!  \uD83D\uDE21 \uD83D\uDE21 " )
+                    "${sessions.size} Signatures collected OK!  \uD83D\uDE21 \uD83D\uDE21 ")
         } catch (e: Exception) {
             logger.error("\uD83D\uDE21 \uD83D\uDC7F Signature Collection failed; ${sessions.size} sessions", e)
             logger.info("signedTx \uD83C\uDF54 \uD83C\uDF54 signatures:: ${signedTx.sigs.size}")
@@ -156,14 +164,14 @@ class MakeInvoiceOffersFlow(private val investorId: String) : FlowLogic<List<Inv
     @Throws(FlowException::class)
     private fun getOfferAmount(invoiceAmount: Double, discount: Double): Double {
         val percentage = 100.0 - discount
-        val offerAmt = invoiceAmount * (percentage/100)
+        val offerAmt = invoiceAmount * (percentage / 100)
         Companion.logger.info("\uD83D\uDD30 \uD83D\uDD30 Offer amount is " +
                 "$offerAmt calculated from \uD83D\uDD30 $invoiceAmount with discount: $discount")
         return offerAmt
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(MakeInvoiceOffersFlow::class.java)
+        private val logger = LoggerFactory.getLogger(CreateInvoiceOffersFlow::class.java)
 
     }
 }

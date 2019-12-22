@@ -57,7 +57,7 @@ class InvoiceCloseFlow(private val invoiceId: String) : FlowLogic<SignedTransact
         setFlowSessions(parties, signedTx)
 
         Companion.logger.info("\uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16 \uD83E\uDD16  " +
-                "${invoiceState!!.state.data.supplierInfo.name} totalAmount: ${invoiceState!!.state.data.totalAmount}  " +
+                "${invoiceState.state.data.supplierInfo.name} totalAmount: ${invoiceState.state.data.totalAmount}  " +
                 "\uD83E\uDD16 \uD83E\uDD16 CONSUMED !! \uD83E\uDD16 \uD83E\uDD16  ")
         return signedTx
     }

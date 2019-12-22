@@ -11,7 +11,6 @@ class OfferAndTokenStateContract : Contract {
     override fun verify(tx: LedgerTransaction) {
         logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 OfferAndTokenStateContract: verify starting" +
                 " ..... \uD83E\uDD6C \uD83E\uDD6C ")
-        val (value, requiredSigners) = tx.getCommand<CommandData>(0)
         logger.info("Number ofCommands: ${tx.commands.size}")
 
         logger.info(" \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 OfferAndTokenStateContract: verification ( \uD83D\uDC7A none for now) done OK! " +

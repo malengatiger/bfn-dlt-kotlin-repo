@@ -242,9 +242,12 @@ object DemoUtil {
             if (invoice != null) {
                 val result = startInvoiceRegistrationFlow(this.proxy!!, invoice!!)
                 cnt++
-                logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C invoice generated, result: ${result.invoiceId}")
+                val msg = "\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C invoice generated, result: ${result.invoiceId}"
+                logger.info(msg)
+                return msg
+            } else {
+                generateInvoices(proxy, count)
             }
-            return "\uD83D\uDC9A CrossNode Invoice Generated: ${GSON.toJson(invoice)} \uD83D\uDC9C"
         }
         accounts.forEach() {
             repeatCount = 0
@@ -262,7 +265,7 @@ object DemoUtil {
         val invoiceStates = WorkerBee.findInvoicesForNode(this.proxy!!)
         logger.info(" \uD83C\uDF4A  \uD83C\uDF4A " + invoiceStates.size + " InvoiceStates on node ...  \uD83C\uDF4A ")
         demoSummary.numberOfInvoices = invoiceStates.size
-        return "\uD83D\uDC9A Invoices Generated: ${invoiceStates.size} \uD83D\uDC9C"
+        return "\uD83D\uDC9A Invoices on Node: ${invoiceStates.size} \uD83D\uDC9C"
     }
 
     @Throws(Exception::class)
@@ -281,7 +284,6 @@ object DemoUtil {
             } else {
                 generateCrossNodeInvoices(proxy,count)
             }
-
         }
         accounts.forEach() {
             repeatCount = 0
