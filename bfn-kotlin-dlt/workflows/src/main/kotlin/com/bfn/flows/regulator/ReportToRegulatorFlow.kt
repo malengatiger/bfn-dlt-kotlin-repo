@@ -1,10 +1,13 @@
 package com.bfn.flows.regulator
 
 import co.paralleluniverse.fibers.Suspendable
+import com.bfn.flows.services.RegulatorFinderService
 import net.corda.core.flows.*
 import net.corda.core.identity.CordaX500Name
+import net.corda.core.node.NodeInfo
 import net.corda.core.transactions.SignedTransaction
 import org.slf4j.LoggerFactory
+import java.lang.IllegalArgumentException
 
 @StartableByRPC
 @InitiatingFlow
@@ -14,15 +17,15 @@ class ReportToRegulatorFlow(private val signedTransaction: SignedTransaction) : 
     override fun call(): Void? {
         Companion.logger.info("\uD83D\uDE21  \uD83D\uDE21  \uD83D\uDE21  \uD83D\uDE21 " +
                 "reporting to Regulator, Senor!")
-        //todo - get regulator details from address
-        val regulatorNode = serviceHub.networkMapCache.getNodeByLegalName(
-                CordaX500Name(organisation = "Regulator", country = "ZA", locality = "Pretoria"))
+        val service = serviceHub.cordaService(RegulatorFinderService::class.java)
+        val regulator: NodeInfo? = service.findRegulatorNode() ?: throw IllegalArgumentException("Regulator Node not found")
 
-        val regulatorParty = regulatorNode?.legalIdentities?.first()
-        val session = regulatorParty?.let { initiateFlow(it) }
-        session?.let { SendTransactionFlow(it, signedTransaction) }?.let { subFlow(it) }
+        val regulatorParty = regulator!!.legalIdentities.first()
+        val session = initiateFlow(regulatorParty)
+        subFlow(SendTransactionFlow(session,signedTransaction))
         Companion.logger.info("\uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C" +
-                "Done reporting to Regulator, Senor!")
+                "Done sending transaction to Regulator, Senor! \uD83E\uDD6C \uD83E\uDD6C " +
+                "outputs: ${signedTransaction.coreTransaction.outputs.size}")
         return null
     }
 

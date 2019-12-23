@@ -1,8 +1,13 @@
 package com.bfn.flows.invoices
 
 import co.paralleluniverse.fibers.Suspendable
+import com.bfn.ZAR
+import com.bfn.contractstates.contracts.OfferAndTokenStateContract
+import com.bfn.contractstates.states.InvoiceOfferState
+import com.bfn.contractstates.states.OfferAndTokenState
 
 import com.bfn.flows.regulator.ReportToRegulatorFlow
+import com.bfn.flows.services.RegulatorFinderService
 import com.r3.corda.lib.accounts.workflows.flows.RequestKeyForAccount
 import com.r3.corda.lib.accounts.workflows.internal.accountService
 import com.r3.corda.lib.accounts.workflows.ourIdentity
@@ -10,13 +15,10 @@ import com.r3.corda.lib.accounts.workflows.services.KeyManagementBackedAccountSe
 import com.r3.corda.lib.tokens.contracts.commands.IssueTokenCommand
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType
-import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.contracts.utilities.heldBy
 import com.r3.corda.lib.tokens.contracts.utilities.issuedBy
 import com.r3.corda.lib.tokens.contracts.utilities.of
-import com.template.contracts.OfferAndTokenStateContract
-import com.template.states.InvoiceOfferState
-import com.template.states.OfferAndTokenState
+
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
@@ -73,6 +75,11 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
 
         val publicKeys: MutableList<PublicKey> = mutableListOf()
         val parties: MutableList<Party> = mutableListOf()
+        val regulator = serviceHub.cordaService(RegulatorFinderService::class.java).findRegulatorNode()
+        if (regulator != null) {
+            publicKeys.add(regulator.legalIdentities.first().owningKey)
+            parties.add(regulator.legalIdentities.first())
+        }
         publicKeys.add(serviceHub.ourIdentity.owningKey)
         if (selected.state.data.supplier.host.name.toString() != serviceHub.ourIdentity.name.toString()) {
             publicKeys.add(selected.state.data.supplier.host.owningKey)
@@ -122,15 +129,11 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C signInitialTransaction ")
         val signedTokenTx = serviceHub.signInitialTransaction(transactionBuilderToken)
 
-        try {
-            Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceCloseFlow")
-            subFlow(InvoiceCloseFlow(invoiceId = invoiceId))
+        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceCloseFlow")
+        subFlow(InvoiceCloseFlow(invoiceId = invoiceId))
 
-            Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceOfferCloseFlow")
-            subFlow(InvoiceOfferCloseFlow(offers))
-        } catch (e: Exception) {
-            Companion.logger.warn(" \uD83D\uDCCC \uD83D\uDCCC Consuming invoice and associated offers \uD83D\uDC7F FAILED: $e")
-        }
+        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceOfferCloseFlow")
+        subFlow(InvoiceOfferCloseFlow(offers))
 
         Companion.logger.warn("\uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38 Finally. ready. to. finish. this. ...")
         return finalizeToken(parties, signedTokenTx)
@@ -220,17 +223,16 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         Companion.logger.info("\uD83E\uDDE9 \uD83E\uDDE9 Issuing Token: supplier: ${selected.supplier.host}  " +
                 "\uD83C\uDF3F  investor: ${selected.investor.host} \uD83C\uDF3F ")
 
-        val stateAndRef = serviceHub.accountService.accountInfo(selected.investor.identifier.id)
-        val account = stateAndRef!!.state.data
+        val investorStateAndRef = serviceHub.accountService.accountInfo(selected.investor.identifier.id)
+        val investorAccount = investorStateAndRef!!.state.data
 
         val issuer: Party = serviceHub.ourIdentity
-        val zarTokenType = TokenType("ZAR", 2)
-        val myIssuedTokenType: IssuedTokenType = zarTokenType issuedBy issuer
+        val myIssuedTokenType: IssuedTokenType = ZAR issuedBy issuer
 
-        val anonParty = subFlow(RequestKeyForAccount(account))
-        val fungibleToken: FungibleToken = BigDecimal(selected.offerAmount) of myIssuedTokenType heldBy anonParty
+        val anonParty = subFlow(RequestKeyForAccount(investorAccount))
+        val fungibleToken: FungibleToken = BigDecimal(selected.originalAmount) of myIssuedTokenType heldBy anonParty
         Companion.logger.info("\uD83E\uDDE9 \uD83E\uDDE9 Token: ${fungibleToken.issuedTokenType.tokenType.tokenIdentifier} " +
-                "created for \uD83C\uDF3F  $anonParty  \uD83C\uDF3F ")
+                "created for \uD83C\uDF3F  ${investorAccount.name} anonParty: $anonParty  \uD83C\uDF3F ")
 
         return fungibleToken
     }

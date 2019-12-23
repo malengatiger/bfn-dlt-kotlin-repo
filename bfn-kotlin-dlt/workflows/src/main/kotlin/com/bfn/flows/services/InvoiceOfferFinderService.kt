@@ -1,9 +1,9 @@
 package com.bfn.flows.services
 
 import co.paralleluniverse.fibers.Suspendable
+import com.bfn.contractstates.states.InvoiceOfferState
+import com.bfn.contractstates.states.ProfileState
 import com.r3.corda.lib.accounts.workflows.services.KeyManagementBackedAccountService
-import com.template.states.InvoiceOfferState
-import com.template.states.ProfileState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.node.AppServiceHub
 import net.corda.core.node.services.CordaService
@@ -64,7 +64,7 @@ class InvoiceOfferFinderService(private val serviceHub: AppServiceHub) : Singlet
                 list.add(it)
             }
         }
-        var bestOffer: InvoiceOfferState? = null
+        var bestOffer: InvoiceOfferState?
         //
         val profile = findProfile(supplierId)
         if (profile == null) {

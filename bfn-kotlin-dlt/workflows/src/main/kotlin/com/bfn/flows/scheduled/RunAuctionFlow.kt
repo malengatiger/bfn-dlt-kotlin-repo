@@ -1,15 +1,14 @@
 package com.bfn.flows.scheduled
 
 import co.paralleluniverse.fibers.Suspendable
+import com.bfn.contractstates.states.OfferAndTokenState
 import com.bfn.flows.invoices.BestOfferForInvoiceFlow
 import com.bfn.flows.services.InvoiceFinderService
 import com.bfn.flows.services.InvoiceOfferFinderService
-import com.template.states.OfferAndTokenState
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.SchedulableFlow
 import net.corda.core.flows.StartableByRPC
-import net.corda.core.transactions.SignedTransaction
 
 @InitiatingFlow
 @StartableByRPC

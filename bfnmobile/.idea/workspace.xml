@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="f4ca2db2-8548-43f0-b0d0-f09a516c1fc6" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/../bfn-corda/workflows/src/main/java/com/bfn/flows/invoices/CreateInvoiceTokenInstance.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-corda/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-corda/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-corda/clients/logs/node-aubreys-imac.lan.log" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-corda/clients/logs/node-aubreys-imac.lan.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-corda/clients/src/main/java/com/bfn/util/DemoUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-corda/clients/src/main/java/com/bfn/util/DemoUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-corda/clients/src/main/java/com/bfn/util/WorkerBee.java" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-corda/clients/src/main/java/com/bfn/util/WorkerBee.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-corda/contracts/src/main/java/com/bfn/contracts/InvoiceTokenType.java" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-corda/contracts/src/main/java/com/bfn/contracts/InvoiceTokenType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-corda/workflows/logs/node-aubreys-imac.lan.log" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-corda/workflows/logs/node-aubreys-imac.lan.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-corda/workflows/src/main/java/com/bfn/flows/admin/AccountRegistrationFlow.java" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-corda/workflows/src/main/java/com/bfn/flows/admin/AccountRegistrationFlow.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-corda/workflows/src/main/java/com/bfn/flows/admin/BFNCordaService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-corda/workflows/src/main/java/com/bfn/flows/admin/BFNCordaService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-corda/workflows/src/main/java/com/bfn/flows/admin/NewKeyForAccount.java" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-corda/workflows/src/main/java/com/bfn/flows/admin/NewKeyForAccount.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-corda/workflows/src/main/java/com/bfn/flows/admin/ShareAccountInfoFlow.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-corda/workflows/src/main/java/com/bfn/flows/invoices/CreateInvoiceOfferTokenType.java" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-corda/workflows/src/main/java/com/bfn/flows/invoices/CreateInvoiceOfferTokenType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-corda/workflows/src/main/java/com/bfn/flows/invoices/CreateTokensForInvoiceOffer.java" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-corda/workflows/src/main/java/com/bfn/flows/invoices/CreateTokensForInvoiceOffer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfnlibrary/.flutter-plugins-dependencies" beforeDir="false" afterPath="$PROJECT_DIR$/../bfnlibrary/.flutter-plugins-dependencies" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfnlibrary/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../bfnlibrary/pubspec.yaml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DefaultGradleProjectSettings">
+    <option name="isMigrated" value="true" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="HT79S1A03826" />
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Dart File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1R4GI0hIjVGRIvxIbbjrRXkXF26" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="android.sdk.path" value="$USER_HOME$/Library/Android/sdk" />
+    <property name="dart.analysis.tool.window.force.activate" value="false" />
+    <property name="io.flutter.reload.alreadyRun" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="preferences.language.Kotlin" />
+    <property name="show.migrate.to.gradle.popup" value="false" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/lib" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/../bfnlibrary/lib/util" />
+    </key>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f4ca2db2-8548-43f0-b0d0-f09a516c1fc6" name="Default Changelist" comment="" />
+      <created>1568918870503</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1568918870503</updated>
+    </task>
+    <task id="LOCAL-00001" summary="🍊 added ui: signup, dashboard 🍊 accounts 🥬 🥬 🥬">
+      <created>1569095867916</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1569095867916</updated>
+    </task>
+    <task id="LOCAL-00002" summary="🧩🧩🧩🧩🧩🧩 added FCM messaging. 🍊 Yipee!">
+      <created>1569100687175</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1569100687175</updated>
+    </task>
+    <task id="LOCAL-00003" summary="🍊 🍊 refactored fcm">
+      <created>1569117170710</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1569117170710</updated>
+    </task>
+    <task id="LOCAL-00004" summary=" 🍎 🍊 refactored invoice creation/submission">
+      <created>1569477423079</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1569477423079</updated>
+    </task>
+    <task id="LOCAL-00005" summary=" 💦 added dashboard data model  💦 ui + api">
+      <created>1569537623905</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1569537623905</updated>
+    </task>
+    <task id="LOCAL-00006" summary="😡  😡  😡  😡  refactored FCM messaging using Streams">
+      <created>1569615921875</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1569615921875</updated>
+    </task>
+    <task id="LOCAL-00007" summary=" 🍏 🍏 refactored demo data generation">
+      <created>1569766930797</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1569766930797</updated>
+    </task>
+    <task id="LOCAL-00008" summary="🌸 🌸 🌸 refactored sign in + demo data generation">
+      <created>1574732858842</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1574732858842</updated>
+    </task>
+    <task id="LOCAL-00009" summary=" 🌸 🌸 refactored for new Accounts Library">
+      <created>1575222045722</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1575222045722</updated>
+    </task>
+    <task id="LOCAL-00010" summary=" 🌺 refactored network api">
+      <created>1576996928852</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1576996928852</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="CHECK_NEW_TODO" value="false" />
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value=" added ui: signup, dashboard  accounts   " />
+    <MESSAGE value=" added FCM messaging.  Yipee!" />
+    <MESSAGE value="  refactored fcm" />
+    <MESSAGE value="   refactored invoice creation/submission" />
+    <MESSAGE value="  added dashboard data model   ui + api" />
+    <MESSAGE value="        refactored FCM messaging using Streams" />
+    <MESSAGE value="   refactored demo data generation" />
+    <MESSAGE value="   refactored sign in + demo data generation" />
+    <MESSAGE value="   refactored for new Accounts Library" />
+    <MESSAGE value="  refactored network api" />
+    <option name="LAST_COMMIT_MESSAGE" value="  refactored network api" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="1539" y="593" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1576182706209">
+      <screen x="0" y="23" width="2560" height="1371" />
+    </state>
+    <state x="1539" y="593" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/-1920.23.1920.1057/0.23.2560.1371@0.23.2560.1371" timestamp="1576182706209" />
+    <state x="479" y="309" width="1415" height="1046" key="CommitChangelistDialog2" timestamp="1576996928300">
+      <screen x="0" y="23" width="2560" height="1371" />
+    </state>
+    <state x="479" y="309" width="1415" height="1046" key="CommitChangelistDialog2/-1920.23.1920.1057/0.23.2560.1371@0.23.2560.1371" timestamp="1576996928300" />
+    <state width="1085" height="459" key="GridCell.Tab.0.bottom" timestamp="1577011897670">
+      <screen x="0" y="23" width="2560" height="1371" />
+    </state>
+    <state width="1085" height="459" key="GridCell.Tab.0.bottom/-1920.23.1920.1057/0.23.2560.1371@0.23.2560.1371" timestamp="1577011897670" />
+    <state width="1085" height="459" key="GridCell.Tab.0.center" timestamp="1577011897669">
+      <screen x="0" y="23" width="2560" height="1371" />
+    </state>
+    <state width="1085" height="459" key="GridCell.Tab.0.center/-1920.23.1920.1057/0.23.2560.1371@0.23.2560.1371" timestamp="1577011897669" />
+    <state width="1085" height="459" key="GridCell.Tab.0.left" timestamp="1577011897669">
+      <screen x="0" y="23" width="2560" height="1371" />
+    </state>
+    <state width="1085" height="459" key="GridCell.Tab.0.left/-1920.23.1920.1057/0.23.2560.1371@0.23.2560.1371" timestamp="1577011897669" />
+    <state width="1085" height="459" key="GridCell.Tab.0.right" timestamp="1577011897670">
+      <screen x="0" y="23" width="2560" height="1371" />
+    </state>
+    <state width="1085" height="459" key="GridCell.Tab.0.right/-1920.23.1920.1057/0.23.2560.1371@0.23.2560.1371" timestamp="1577011897670" />
+    <state x="445" y="448" key="Vcs.Push.Dialog.v2" timestamp="1576996935478">
+      <screen x="0" y="23" width="2560" height="1371" />
+    </state>
+    <state x="445" y="448" key="Vcs.Push.Dialog.v2/-1920.23.1920.1057/0.23.2560.1371@0.23.2560.1371" timestamp="1576996935478" />
+  </component>
+</project>

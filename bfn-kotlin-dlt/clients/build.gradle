@@ -30,13 +30,15 @@ dependencies {
     // https://mvnrepository.com/artifact/khttp/khttp
     compile group: 'khttp', name: 'khttp', version: '1.0.0'
 
+//    implementation 'com.graphql-java:graphiql-spring-boot-starter:5.0.2'
+//    implementation 'com.graphql-java:graphql-java-tools:5.2.4'
 
 
 }
 
 
 springBoot {
-    mainClassName = "com.template.webserver.ServerKt"
+    mainClassName = "com.bfn.client.web.ServerKt"
 }
 
 task runClient(type: JavaExec, dependsOn: assemble) {
@@ -46,24 +48,24 @@ task runClient(type: JavaExec, dependsOn: assemble) {
 
 task runPartyA(type: JavaExec, dependsOn: assemble) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'com.template.webserver.ServerKt'
+    main = 'com.bfn.client.web.ServerKt'
     args '--server.port=10050', '--config.rpc.host=localhost', '--config.rpc.port=10006', '--config.rpc.username=user1', '--config.rpc.password=test'
 }
 
 task runPartyB(type: JavaExec, dependsOn: assemble) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'com.template.webserver.ServerKt'
+    main = 'com.bfn.client.web.ServerKt'
     args '--server.port=10053', '--config.rpc.host=localhost', '--config.rpc.port=10009', '--config.rpc.username=user1', '--config.rpc.password=test'
 }
 
 task runPartyC(type: JavaExec, dependsOn: assemble) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'com.template.webserver.ServerKt'
+    main = 'com.bfn.client.web.ServerKt'
     args '--server.port=10056', '--config.rpc.host=localhost', '--config.rpc.port=10012', '--config.rpc.username=user1', '--config.rpc.password=test'
 }
 
 task runRegulator(type: JavaExec, dependsOn: assemble) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'com.template.webserver.ServerKt'
+    main = 'com.bfn.client.web.ServerKt'
     args '--server.port=10059', '--config.rpc.host=localhost', '--config.rpc.port=10017', '--config.rpc.username=user1', '--config.rpc.password=test'
 }

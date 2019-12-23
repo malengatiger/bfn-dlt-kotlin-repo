@@ -1,10 +1,9 @@
 package com.bfn.flows.services
 
 import co.paralleluniverse.fibers.Suspendable
-import com.bfn.flows.invoices.InvoiceCloseFlow
+import com.bfn.contractstates.states.InvoiceState
+import com.bfn.contractstates.states.ProfileState
 import com.r3.corda.lib.accounts.workflows.services.KeyManagementBackedAccountService
-import com.template.states.InvoiceState
-import com.template.states.ProfileState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.identity.Party
 import net.corda.core.node.AppServiceHub

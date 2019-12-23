@@ -1,23 +1,16 @@
 package com.bfn.flows.profile
 
 import co.paralleluniverse.fibers.Suspendable
-import com.bfn.flows.regulator.BroadcastTransactionFlow
-import com.bfn.flows.regulator.ReportToRegulatorFlow
-import com.google.common.collect.ImmutableList
+import com.bfn.contractstates.contracts.ProfileContract
+import com.bfn.contractstates.states.ProfileState
 import com.r3.corda.lib.accounts.workflows.ourIdentity
-import com.template.contracts.InvoiceContract
-import com.template.contracts.ProfileContract
-import com.template.states.InvoiceState
-import com.template.states.ProfileState
-import net.corda.core.flows.*
+import net.corda.core.flows.FlowException
+import net.corda.core.flows.FlowLogic
+import net.corda.core.flows.InitiatingFlow
+import net.corda.core.flows.StartableByRPC
 import net.corda.core.identity.Party
-import net.corda.core.node.ServiceHub
-import net.corda.core.node.services.Vault.StateStatus
-import net.corda.core.node.services.vault.PageSpecification
-import net.corda.core.node.services.vault.QueryCriteria.VaultQueryCriteria
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
-import net.corda.core.utilities.ProgressTracker
 import org.slf4j.LoggerFactory
 
 @InitiatingFlow

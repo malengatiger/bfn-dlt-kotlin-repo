@@ -1,0 +1,28 @@
+package com.bfn.contractstates.states
+
+import com.bfn.contractstates.contracts.ProfileContract
+import com.google.common.collect.ImmutableList
+import net.corda.core.contracts.BelongsToContract
+import net.corda.core.contracts.ContractState
+import net.corda.core.identity.AbstractParty
+import net.corda.core.identity.Party
+import net.corda.core.serialization.CordaSerializable
+import java.util.*
+
+@CordaSerializable
+@BelongsToContract(ProfileContract::class)
+class ProfileState(var issuedBy: Party,
+                   val accountId: String,
+                   val minimumDiscount: Double,
+                   val minimumInvoiceAmount: Double,
+                   val maximumInvoiceAmount: Double,
+                   val maximumInvestmentPerInvoice: Double,
+                   val maximumTotalInvestment: Double,
+                   val defaultDiscount: Double,
+                   var date: Date
+                   ) : ContractState {
+
+    override val participants: List<AbstractParty>
+        get() = ImmutableList.of<AbstractParty>(issuedBy)
+
+}

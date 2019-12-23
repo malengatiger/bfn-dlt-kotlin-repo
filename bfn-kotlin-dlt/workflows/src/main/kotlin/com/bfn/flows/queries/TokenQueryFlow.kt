@@ -1,7 +1,7 @@
 package com.bfn.flows.queries
 
+import com.bfn.contractstates.states.OfferAndTokenState
 import com.bfn.flows.services.TokenFinderService
-import com.template.states.OfferAndTokenState
 import net.corda.core.flows.FlowException
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC

@@ -4,3 +4,6 @@ myconfig:
   partyB: http://192.168.86.240:10053/
   partyC: http://192.168.86.240:10056/
   regulator: http://192.168.86.240:10059/
+  intervalPartyA: 90
+  intervalPartyB: 75
+  intervalPartyC: 120

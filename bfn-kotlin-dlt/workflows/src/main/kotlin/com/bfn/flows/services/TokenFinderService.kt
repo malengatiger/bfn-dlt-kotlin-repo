@@ -1,8 +1,8 @@
 package com.bfn.flows.services
 
 import co.paralleluniverse.fibers.Suspendable
+import com.bfn.contractstates.states.OfferAndTokenState
 import com.r3.corda.lib.accounts.workflows.services.KeyManagementBackedAccountService
-import com.template.states.OfferAndTokenState
 import net.corda.core.node.AppServiceHub
 import net.corda.core.node.services.CordaService
 import net.corda.core.node.services.Vault

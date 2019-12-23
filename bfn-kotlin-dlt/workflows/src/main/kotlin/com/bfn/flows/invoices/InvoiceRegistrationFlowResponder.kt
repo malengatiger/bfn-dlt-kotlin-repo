@@ -3,6 +3,7 @@ package com.bfn.flows.invoices
 import co.paralleluniverse.fibers.Suspendable
 import com.bfn.flows.invoices.InvoiceRegistrationFlow
 import com.bfn.flows.regulator.ReportToRegulatorFlow
+import com.bfn.flows.services.InvoiceFinderService
 import com.r3.corda.lib.accounts.workflows.ourIdentity
 import net.corda.core.flows.*
 import net.corda.core.transactions.SignedTransaction
@@ -14,7 +15,8 @@ class InvoiceRegistrationFlowResponder(private val counterPartySession: FlowSess
     @Suspendable
     @Throws(FlowException::class)
     override fun call(): SignedTransaction {
-        Companion.logger.info("\uD83E\uDD6C \uD83E\uDD6C InvoiceRegistrationFlowResponder call method at ")
+        Companion.logger.info("\uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C " +
+                "InvoiceRegistrationFlowResponder starting ")
         val myself = serviceHub.ourIdentity
         val party = counterPartySession.counterparty
         Companion.logger.info("\uD83C\uDF45 \uD83C\uDF45 This party: ${myself.name} " +
@@ -29,12 +31,14 @@ class InvoiceRegistrationFlowResponder(private val counterPartySession: FlowSess
         }
 
         subFlow(signTransactionFlow)
-
         val signedTransaction= subFlow(ReceiveFinalityFlow(counterPartySession))
         Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  " +
                 "InvoiceRegistrationFlowResponder Transaction finalized " +
                 "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C \uD83E\uDD1F \uD83C\uDF4F \uD83C\uDF4E ${signedTransaction.id}")
 
+        val invoices = serviceHub.cordaService(InvoiceFinderService::class.java).findInvoicesForNode()
+        logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C " +
+                "Invoices on node after responder: \uD83D\uDC9C ${invoices.size}. \uD83D\uDE21 There should be AT LEAST ONE!")
         return signedTransaction
 
     }

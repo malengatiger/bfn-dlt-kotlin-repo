@@ -1,11 +1,11 @@
 package com.bfn.flows.invoices
 
 import co.paralleluniverse.fibers.Suspendable
+import com.bfn.contractstates.contracts.InvoiceContract
+import com.bfn.contractstates.states.InvoiceState
 import com.bfn.flows.regulator.BroadcastTransactionFlow
 import com.bfn.flows.services.InvoiceFinderService
 import com.r3.corda.lib.accounts.workflows.ourIdentity
-import com.template.contracts.InvoiceContract
-import com.template.states.InvoiceState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.flows.*
 import net.corda.core.identity.Party

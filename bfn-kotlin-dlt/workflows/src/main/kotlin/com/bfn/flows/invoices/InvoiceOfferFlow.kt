@@ -1,14 +1,13 @@
 package com.bfn.flows.invoices
 
 import co.paralleluniverse.fibers.Suspendable
+import com.bfn.contractstates.states.InvoiceOfferState
 import com.bfn.flows.regulator.ReportToRegulatorFlow
 import com.bfn.flows.services.InvoiceOfferFinderService
 import com.google.common.collect.ImmutableList
 import com.template.InvoiceOfferContract
-import com.template.states.InvoiceOfferState
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
-import net.corda.core.node.ServiceHub
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker

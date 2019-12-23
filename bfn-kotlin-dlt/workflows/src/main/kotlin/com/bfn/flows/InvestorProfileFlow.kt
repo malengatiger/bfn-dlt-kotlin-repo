@@ -1,9 +1,9 @@
 package com.bfn.flows
 
+import com.bfn.contractstates.contracts.ProfileContract
+import com.bfn.contractstates.states.ProfileState
 import com.r3.corda.lib.accounts.workflows.internal.accountService
 import com.r3.corda.lib.accounts.workflows.ourIdentity
-import com.template.contracts.ProfileContract
-import com.template.states.ProfileState
 import net.corda.core.flows.FinalityFlow
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.InitiatingFlow

@@ -1,8 +1,7 @@
 package com.bfn.flows.queries
 
-import com.bfn.flows.services.InvoiceFinderService
+import com.bfn.contractstates.states.InvoiceOfferState
 import com.bfn.flows.services.InvoiceOfferFinderService
-import com.template.states.InvoiceOfferState
 import net.corda.core.flows.FlowException
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
