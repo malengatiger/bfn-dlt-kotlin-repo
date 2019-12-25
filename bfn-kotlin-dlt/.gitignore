@@ -57,8 +57,16 @@ lib/dokka.jar
 # IntelliJ
 /out/
 workflows/out/
+workflows/build
+workflows/logs
 contracts/out/
+contracts/build
+contracts/logs
 clients/out/
+clients/build
+clients/logs
+logs
+build
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
@@ -76,3 +84,11 @@ docs/virtualenv/
 
 # if you use the installQuasar task
 lib
+bin/
+contracts/bin/
+contracts/src/test/kotlin/com/bfn/client/
+contracts/src/test/kotlin/com/template/
+java_pid75105.hprof
+workflows/bin/
+workflows/src/integrationTest/kotlin/com/template/
+workflows/src/test/kotlin/com/template/

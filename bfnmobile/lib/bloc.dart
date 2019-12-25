@@ -13,6 +13,7 @@ import 'package:flutter/cupertino.dart';
 BFNBloc bfnBloc = BFNBloc();
 
 class BFNBloc {
+  //stream definitions
   StreamController<List<AccountInfo>> _acctController =
       StreamController.broadcast();
   StreamController<List<Invoice>> _invoiceController =
@@ -38,6 +39,7 @@ class BFNBloc {
   FirebaseUser _user;
   AccountInfo account;
 
+  //constructor
   BFNBloc() {
     getMyAccount();
   }

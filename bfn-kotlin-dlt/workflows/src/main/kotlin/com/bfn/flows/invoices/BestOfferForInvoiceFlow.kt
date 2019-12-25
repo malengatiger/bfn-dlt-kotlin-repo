@@ -59,14 +59,14 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         }
         val pair = filterOffersByProfile()
         if (pair == null) {
-            logger.info("\uD83D\uDC80 \uD83D\uDC80 \uD83D\uDC80 Unable to find acceptable offer. \uD83D\uDC80 Quitting ... ")
+            logger.info("\uD83D\uDC80 \uD83D\uDC80 \uD83D\uDC80 Unable to find acceptable offer. \uD83D\uDC80 Quitting, returning null ... ")
             return null
         }
         val list = pair.first
         val selected = pair.second
         if (list.isEmpty()) {
             Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21  " +
-                    "No invoiceOffers found on node. returning NULL")
+                    "No invoiceOffers found on node. returning null")
             return null
         }
         //issue tokens
