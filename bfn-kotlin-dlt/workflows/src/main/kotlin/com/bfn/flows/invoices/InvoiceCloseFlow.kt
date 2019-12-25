@@ -2,6 +2,7 @@ package com.bfn.flows.invoices
 
 import co.paralleluniverse.fibers.Suspendable
 import com.bfn.contractstates.contracts.InvoiceContract
+import com.bfn.contractstates.states.InvoiceOfferState
 import com.bfn.contractstates.states.InvoiceState
 import com.bfn.flows.regulator.BroadcastTransactionFlow
 import com.bfn.flows.services.InvoiceFinderService
@@ -9,6 +10,9 @@ import com.r3.corda.lib.accounts.workflows.ourIdentity
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
+import net.corda.core.node.services.Vault
+import net.corda.core.node.services.vault.PageSpecification
+import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import org.slf4j.LoggerFactory
@@ -42,6 +46,8 @@ class InvoiceCloseFlow(private val invoiceId: String) : FlowLogic<SignedTransact
     private fun processTransaction(invoiceState: StateAndRef<InvoiceState>?,
                                    keys: MutableList<PublicKey>,
                                    parties: List<Party>): SignedTransaction {
+
+        closeInvoiceOffers()
         val notary = serviceHub.networkMapCache.notaryIdentities[0]
         val command = InvoiceContract.Close()
         val txBuilder = TransactionBuilder(notary)
@@ -61,8 +67,26 @@ class InvoiceCloseFlow(private val invoiceId: String) : FlowLogic<SignedTransact
                 "\uD83E\uDD16 \uD83E\uDD16 CONSUMED !! \uD83E\uDD16 \uD83E\uDD16  ")
         return signedTx
     }
-
     @Suspendable
+    private fun closeInvoiceOffers() {
+        val page = serviceHub.vaultService.queryBy(
+                contractStateType = InvoiceOfferState::class.java,
+                criteria = QueryCriteria.VaultQueryCriteria(Vault.StateStatus.UNCONSUMED),
+                paging = PageSpecification(1,5000)
+        )
+        val offers : MutableList<StateAndRef<InvoiceOfferState>> = mutableListOf()
+        page.states.forEach() {
+            if (invoiceId == it.state.data.invoiceId.toString()) {
+                offers.add(it)
+            }
+        }
+
+        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C " +
+                "\uD83D\uDE3C Start InvoiceOfferCloseFlow .... to consume ${offers.size} offers")
+        subFlow(InvoiceOfferCloseFlow(offers))
+
+    }
+            @Suspendable
     private fun setFlowSessions(
             parties: List<Party>,
             signedTx: SignedTransaction) {

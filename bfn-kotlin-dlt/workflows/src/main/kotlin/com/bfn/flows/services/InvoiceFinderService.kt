@@ -2,7 +2,8 @@ package com.bfn.flows.services
 
 import co.paralleluniverse.fibers.Suspendable
 import com.bfn.contractstates.states.InvoiceState
-import com.bfn.contractstates.states.ProfileState
+import com.bfn.contractstates.states.InvestorProfileState
+import com.bfn.contractstates.states.SupplierProfileState
 import com.r3.corda.lib.accounts.workflows.services.KeyManagementBackedAccountService
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.identity.Party
@@ -45,12 +46,13 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
                 "\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ")
 
         val account = accountService.accountInfo(UUID.fromString(investorId))?.state?.data
-                ?: throw IllegalArgumentException("\uD83D\uDC7F Account not found")
+                ?: throw IllegalArgumentException("\uD83D\uDC7F findInvoicesForInvestor: Investor Account not found: $investorId")
         logger.info("\uD83D\uDCA6 Finding invoices for investor: \uD83D\uDC7D \uD83D\uDC7D " +
                 " ${account.name} - ${account.host}")
         val sortedInvoices = getAllInvoices()
         val bestInvoices: MutableList<InvoiceState>? = mutableListOf()
-        val profile = investorId.let { findProfile(it) }
+        val profile = serviceHub.cordaService(ProfileFinderService::class.java)
+                .findInvestorProfile(investorId)
         if (profile == null) {
             logger.info("\uD83C\uDF36 No profile available, \uD83C\uDF36 " +
                     "returning all ${sortedInvoices.size} invoices found")
@@ -58,8 +60,8 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
         }
 
         sortedInvoices.forEach(){
-            if (it.totalAmount >= profile.minimumInvoiceAmount
-                    && it.totalAmount <= profile.maximumInvoiceAmount ) {
+            if (it.totalAmount >= profile.state.data.minimumInvoiceAmount
+                    && it.totalAmount <= profile.state.data.maximumInvoiceAmount ) {
                 bestInvoices!!.add(it)
             }
         }
@@ -71,7 +73,7 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
                 "\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ")
 
         val account = accountService.accountInfo(UUID.fromString(supplierId))?.state?.data
-                ?: throw IllegalArgumentException("\uD83D\uDC7F Account not found")
+                ?: throw IllegalArgumentException("\uD83D\uDC7F findInvoicesForSupplier: Supplier Account not found: $supplierId")
         logger.info("\uD83D\uDCA6 Finding invoices for supplier: \uD83D\uDC7D \uD83D\uDC7D " +
                 " ${account.name} - ${account.host}")
         val sortedInvoices = getAllInvoices()
@@ -107,7 +109,7 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
                 "\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ")
 
         val account = accountService.accountInfo(UUID.fromString(customerId))?.state?.data
-                ?: throw IllegalArgumentException("\uD83D\uDC7F Account not found")
+                ?: throw IllegalArgumentException("\uD83D\uDC7F findInvoicesForCustomer: Customer Account not found: $customerId")
         logger.info("\uD83D\uDCA6 Finding invoices for customer: \uD83D\uDC7D \uD83D\uDC7D " +
                 " ${account.name} - ${account.host}")
         val sortedInvoices = getAllInvoices()
@@ -129,24 +131,6 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
     }
     private val pageSize:Int = 5000
 
-    @Suspendable
-    fun findProfile(investorAccountId: String): ProfileState? {
-        val criteria = QueryCriteria.VaultQueryCriteria(
-                status = Vault.StateStatus.UNCONSUMED)
-        logger.info("\uD83D\uDD35 Find investor profile ...")
-        val page = serviceHub.vaultService.queryBy(
-                contractStateType = ProfileState::class.java,
-                paging = PageSpecification(pageNumber = 1, pageSize = 2000),
-                criteria = criteria)
-        var profile: ProfileState? = null
-        page.states.forEach() {
-            if (it.state.data.accountId == investorAccountId) {
-                profile = it.state.data
-            }
-        }
-
-        return profile!!
-    }
     @Suspendable
     fun queryInvoices(pageNumber: Int): Vault.Page<InvoiceState> {
         val criteria = QueryCriteria.VaultQueryCriteria(

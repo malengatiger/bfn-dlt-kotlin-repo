@@ -2,7 +2,7 @@ package com.bfn.flows.services
 
 import co.paralleluniverse.fibers.Suspendable
 import com.bfn.contractstates.states.InvoiceOfferState
-import com.bfn.contractstates.states.ProfileState
+import com.bfn.contractstates.states.InvestorProfileState
 import com.r3.corda.lib.accounts.workflows.services.KeyManagementBackedAccountService
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.node.AppServiceHub
@@ -79,7 +79,7 @@ class InvoiceOfferFinderService(private val serviceHub: AppServiceHub) : Singlet
         return bestOffer
     }
     @Suspendable
-    private fun selectOffer(profile: ProfileState) : InvoiceOfferState{
+    private fun selectOffer(investorProfile: InvestorProfileState) : InvoiceOfferState{
         var bestOffer: InvoiceOfferState? = null
 
         return bestOffer!!
@@ -87,21 +87,21 @@ class InvoiceOfferFinderService(private val serviceHub: AppServiceHub) : Singlet
     private val pageSize:Int = 1000
 
     @Suspendable
-    fun findProfile(investorId: String): ProfileState? {
+    fun findProfile(investorId: String): InvestorProfileState? {
         val criteria = QueryCriteria.VaultQueryCriteria(
                 status = Vault.StateStatus.UNCONSUMED)
 
         val page = serviceHub.vaultService.queryBy(
-                contractStateType = ProfileState::class.java,
+                contractStateType = InvestorProfileState::class.java,
                 paging = PageSpecification(pageNumber = 1, pageSize = 2000),
                 criteria = criteria)
-        var profile: ProfileState? = null
+        var investorProfile: InvestorProfileState? = null
         page.states.forEach() {
             if (it.state.data.accountId == investorId) {
-                profile = it.state.data
+                investorProfile = it.state.data
             }
         }
-        return profile
+        return investorProfile
     }
     @Suspendable
     private fun queryOffers(pageNumber: Int): Vault.Page<InvoiceOfferState> {

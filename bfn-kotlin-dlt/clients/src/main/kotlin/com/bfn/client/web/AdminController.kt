@@ -31,9 +31,9 @@ class AdminController(rpc: NodeRPCConnection) {
 
     @GetMapping(value = ["/demo"], produces = ["application/json"])
     @Throws(Exception::class)
-    private fun buildDemo(@RequestParam deleteFirestore: Boolean): DemoSummary {
+    private fun buildDemo(@RequestParam deleteFirestore: Boolean, @RequestParam numberOfAccounts: Int = 1): DemoSummary {
         logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 starting DemoUtil: buildDemo ... \uD83C\uDF4F deleteFirestore: $deleteFirestore")
-        val result = DemoUtil.generateLocalNodeAccounts(proxy, deleteFirestore)
+        val result = DemoUtil.generateLocalNodeAccounts(proxy, deleteFirestore, numberOfAccounts)
         logger.info("\n\n\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 DemoUtil result: " +
                 " \uD83C\uDF4F " + GSON.toJson(result)
                 + "    \uD83E\uDDE1 \uD83D\uDC9B \uD83D\uDC9A \uD83D\uDC99 \uD83D\uDC9C\n\n")
@@ -65,10 +65,9 @@ class AdminController(rpc: NodeRPCConnection) {
     @GetMapping(value = ["/generateInvoices"], produces = ["application/json"])
     @Throws(Exception::class)
     private fun generateInvoices(@RequestParam max: String = "1"): String {
-        logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 generateInvoices ... \uD83C\uDF4F ")
-        var maximumRecords = 1;
-        maximumRecords = max.toInt()
-        val result = DemoUtil.generateInvoices(proxy, maximumRecords)
+        logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 AdminController: generateInvoices ... \uD83C\uDF4F max: $max")
+        var maximumRecords: Int = max.toInt()
+        val result = DemoUtil.generateInvoices(proxy, count = maximumRecords)
         logger.info(result)
         return result
     }
@@ -85,13 +84,17 @@ class AdminController(rpc: NodeRPCConnection) {
     @GetMapping(value = ["/selectBestOffer"], produces = ["application/json"])
     @Throws(Exception::class)
     private fun selectBestOffer(@RequestParam accountId: String,
-                                @RequestParam invoiceId: String, @RequestParam invoiceAmount: Double): OfferAndTokenDTO {
-        logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 selectBestOffer requested " +
-                "... \uD83C\uDF4F ")
+                                @RequestParam invoiceId: String): OfferAndTokenDTO? {
+
         val offerAndTokenDTO = WorkerBee.selectBestOffer(proxy = proxy,
-                accountId = accountId, invoiceId = invoiceId, invoiceAmount = invoiceAmount)
-        logger.info("\uD83C\uDF0E \uD83C\uDF0E Token Issued and returned: \uD83C\uDF0E $offerAndTokenDTO")
-        return offerAndTokenDTO!!
+                accountId = accountId, invoiceId = invoiceId)
+        if (offerAndTokenDTO == null) {
+            logger.info("\uD83D\uDC80 \uD83D\uDC80 \uD83D\uDC80 \uD83D\uDC80  NO OFFER MADE: \uD83C\uDF0E ")
+        } else {
+            logger.info("\uD83C\uDF0E \uD83C\uDF0E Best Offer found, Token Issued and returned: \uD83C\uDF0E $offerAndTokenDTO")
+        }
+
+        return offerAndTokenDTO
     }
 
     @PostMapping(value = ["/startAccountRegistrationFlow"], produces = ["application/json"])
@@ -174,8 +177,13 @@ class AdminController(rpc: NodeRPCConnection) {
     }
     @PostMapping(value = ["createInvestorProfile"])
     @Throws(Exception::class)
-    fun createInvestorProfile(@RequestBody profile: ProfileStateDTO): String {
+    fun createInvestorProfile(@RequestBody profile: InvestorProfileStateDTO): String {
         return WorkerBee.createInvestorProfile(proxy, profile)
+    }
+    @PostMapping(value = ["createSupplierProfile"])
+    @Throws(Exception::class)
+    fun createSupplierProfile(@RequestBody profile: SupplierProfileStateDTO): String {
+        return WorkerBee.createSupplierProfile(proxy, profile)
     }
 
     @GetMapping(value = ["getUser"])

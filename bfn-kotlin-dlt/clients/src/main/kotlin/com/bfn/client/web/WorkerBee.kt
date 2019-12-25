@@ -16,15 +16,13 @@ import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 
-import com.bfn.contractstates.states.InvoiceOfferState
-import com.bfn.contractstates.states.InvoiceState
-import com.bfn.contractstates.states.OfferAndTokenState
-import com.bfn.contractstates.states.ProfileState
 import com.bfn.client.web.FirebaseUtil.addNode
 import com.bfn.client.web.FirebaseUtil.createUser
 import com.bfn.client.web.FirebaseUtil.sendAccountMessage
 import com.bfn.client.web.FirebaseUtil.sendInvoiceMessage
 import com.bfn.client.web.FirebaseUtil.sendInvoiceOfferMessage
+import com.bfn.contractstates.states.*
+import com.bfn.flows.SupplierProfileFlow
 import net.corda.core.contracts.ContractState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.messaging.CordaRPCOps
@@ -235,13 +233,12 @@ object WorkerBee {
     }
     @JvmStatic
     @Throws(Exception::class)
-    fun createInvestorProfile(proxy: CordaRPCOps, profile: ProfileStateDTO): String{
+    fun createInvestorProfile(proxy: CordaRPCOps, profile: InvestorProfileStateDTO): String{
 
-        val state = ProfileState(
+        val state = InvestorProfileState(
                 issuedBy = proxy.nodeInfo().legalIdentities.first(),
                 accountId = profile.accountId,
                 defaultDiscount = profile.defaultDiscount,
-                minimumDiscount = profile.minimumDiscount,
                 maximumInvestmentPerInvoice = profile.maximumInvestmentPerInvoice,
                 maximumInvoiceAmount = profile.maximumInvoiceAmount,
                 maximumTotalInvestment = profile.maximumTotalInvestment,
@@ -251,6 +248,23 @@ object WorkerBee {
                 InvestorProfileFlow::class.java, state).returnValue
         val tx = fut.get()
         val m = "\uD83C\uDF3A createInvestorProfile, DONE!:  \uD83C\uDF3A ${tx.id}"
+        logger.info(m)
+        return m
+    }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun createSupplierProfile(proxy: CordaRPCOps, profile: SupplierProfileStateDTO): String{
+
+        val state = SupplierProfileState(
+                issuedBy = proxy.nodeInfo().legalIdentities.first(),
+                accountId = profile.accountId,
+                maximumDiscount = profile.maximumDiscount,
+                date = Date()
+        )
+        val fut = proxy.startTrackedFlowDynamic(
+                SupplierProfileFlow::class.java, state).returnValue
+        val tx = fut.get()
+        val m = "\uD83C\uDF3A createSupplierProfile, DONE!:  \uD83C\uDF3A ${tx.id}"
         logger.info(m)
         return m
     }
@@ -713,9 +727,7 @@ object WorkerBee {
     }
 
     fun selectBestOffer(proxy: CordaRPCOps, accountId: String,
-                        invoiceId: String,
-                        invoiceAmount: Double? = 0.00): OfferAndTokenDTO? {
-
+                        invoiceId: String): OfferAndTokenDTO? {
 
         val cordaFuture = proxy.startTrackedFlowDynamic(
                 BestOfferForInvoiceFlow::class.java, accountId, invoiceId)
@@ -739,7 +751,8 @@ object WorkerBee {
             throw java.lang.Exception("Account not found")
         }
 
-        val tokenDTO = getDTO(offerAndToken!!.token, accountId, invoiceId, account!!, invoiceAmount!!)
+        val tokenDTO = getDTO(offerAndToken.token, accountId,
+                invoiceId, account!!, offerAndToken.invoiceOffer.originalAmount)
         FirebaseUtil.addToken(tokenDTO)
         logger.info("\uD83C\uDF4F \uD83C\uDF4F selectBestOffer completed... token issued " +
                 "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C   ${GSON.toJson(tokenDTO)}")
@@ -778,7 +791,6 @@ object WorkerBee {
         invoice.totalAmount = state.totalAmount
         return invoice
     }
-
     @JvmStatic
     @Throws(Exception::class)
     fun getDTO(state: InvoiceOfferState): InvoiceOfferDTO {
@@ -806,16 +818,23 @@ object WorkerBee {
         return info
     }
     @JvmStatic
-    fun getDTO(a:ProfileState): ProfileStateDTO {
-        return ProfileStateDTO(
+    fun getDTO(a:InvestorProfileState): InvestorProfileStateDTO {
+        return InvestorProfileStateDTO(
                 issuedBy = a.issuedBy.toString(),
                 accountId = a.accountId, date = a.date,
                 defaultDiscount = a.defaultDiscount,
                 maximumInvestmentPerInvoice = a.maximumInvestmentPerInvoice,
                 maximumInvoiceAmount = a.maximumInvoiceAmount,
                 maximumTotalInvestment = a.maximumTotalInvestment,
-                minimumDiscount = a.minimumDiscount,
                 minimumInvoiceAmount = a.minimumInvoiceAmount
+        )
+    }
+    @JvmStatic
+    fun getDTO(a:SupplierProfileState): SupplierProfileStateDTO {
+        return SupplierProfileStateDTO(
+                issuedBy = a.issuedBy.toString(),
+                accountId = a.accountId, date = a.date,
+                maximumDiscount = a.maximumDiscount
         )
     }
 }

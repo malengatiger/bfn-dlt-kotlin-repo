@@ -1,8 +1,8 @@
 package com.bfn.flows.profile
 
 import co.paralleluniverse.fibers.Suspendable
-import com.bfn.contractstates.contracts.ProfileContract
-import com.bfn.contractstates.states.ProfileState
+import com.bfn.contractstates.contracts.InvestorProfileContract
+import com.bfn.contractstates.states.InvestorProfileState
 import com.r3.corda.lib.accounts.workflows.ourIdentity
 import net.corda.core.flows.FlowException
 import net.corda.core.flows.FlowLogic
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 
 @InitiatingFlow
 @StartableByRPC
-class ProfileFlow(private val profileState: ProfileState, private val action: Int = 0) : FlowLogic<SignedTransaction?>() {
+class ProfileFlow(private val investorProfileState: InvestorProfileState, private val action: Int = 0) : FlowLogic<SignedTransaction?>() {
 
     @Suspendable
     @Throws(FlowException::class)
@@ -34,10 +34,10 @@ class ProfileFlow(private val profileState: ProfileState, private val action: In
 
     @Suspendable
     private fun createProfile(notary: Party): SignedTransaction {
-        profileState.issuedBy = serviceHub.ourIdentity
-        val command = ProfileContract.CreateProfile()
+        investorProfileState.issuedBy = serviceHub.ourIdentity
+        val command = InvestorProfileContract.CreateProfile()
         val txBuilder = TransactionBuilder(notary)
-                .addOutputState(profileState, ProfileContract.ID)
+                .addOutputState(investorProfileState, InvestorProfileContract.ID)
                 .addCommand(
                         command, serviceHub.ourIdentity.owningKey)
 
@@ -46,15 +46,15 @@ class ProfileFlow(private val profileState: ProfileState, private val action: In
     }
     @Suspendable
     private fun updateProfile(notary: Party): SignedTransaction {
-        profileState.issuedBy = serviceHub.ourIdentity
+        investorProfileState.issuedBy = serviceHub.ourIdentity
         //todo - get RefAndState by accountId and consume old, create new
 //        val criteria = VaultQueryCriteria(StateStatus.UNCONSUMED)
 //        serviceHub.vaultService.queryBy( criteria,
 //                contractStateType = ProfileContract::class.java,
 //                paging = PageSpecification(1,1000))
-        val command = ProfileContract.UpdateProfile()
+        val command = InvestorProfileContract.UpdateProfile()
         val txBuilder = TransactionBuilder(notary)
-                .addOutputState(profileState, ProfileContract.ID)
+                .addOutputState(investorProfileState, InvestorProfileContract.ID)
                 .addCommand(
                         command, serviceHub.ourIdentity.owningKey)
 

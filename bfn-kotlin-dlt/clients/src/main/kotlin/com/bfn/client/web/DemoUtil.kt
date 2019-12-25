@@ -31,7 +31,7 @@ object DemoUtil {
     private var myNode: NodeInfo? = null
     @Throws(Exception::class)
     fun generateLocalNodeAccounts(mProxy: CordaRPCOps?,
-                                  deleteFirestore: Boolean): DemoSummary {
+                                  deleteFirestore: Boolean, numberOfAccounts: Int = 1): DemoSummary {
         proxy = mProxy
         logger.info("\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
                 "DemoUtil started, proxy: ${proxy.toString()}...  \uD83D\uDD06 \uD83D\uDD06 " +
@@ -65,7 +65,7 @@ object DemoUtil {
         }
         //
         logger.info(" 👽 👽 👽 👽 start data generation:  👽 👽 👽 👽  ")
-        generateAccounts(4)
+        generateAccounts(numberOfAccounts)
         //
         val list = getNodeAccounts(proxy!!)
         var cnt = 0
@@ -235,7 +235,7 @@ object DemoUtil {
         DemoUtil.proxy = proxy
         val accounts = getNodeAccounts(DemoUtil.proxy!!).shuffled()
         var cnt = 0;
-        logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C accounts to have invoices generated: ${accounts.size}")
+        logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C accounts to have invoices generated: $count")
         if (count == 1) {
             repeatCount = 0
             val invoice = buildInvoice(accounts, accounts, accounts.first())
@@ -245,25 +245,21 @@ object DemoUtil {
                 val msg = "\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C invoice generated, result: ${result.invoiceId}"
                 logger.info(msg)
                 return msg
-            } else {
-                generateInvoices(proxy, count)
             }
         }
-        accounts.forEach() {
+        var invoiceCnt = 0
+        for (i in 1..count) {
             repeatCount = 0
-            val invoice = buildInvoice(accounts, accounts, it)
+            val invoice = buildInvoice(accounts, accounts, accounts[random.nextInt(accounts.size - 1)])
             if (invoice != null) {
-                val result = startInvoiceRegistrationFlow(DemoUtil.proxy!!, invoice!!)
-                cnt++
-                logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C invoice generated, result: ${result.invoiceId}")
-            }
-            if (cnt > count) {
-                return "\uD83D\uDC9A Node Invoices Generated: ${cnt - 1}  \uD83D\uDC9C"
+                val result = startInvoiceRegistrationFlow(DemoUtil.proxy!!, invoice)
+                invoiceCnt++
+                logger.info("\uD83D\uDC9C \uD83D\uDC9C \uD83D\uDC9C invoice #$invoiceCnt generated, result: ${result.invoiceId}")
             }
         }
 
         val invoiceStates = WorkerBee.findInvoicesForNode(DemoUtil.proxy!!)
-        logger.info(" \uD83C\uDF4A  \uD83C\uDF4A " + invoiceStates.size + " InvoiceStates on node ...  \uD83C\uDF4A ")
+        logger.info("from WorkerBee.findInvoicesForNode: \uD83C\uDF4A \uD83C\uDF4A " + invoiceStates.size + " InvoiceStates on node ...  \uD83C\uDF4A ")
         demoSummary.numberOfInvoices = invoiceStates.size
         return "\uD83D\uDC9A Invoices on Node: ${invoiceStates.size} \uD83D\uDC9C"
     }
@@ -312,7 +308,9 @@ object DemoUtil {
         val index2 = random.nextInt(accounts.size - 1)
         val customer = accounts[index2]
         var invoice: InvoiceDTO? = null
-        if (supplier.name != it.name && customer.name != it.name && supplier.name != customer.name) {
+        if (supplier.name != it.name
+                && customer.name != it.name
+                && supplier.name != customer.name) {
             invoice = InvoiceDTO()
             invoice.invoiceNumber = "INV_" + System.currentTimeMillis()
             invoice.supplier = supplier
@@ -325,10 +323,14 @@ object DemoUtil {
             invoice.description = "Demo Invoice at " + Date().toString()
             invoice.dateRegistered = Date()
         }
-        if (invoice == null && repeatCount < 5) {
+        if (invoice == null) {
             logger.info("Invoice is null, repeating build .... repeatCount: $repeatCount")
-            repeatCount++
-            buildInvoice(accounts, suppliers, it)
+            if (repeatCount < 6) {
+                repeatCount++
+                buildInvoice(accounts, suppliers, it)
+            } else {
+                return null
+            }
         }
 
         return invoice

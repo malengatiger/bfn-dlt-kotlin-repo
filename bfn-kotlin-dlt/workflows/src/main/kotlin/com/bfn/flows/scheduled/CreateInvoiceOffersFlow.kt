@@ -3,8 +3,9 @@ package com.bfn.flows.scheduled
 import co.paralleluniverse.fibers.Suspendable
 import com.bfn.contractstates.states.InvoiceOfferState
 import com.bfn.contractstates.states.InvoiceState
-import com.bfn.contractstates.states.ProfileState
+import com.bfn.contractstates.states.InvestorProfileState
 import com.bfn.flows.services.InvoiceFinderService
+import com.bfn.flows.services.ProfileFinderService
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
 import com.r3.corda.lib.accounts.workflows.internal.accountService
 import com.r3.corda.lib.accounts.workflows.ourIdentity
@@ -33,14 +34,15 @@ class CreateInvoiceOffersFlow(private val investorId: String) : FlowLogic<List<I
             return listOf()
         }
         val account = serviceHub.accountService.accountInfo(UUID.fromString(investorId))
-                ?: throw IllegalArgumentException("Account not found")
+                ?: throw IllegalArgumentException("CreateInvoiceOffersFlow: Investor Account not found: $investorId")
         Companion.logger.info("\uD83E\uDD63 \uD83E\uDD63 ${invoices.size} Total invoices selected for investor: " +
                 "\uD83E\uDD66 ${account.state.data.name} \uD83E\uDD66")
-        val profile = invoiceService.findProfile(investorId)
+        val profile = serviceHub.cordaService(ProfileFinderService::class.java)
+                .findInvestorProfile(investorId)
         if (profile != null) {
             //make offers
             val partiesMap: MutableMap<String, Party> = mutableMapOf()
-            val offers = createOffers(partiesMap, invoices, account, profile)
+            val offers = createOffers(partiesMap, invoices, account, profile.state.data)
             if (offers.isEmpty()) {
                 Companion.logger.warn("️⚠️ ⚠️ ⚠️ ${invoices.size} invoices found, but no offers made")
                 return listOf()
@@ -104,7 +106,7 @@ class CreateInvoiceOffersFlow(private val investorId: String) : FlowLogic<List<I
     private fun createOffers(partiesMap: MutableMap<String, Party>,
                              invoices: List<InvoiceState>,
                              account: StateAndRef<AccountInfo>,
-                             profile: ProfileState?): List<InvoiceOfferState> {
+                             investorProfile: InvestorProfileState?): List<InvoiceOfferState> {
 
         partiesMap[serviceHub.ourIdentity.toString()] = serviceHub.ourIdentity
         val offers: MutableList<InvoiceOfferState> = mutableListOf()
@@ -119,9 +121,9 @@ class CreateInvoiceOffersFlow(private val investorId: String) : FlowLogic<List<I
                         invoiceId = it.invoiceId,
                         customer = it.customerInfo,
                         investor = account.state.data,
-                        discount = profile!!.defaultDiscount,
+                        discount = investorProfile!!.defaultDiscount,
                         invoiceNumber = it.invoiceNumber,
-                        offerAmount = getOfferAmount(it.totalAmount, profile.defaultDiscount),
+                        offerAmount = getOfferAmount(it.totalAmount, investorProfile.defaultDiscount),
                         offerDate = Date(),
                         originalAmount = it.totalAmount,
                         supplier = it.supplierInfo, ownerDate = Date()

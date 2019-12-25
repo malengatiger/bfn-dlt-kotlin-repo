@@ -43,7 +43,7 @@ springBoot {
 
 task runClient(type: JavaExec, dependsOn: assemble) {
     classpath = sourceSets.main.runtimeClasspath
-    main = 'com.template.ClientKt'
+    main = 'com.bfn.client.ClientKt'
 }
 
 task runPartyA(type: JavaExec, dependsOn: assemble) {

@@ -1,16 +1,14 @@
 package com.bfn.client
 
-import com.bfn.client.dto.ProfileStateDTO
-import com.bfn.contractstates.states.InvoiceOfferState
-import com.bfn.contractstates.states.InvoiceState
-import com.bfn.contractstates.states.OfferAndTokenState
-import com.bfn.contractstates.states.ProfileState
+import com.bfn.client.dto.*
+import com.bfn.contractstates.states.*
 import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 
 import net.corda.client.rpc.CordaRPCClient
 import net.corda.core.contracts.ContractState
+import net.corda.core.contracts.StateAndRef
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.PageSpecification
@@ -23,7 +21,6 @@ import kotlin.collections.MutableList
 import kotlin.collections.MutableMap
 import kotlin.collections.first
 import kotlin.collections.forEach
-import kotlin.collections.mapOf
 import kotlin.collections.mutableListOf
 import kotlin.collections.mutableMapOf
 import kotlin.collections.set
@@ -55,28 +52,38 @@ private class Client {
     fun main(args: Array<String>) {
 
         setupNodes()
-//        startAccounts(true, deleteFirestore = true);
+//        startAccounts(generateAccounts = true, deleteFirestore = false, numberOfAccounts = 10);
+//        startAccounts(generateAccounts = true, deleteFirestore = false, numberOfAccounts = 10);
+
 //        startAccounts(true, deleteFirestore = false);
 //        generateCrossNodeInvoices(0, 1)
 //        generateCrossNodeInvoices(1, 4)
 //        generateCrossNodeInvoices(2, 5)
 
 //        logger.info(" HOUR : ${1000 * 60 * 60}")
-        generateInvoices(0, 10)
-        generateInvoices(1, 10)
-        generateInvoices(2, 10)
-////
+//        generateInvoices(0, 10)
+//        generateInvoices(1, 10)
+//        generateInvoices(2, 10)
+
+//
         generateOffers(0)
         generateOffers(1)
         generateOffers(2)
 //
-//        findBestOffers(proxyPartyA)
-//        findBestOffers(proxyPartyB)
-//        findBestOffers(proxyPartyC)
-////
+        findBestOffers(proxyPartyA)
+        findBestOffers(proxyPartyB)
+        findBestOffers(proxyPartyC)
+//////
         printTotals()
-        getRegulatorTotals(proxyReg)
-
+////        getRegulatorTotals(proxyReg)
+//
+        printInvoices(proxyPartyA, consumed = false)
+        printInvoices(proxyPartyB, consumed = false)
+        printInvoices(proxyPartyC, consumed = false)
+//
+//        printProfiles(proxyPartyA)
+//        printProfiles(proxyPartyB)
+//        printProfiles(proxyPartyC)
 
     }
 
@@ -142,6 +149,101 @@ private class Client {
         logger.info("\uD83C\uDF3A Total States on Regulator: ${page4.states.size} \uD83C\uDF3A \n")
     }
 
+    fun printProfiles(proxy: CordaRPCOps) {
+        logger.info("\n\uD83E\uDDA0 \uD83E\uDDA0 \uD83E\uDDA0 \uD83E\uDDA0 \uD83E\uDDA0   Print profiles for ${proxy.nodeInfo().legalIdentities.first()}")
+        val criteriaUnConsumed = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
+        val page = proxy.vaultQueryByWithPagingSpec(
+                    contractStateType = InvestorProfileState::class.java,
+                    criteria = criteriaUnConsumed,
+                    paging = PageSpecification(1, 5000))
+
+        page.states.forEach() {
+            logger.info("\uD83E\uDDE9\uD83E\uDDE9\uD83E\uDDE9\uD83E\uDDE9 " +
+                    "${GSON.toJson(getDTO(it.state.data))} \uD83E\uDDE9\uD83E\uDDE9 \uD83E\uDDA0 ")
+        }
+
+    }
+    fun printInvoices(proxy: CordaRPCOps, consumed: Boolean) {
+        logger.info("\uD83E\uDD6D \uD83E\uDD6D \uD83E\uDD6D \uD83E\uDD6D Print invoices for ${proxy.nodeInfo().legalIdentities.first()}")
+        val criteriaConsumed = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.CONSUMED)
+        val criteriaUnConsumed = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED)
+        val page: Vault.Page<InvoiceState>
+        if (consumed) {
+            page = proxy.vaultQueryByWithPagingSpec(
+                    contractStateType = InvoiceState::class.java,
+                    criteria = criteriaConsumed,
+                    paging = PageSpecification(1, 5000))
+        } else {
+            page = proxy.vaultQueryByWithPagingSpec(
+                    contractStateType = InvoiceState::class.java,
+                    criteria = criteriaUnConsumed,
+                    paging = PageSpecification(1, 5000))
+        }
+        page.states.forEach() {
+            logger.info("\uD83E\uDDE9\uD83E\uDDE9\uD83E\uDDE9\uD83E\uDDE9 " +
+                    "${GSON.toJson(getDTO(it.state.data))} \uD83E\uDDE9\uD83E\uDDE9")
+        }
+
+    }
+
+    fun getDTO(state: InvoiceState): InvoiceDTO {
+        val invoice = InvoiceDTO()
+        invoice.amount = state.amount
+        invoice.customer = getDTO(state.customerInfo)
+        invoice.supplier = getDTO(state.supplierInfo)
+        invoice.description = state.description
+        invoice.invoiceId = state.invoiceId.toString()
+        invoice.invoiceNumber = state.invoiceNumber
+        invoice.dateRegistered = state.dateRegistered
+        invoice.valueAddedTax = state.valueAddedTax
+        invoice.totalAmount = state.totalAmount
+        return invoice
+    }
+
+    fun getDTO(state: InvoiceOfferState): InvoiceOfferDTO {
+        val o = InvoiceOfferDTO()
+        o.invoiceId = state.invoiceId.toString()
+        o.invoiceNumber = state.invoiceNumber
+        o.offerAmount = state.offerAmount
+        o.originalAmount = state.originalAmount
+        o.discount = state.discount
+        o.supplier = getDTO(state.supplier)
+        o.investor = getDTO(state.investor)
+        o.customer = getDTO(state.customer)
+
+        o.offerDate = state.offerDate
+        o.investorDate = state.ownerDate
+        return o
+    }
+
+    fun getDTO(a: AccountInfo): AccountInfoDTO {
+        val info = AccountInfoDTO()
+        info.host = a.host.toString()
+        info.identifier = a.identifier.id.toString()
+        info.name = a.name
+        return info
+    }
+
+    fun getDTO(a: InvestorProfileState): InvestorProfileStateDTO {
+        return InvestorProfileStateDTO(
+                issuedBy = a.issuedBy.toString(),
+                accountId = a.accountId, date = a.date,
+                defaultDiscount = a.defaultDiscount,
+                maximumInvestmentPerInvoice = a.maximumInvestmentPerInvoice,
+                maximumInvoiceAmount = a.maximumInvoiceAmount,
+                maximumTotalInvestment = a.maximumTotalInvestment,
+                minimumInvoiceAmount = a.minimumInvoiceAmount
+        )
+    }
+
+    fun getDTO(a: SupplierProfileState): SupplierProfileStateDTO {
+        return SupplierProfileStateDTO(
+                issuedBy = a.issuedBy.toString(),
+                accountId = a.accountId, date = a.date,
+                maximumDiscount = a.maximumDiscount
+        )
+    }
+
     fun getNodeTotals(proxy: CordaRPCOps) {
         val name = proxy.nodeInfo().legalIdentities.first().name.organisation
         logger.info("\n..............\uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A \uD83C\uDF3A ${name.toUpperCase()} STATES \uD83C\uDF3A .................... ")
@@ -164,7 +266,7 @@ private class Client {
                 criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.CONSUMED),
                 paging = PageSpecification(1, 5000))
         val profiles = proxy.vaultQueryByWithPagingSpec(
-                contractStateType = ProfileState::class.java,
+                contractStateType = InvestorProfileState::class.java,
                 criteria = QueryCriteria.VaultQueryCriteria(status = Vault.StateStatus.UNCONSUMED),
                 paging = PageSpecification(1, 5000))
 
@@ -221,8 +323,10 @@ private class Client {
         }
     }
 
-    private fun startAccounts(generateAccounts: Boolean = false, deleteFirestore: Boolean = false) {
+    private fun startAccounts(generateAccounts: Boolean = false, deleteFirestore: Boolean = false, numberOfAccounts: Int = 1) {
         if (generateAccounts) {
+            var params: MutableMap<String, String> = mutableMapOf()
+            params["numberOfAccounts"] = numberOfAccounts.toString()
             logger.info(" \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 accounts for PARTY A")
             var status = startAccountsForNode(
                     proxy = proxyPartyA,
@@ -383,58 +487,90 @@ private class Client {
 
     }
 
-    private fun startAccountsForNode(proxy: CordaRPCOps, url: String, deleteFirestore: Boolean): Int {
+    private fun startAccountsForNode(proxy: CordaRPCOps, url: String, deleteFirestore: Boolean, numberOfAccounts: Int = 1): Int {
         logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 " +
                 "\uD83D\uDD35 \uD83D\uDD35 generateAccounts: $url deleteFirestore: $deleteFirestore")
+        var params: MutableMap<String, String> = mutableMapOf()
+        params["numberOfAccounts"] = numberOfAccounts.toString()
+        params["deleteFirestore"] = deleteFirestore.toString()
         val response = httpGet(
                 timeout = 990000000.0,
                 url = "$url/admin/demo",
-                params = mapOf("deleteFirestore" to deleteFirestore.toString()))
+                params = params)
 
         logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${response.statusCode}  " +
                 "\uD83C\uDF4E ${response.text}")
         val page = proxy.vaultQuery(AccountInfo::class.java)
         page.states.forEach() {
             if (it.state.data.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
-                var disc = random.nextInt(10) * 1.5
-                if (disc < 3.0) {
-                    disc = 3.5
-                }
-                val profile = ProfileStateDTO(
-                        issuedBy = "thisNode", accountId = it.state.data.identifier.id.toString(),
-                        date = Date(),
-                        defaultDiscount = disc,
-                        minimumInvoiceAmount = random.nextInt(100) * 1000.0,
-                        minimumDiscount = 4.0,
-                        maximumInvestmentPerInvoice = 1000000.0,
-                        maximumTotalInvestment = 900000000.0,
-                        maximumInvoiceAmount = 750000.0
-                )
-                val params: MutableMap<String, String> = mutableMapOf()
-                params["issuedBy"] = "me"
-                params["accountId"] = profile.accountId
-                params["date"] = "2020-01-01"
-                params["defaultDiscount"] = profile.defaultDiscount.toString()
-                params["minimumInvoiceAmount"] = profile.minimumInvoiceAmount.toString()
-                params["minimumDiscount"] = profile.minimumDiscount.toString()
-                params["maximumInvestmentPerInvoice"] = profile.maximumInvestmentPerInvoice.toString()
-                params["maximumTotalInvestment"] = profile.maximumTotalInvestment.toString()
-                params["maximumInvoiceAmount"] = profile.maximumInvoiceAmount.toString()
-                logger.info("\uD83E\uDD6C Creating profile for \uD83C\uDF3A ${it.state.data.name} ...")
-                // logger.info(GSON.toJson(profile))
-
-                val resp = httpPost(
-                        url = "$url/admin/createInvestorProfile",
-                        json = params,
-                        timeout = 8000000000.0
-                )
-                logger.info("\uD83C\uDF4E RESPONSE: statusCode: ${resp.statusCode}  " +
-                        "\uD83C\uDF4E ${resp.text}")
+                addInvestorProfile(it, url)
+                addSupplierProfile(it, url)
             }
         }
 
 
         return response.statusCode
+    }
+
+    private fun addInvestorProfile(it: StateAndRef<AccountInfo>, url: String) {
+        var disc = random.nextInt(10) * 1.5
+        if (disc < 3.0) {
+            disc = 3.5
+        }
+        val investorProfile = InvestorProfileStateDTO(
+                issuedBy = "thisNode", accountId = it.state.data.identifier.id.toString(),
+                date = Date(),
+                defaultDiscount = disc,
+                minimumInvoiceAmount = random.nextInt(100) * 1000.0,
+                maximumInvestmentPerInvoice = 1000000.0,
+                maximumTotalInvestment = 900000000.0,
+                maximumInvoiceAmount = 750000.0
+        )
+        val params: MutableMap<String, String> = mutableMapOf()
+        params["issuedBy"] = "me"
+        params["accountId"] = investorProfile.accountId
+        params["date"] = "2020-01-01"
+        params["defaultDiscount"] = investorProfile.defaultDiscount.toString()
+        params["minimumInvoiceAmount"] = investorProfile.minimumInvoiceAmount.toString()
+        params["maximumInvestmentPerInvoice"] = investorProfile.maximumInvestmentPerInvoice.toString()
+        params["maximumTotalInvestment"] = investorProfile.maximumTotalInvestment.toString()
+        params["maximumInvoiceAmount"] = investorProfile.maximumInvoiceAmount.toString()
+        logger.info("\uD83D\uDE0E \uD83D\uDE0E  Creating INVESTOR profile for \uD83C\uDF3A ${it.state.data.name} ...")
+
+        val resp = httpPost(
+                url = "$url/admin/createInvestorProfile",
+                json = params,
+                timeout = 8000000000.0
+        )
+        logger.info("\uD83D\uDE0E  RESPONSE: statusCode: ${resp.statusCode}  " +
+                "\uD83D\uDE0E  ${resp.text}")
+    }
+
+    private fun addSupplierProfile(account: StateAndRef<AccountInfo>, url: String) {
+        var disc = random.nextInt(5) * 1.5
+        if (disc < 2.0) {
+            disc = 5.5
+        }
+        val supplierProfile = SupplierProfileStateDTO(
+                issuedBy = "thisNode",
+                accountId = account.state.data.identifier.id.toString(),
+                date = Date(),
+                maximumDiscount = 6.9
+        )
+        val params: MutableMap<String, String> = mutableMapOf()
+        params["issuedBy"] = "me"
+        params["accountId"] = supplierProfile.accountId
+        params["date"] = "2020-01-01"
+        params["maximumDiscount"] = supplierProfile.maximumDiscount.toString()
+
+        logger.info("\uD83E\uDD8A \uD83E\uDD8A \uD83E\uDD8A  Creating SUPPLIER profile for \uD83C\uDF3A ${account.state.data.name} ...")
+        val resp = httpPost(
+                url = "$url/admin/createSupplierProfile",
+                json = params,
+                timeout = 8000000000.0
+        )
+        logger.info("\uD83E\uDD8A RESPONSE: statusCode: ${resp.statusCode}  " +
+                "\uD83E\uDD8A ${resp.text}")
     }
 
     private fun doNodesAndAggregates(proxyPartyA: CordaRPCOps, proxyPartyB: CordaRPCOps, proxyPartyC: CordaRPCOps, proxyReg: CordaRPCOps) {
@@ -502,7 +638,7 @@ private class Client {
         logger.info("Remote Accounts on Node: ♻️ $cnt2 ♻️")
 
         val profiles = proxy.vaultQueryByWithPagingSpec(criteria = criteria,
-                contractStateType = ProfileState::class.java,
+                contractStateType = InvestorProfileState::class.java,
                 paging = PageSpecification(pageNumber = 1, pageSize = 2000))
 
         logger.info("Local Profiles on Node: ♻️ ${profiles.totalStatesAvailable} ♻️")

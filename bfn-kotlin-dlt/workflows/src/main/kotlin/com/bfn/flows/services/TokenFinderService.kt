@@ -24,7 +24,7 @@ class TokenFinderService(private val serviceHub: AppServiceHub) : SingletonSeria
                 "\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ")
 
         val account = accountService.accountInfo(UUID.fromString(accountId))?.state?.data
-                ?: throw IllegalArgumentException("\uD83D\uDC7F Account not found")
+                ?: throw IllegalArgumentException("\uD83D\uDC7F findTokensForAccount: Account not found: $accountId")
         logger.info("\uD83D\uDCA6 Finding tokens for account: \uD83D\uDC7D \uD83D\uDC7D " +
                 " ${account.name} - ${account.host}")
         val sortedInvoices = getOfferAndTokens()

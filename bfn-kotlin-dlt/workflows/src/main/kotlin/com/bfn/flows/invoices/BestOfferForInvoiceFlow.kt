@@ -7,6 +7,7 @@ import com.bfn.contractstates.states.InvoiceOfferState
 import com.bfn.contractstates.states.OfferAndTokenState
 
 import com.bfn.flows.regulator.ReportToRegulatorFlow
+import com.bfn.flows.services.ProfileFinderService
 import com.bfn.flows.services.RegulatorFinderService
 import com.r3.corda.lib.accounts.workflows.flows.RequestKeyForAccount
 import com.r3.corda.lib.accounts.workflows.internal.accountService
@@ -46,7 +47,7 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
     @Suspendable
     @Throws(FlowException::class)
     override fun call(): OfferAndTokenState? {
-        Companion.logger.info(" \uD83E\uDD1F \uD83E\uDD1F  \uD83E\uDD1F \uD83E\uDD1F  " +
+        Companion.logger.info("\uD83E\uDD1F \uD83E\uDD1F \uD83E\uDD1F \uD83E\uDD1F \uD83E\uDD1F \uD83E\uDD1F \uD83E\uDD1F \uD83E\uDD1F " +
                 "... \uD83D\uDE3C \uD83D\uDE3C BestOfferForInvoiceFlow call started ... \uD83D\uDE3C \uD83D\uDE3C ")
         val accountService = serviceHub.cordaService(KeyManagementBackedAccountService::class.java)
         val supplierAccount = accountService.accountInfo(UUID.fromString(supplierAccountId))!!.state.data
@@ -56,7 +57,11 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
             logger.info("\uD83D\uDECE \uD83D\uDECE Returning existing token: \uD83D\uDECE ${oat.token}")
             return oat
         }
-        val pair = filterOffersByParams() ?: return null
+        val pair = filterOffersByProfile()
+        if (pair == null) {
+            logger.info("\uD83D\uDC80 \uD83D\uDC80 \uD83D\uDC80 Unable to find acceptable offer. \uD83D\uDC80 Quitting ... ")
+            return null
+        }
         val list = pair.first
         val selected = pair.second
         if (list.isEmpty()) {
@@ -68,7 +73,7 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         val token: FungibleToken = createToken(selected.state.data)
         //create tx to share token with holder
         Companion.logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 " +
-                "creating transactionBuilder with token  \uD83C\uDF38 $token ...  \uD83D\uDD06")
+                "creating transactionBuilder with new token  \uD83C\uDF38 $token ...  \uD83D\uDD06")
 
         val tokenCommand = IssueTokenCommand(token = token.issuedTokenType, outputs = listOf(0))
         val offerAndTokenCmd = OfferAndTokenStateContract.CreateOfferAndToken()
@@ -92,7 +97,7 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         val offerAndToken = OfferAndTokenState(selected.state.data, token, serviceHub.ourIdentity)
 
         val tx = buildAndVerifyTransactions(tokenCommand, offerAndTokenCmd, token,
-                offerAndToken, list, publicKeys, parties)
+                offerAndToken, publicKeys, parties)
 
         Companion.logger.info("\uD83C\uDF6F \uD83C\uDF6F \uD83C\uDF6F \uD83C\uDF6F " +
                 "Yebo! OfferAndToken sorted out!!!: \uD83C\uDF6F \uD83C\uDF6F ${selected.state.data.offerAmount} " +
@@ -109,33 +114,29 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
             offerAndTokenCmd: OfferAndTokenStateContract.CreateOfferAndToken,
             token: FungibleToken,
             offerAndToken: OfferAndTokenState,
-            offers: MutableList<StateAndRef<InvoiceOfferState>>,
             publicKeys: List<PublicKey>,
             parties: List<Party>): SignedTransaction {
-        Companion.logger.info("\uD83D\uDC7A \uD83D\uDC7A buildAndVerifyTransactions: Offers to consume: ${offers.size} " +
-                "to be added to transaction \uD83D\uDC7A \uD83D\uDC7A")
 
         val transactionBuilderToken = TransactionBuilder(serviceHub.networkMapCache.notaryIdentities.first())
-
         transactionBuilderToken
                 .addCommand(tokenCommand, publicKeys)
                 .addCommand(offerAndTokenCmd, publicKeys)
                 .addOutputState(token)
                 .addOutputState(offerAndToken)
         //verify and sign
-        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Verify transaction")
+        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C " +
+                "\uD83D\uDE3C Verify transaction")
         transactionBuilderToken.verify(serviceHub)
 
-        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C signInitialTransaction ")
+        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C " +
+                "\uD83D\uDE3C signInitialTransaction ")
         val signedTokenTx = serviceHub.signInitialTransaction(transactionBuilderToken)
 
-        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceCloseFlow")
+        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C " +
+                "\uD83D\uDE3C Start InvoiceCloseFlow")
         subFlow(InvoiceCloseFlow(invoiceId = invoiceId))
-
-        Companion.logger.info("\uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C \uD83D\uDE3C Start InvoiceOfferCloseFlow")
-        subFlow(InvoiceOfferCloseFlow(offers))
-
-        Companion.logger.warn("\uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38 Finally. ready. to. finish. this. ...")
+        Companion.logger.warn("\uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38  \uD83D\uDC38  " +
+                "\uD83D\uDC38 Finally. ready. to. finish. this. ...")
         return finalizeToken(parties, signedTokenTx)
 
     }
@@ -250,9 +251,9 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
     }
 
     @Suspendable
-    private fun filterOffersByParams(): Pair<MutableList<StateAndRef<InvoiceOfferState>>, StateAndRef<InvoiceOfferState>>? {
+    private fun filterOffersByProfile(): Pair<MutableList<StateAndRef<InvoiceOfferState>>, StateAndRef<InvoiceOfferState>>? {
         val list: MutableList<StateAndRef<InvoiceOfferState>> = ArrayList()
-        //get first page
+
         var pageNumber = 1
         val page: Vault.Page<InvoiceOfferState> = query(pageNumber)
         addToList(page = page, list = list)
@@ -268,24 +269,54 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
                 addToList(pageX, list)
             }
         }
-        logger.info(" \uD83C\uDFC0 Offers found for the invoice:  \uD83C\uDFC0 " +
+        Companion.logger.info(" \uD83C\uDFC0 Offers found for the invoice:  \uD83C\uDFC0 " +
                 "${list.size} offers  \uD83C\uDFC0 ")
         if (list.isEmpty()) {
             return null
         }
-        val sorted = list.sortedBy { it.state.data.offerAmount }
-        val selected = sorted.last()
         //todo - what if multiple offers have same offerAmount? Who gets the deal????
-        logger.info("\uD83C\uDF4F \uD83C\uDF4F check order of amount, and check multiple largest ")
-        sorted.forEach() {
-            logger.info("\uD83C\uDF4F \uD83C\uDF4F investor ${it.state.data.investor.name} \uD83C\uDF4F offerAmount: ${it.state.data.offerAmount} ")
+        val profile = serviceHub.cordaService(ProfileFinderService::class.java)
+                .findSupplierProfile(supplierAccountId)
+
+        var numberInvalid = 0
+        if (profile == null) {
+            logger.info("\uD83C\uDFB1 \uD83C\uDFB1 \uD83C\uDFB1  Profile is NULL. returning last of ${list.size}")
+            val sorted = list.sortedBy { it.state.data.offerAmount }
+            val selected = sorted.last()
+            log(sorted, selected)
+            return Pair(list, selected)
+        } else {
+            Companion.logger.info("\uD83C\uDF21 \uD83C\uDF21 \uD83C\uDF21 \uD83C\uDF21 " +
+                    "Filtering ${list.size} offers based on profile: \uD83C\uDFC0 maxDiscount: ${profile.state.data.maximumDiscount}")
+            val filteredList: MutableList<StateAndRef<InvoiceOfferState>> = mutableListOf()
+            list.forEach() {
+                if (it.state.data.discount <= profile.state.data.maximumDiscount) {
+                    filteredList.add(it)
+                } else {
+                    numberInvalid++
+                }
+            }
+            return if (filteredList.isNotEmpty()) {
+                val sorted = filteredList.sortedBy { it.state.data.offerAmount }
+                val selected = sorted.last()
+                logger.info("\uD83D\uDD25\uD83D\uDD25 \uD83D\uDD25 Offers that did not make the cut:" +
+                        " \uD83D\uDD25 $numberInvalid \uD83D\uDD25")
+                log(sorted, selected)
+                Pair(filteredList, selected)
+            } else {
+                Companion.logger.info("\uD83D\uDD25\uD83D\uDD25 \uD83D\uDD25 No Offers made the cut:")
+                null
+            }
         }
 
-        logger.info("\uD83E\uDDE9 InvoiceOffers found for invoice:  \uD83C\uDF00 ${sorted.size}  " +
+
+    }
+
+    private fun log(sorted: List<StateAndRef<InvoiceOfferState>>, selected: StateAndRef<InvoiceOfferState>) {
+        logger.info("\uD83E\uDDE9 InvoiceOffers found for invoice:  \uD83C\uDF00 ${sorted.size}  selected: " +
                 "\uD83E\uDDE9 ${selected.state.data.offerAmount}")
         logger.info("\uD83E\uDDE9 Best InvoiceOffer found: investor: ${selected.state.data.investor.name}  " +
                 "\uD83E\uDDE9 ${selected.state.data.offerAmount}")
-        return Pair(list, selected)
     }
 
     @Suspendable
