@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "/Users/aubs/WORK/CORDA/bfn-dlt-repo/bfnmobile/build/app/intermediates/incremental/mergeDebugResources/merged.dir/values-uz/values-uz.xml",
+            "outputFile": "/Users/aubs/WORK/CORDA/bfn-dlt-kotlin-repo/bfnmobile/build/app/intermediates/incremental/mergeDebugResources/merged.dir/values-uz/values-uz.xml",
             "map": [
                 {
                     "source": "/Users/aubs/.gradle/caches/transforms-2/files-2.1/8ac2c71cc9965485e4fc4eaca5d4253a/play-services-base-17.1.0/res/values-uz/values.xml",

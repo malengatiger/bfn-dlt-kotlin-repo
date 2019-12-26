@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "/Users/aubs/WORK/CORDA/bfn-dlt-repo/bfnmobile/build/app/intermediates/incremental/mergeDebugResources/merged.dir/values-hy/values-hy.xml",
+            "outputFile": "/Users/aubs/WORK/CORDA/bfn-dlt-kotlin-repo/bfnmobile/build/app/intermediates/incremental/mergeDebugResources/merged.dir/values-hy/values-hy.xml",
             "map": [
                 {
                     "source": "/Users/aubs/.gradle/caches/transforms-2/files-2.1/0eb8c784cdac808d4ca6f526f8e23511/jetified-firebase-messaging-20.0.1/res/values-hy/values.xml",

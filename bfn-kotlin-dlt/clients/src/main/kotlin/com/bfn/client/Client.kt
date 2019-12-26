@@ -52,6 +52,8 @@ private class Client {
     fun main(args: Array<String>) {
 
         setupNodes()
+//        startAccounts(generateAccounts = true, deleteFirestore = true, numberOfAccounts = 10);
+//        startAccounts(generateAccounts = true, deleteFirestore = false, numberOfAccounts = 10);
 //        startAccounts(generateAccounts = true, deleteFirestore = false, numberOfAccounts = 10);
 //        startAccounts(generateAccounts = true, deleteFirestore = false, numberOfAccounts = 10);
 
@@ -61,25 +63,25 @@ private class Client {
 //        generateCrossNodeInvoices(2, 5)
 
 //        logger.info(" HOUR : ${1000 * 60 * 60}")
-//        generateInvoices(0, 10)
-//        generateInvoices(1, 10)
-//        generateInvoices(2, 10)
+        generateInvoices(0, 30)
+        generateInvoices(1, 30)
+        generateInvoices(2, 30)
 
 //
         generateOffers(0)
         generateOffers(1)
         generateOffers(2)
 //
-        findBestOffers(proxyPartyA)
-        findBestOffers(proxyPartyB)
-        findBestOffers(proxyPartyC)
+//        findBestOffers(proxyPartyA)
+//        findBestOffers(proxyPartyB)
+//        findBestOffers(proxyPartyC)
 //////
         printTotals()
 ////        getRegulatorTotals(proxyReg)
 //
-        printInvoices(proxyPartyA, consumed = false)
-        printInvoices(proxyPartyB, consumed = false)
-        printInvoices(proxyPartyC, consumed = false)
+//        printInvoices(proxyPartyA, consumed = false)
+//        printInvoices(proxyPartyB, consumed = false)
+//        printInvoices(proxyPartyC, consumed = false)
 //
 //        printProfiles(proxyPartyA)
 //        printProfiles(proxyPartyB)
@@ -229,9 +231,8 @@ private class Client {
                 issuedBy = a.issuedBy.toString(),
                 accountId = a.accountId, date = a.date,
                 defaultDiscount = a.defaultDiscount,
-                maximumInvestmentPerInvoice = a.maximumInvestmentPerInvoice,
                 maximumInvoiceAmount = a.maximumInvoiceAmount,
-                maximumTotalInvestment = a.maximumTotalInvestment,
+                totalInvestment = a.totalInvestment,
                 minimumInvoiceAmount = a.minimumInvoiceAmount
         )
     }
@@ -522,8 +523,7 @@ private class Client {
                 date = Date(),
                 defaultDiscount = disc,
                 minimumInvoiceAmount = random.nextInt(100) * 1000.0,
-                maximumInvestmentPerInvoice = 1000000.0,
-                maximumTotalInvestment = 900000000.0,
+                totalInvestment = 900000000.0,
                 maximumInvoiceAmount = 750000.0
         )
         val params: MutableMap<String, String> = mutableMapOf()
@@ -532,8 +532,7 @@ private class Client {
         params["date"] = "2020-01-01"
         params["defaultDiscount"] = investorProfile.defaultDiscount.toString()
         params["minimumInvoiceAmount"] = investorProfile.minimumInvoiceAmount.toString()
-        params["maximumInvestmentPerInvoice"] = investorProfile.maximumInvestmentPerInvoice.toString()
-        params["maximumTotalInvestment"] = investorProfile.maximumTotalInvestment.toString()
+        params["totalInvestment"] = investorProfile.totalInvestment.toString()
         params["maximumInvoiceAmount"] = investorProfile.maximumInvoiceAmount.toString()
         logger.info("\uD83D\uDE0E \uD83D\uDE0E  Creating INVESTOR profile for \uD83C\uDF3A ${it.state.data.name} ...")
 
@@ -727,17 +726,17 @@ private class Client {
             }
         }
 
-        val sorted = mList.sortedBy { it.invoiceId.toString() }
-        var cnt = 1
-        logger.info("\n\n................... \uD83D\uDCCC \uD83D\uDCCC " +
-                "Printing offers sorted by invoiceId .... \uD83D\uDCCC \uD83D\uDCCC")
-        sorted.forEach() {
-            logger.info(" \uD83D\uDD06 #$cnt supplier: ${it.supplier.name}" +
-                    "host: ${it.supplier.host} \uD83C\uDF88 investor: ${it.investor.name} " +
-                    " \uD83E\uDDE9 host: ${it.investor.host} - \uD83E\uDDA0 offerAmt: ${it.offerAmount} " +
-                    "from ${it.originalAmount} :: discount: ${it.discount}")
-            cnt++
-        }
+//        val sorted = mList.sortedBy { it.invoiceId.toString() }
+//        var cnt = 1
+//        logger.info("\n\n................... \uD83D\uDCCC \uD83D\uDCCC " +
+//                "Printing offers sorted by invoiceId .... \uD83D\uDCCC \uD83D\uDCCC")
+//        sorted.forEach() {
+//            logger.info(" \uD83D\uDD06 #$cnt supplier: ${it.supplier.name}" +
+//                    "host: ${it.supplier.host} \uD83C\uDF88 investor: ${it.investor.name} " +
+//                    " \uD83E\uDDE9 host: ${it.investor.host} - \uD83E\uDDA0 offerAmt: ${it.offerAmount} " +
+//                    "from ${it.originalAmount} :: discount: ${it.discount}")
+//            cnt++
+//        }
         logger.info("\n\nInvoiceOffers on Node: ♻️ ${page.totalStatesAvailable} ♻️")
         logger.info("InvoiceOffers gathered: ♻️ ${mList.size} ♻️")
         selectBestOffers()

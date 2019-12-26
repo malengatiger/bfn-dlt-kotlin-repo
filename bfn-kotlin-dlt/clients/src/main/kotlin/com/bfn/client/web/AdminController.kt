@@ -104,6 +104,17 @@ class AdminController(rpc: NodeRPCConnection) {
                 user.email, user.password, user.cellphone)
     }
 
+    @PostMapping(value = ["/addSupplierProfile"], produces = ["application/json"])
+    @Throws(Exception::class)
+    private fun addSupplierProfile(@RequestBody profile: SupplierProfileStateDTO): String {
+       return WorkerBee.createSupplierProfile(proxy,profile)
+    }
+    @PostMapping(value = ["/addInvestorProfile"], produces = ["application/json"])
+    @Throws(Exception::class)
+    private fun addInvestorProfile(@RequestBody profile: InvestorProfileStateDTO): String {
+        return WorkerBee.createInvestorProfile(proxy,profile)
+    }
+
     @get:GetMapping(value = ["getAccounts"])
     val accounts: List<AccountInfoDTO>
         get() = getNodeAccounts(proxy)
@@ -180,6 +191,16 @@ class AdminController(rpc: NodeRPCConnection) {
     fun createInvestorProfile(@RequestBody profile: InvestorProfileStateDTO): String {
         return WorkerBee.createInvestorProfile(proxy, profile)
     }
+    @GetMapping(value = ["getSupplierProfile"])
+    @Throws(Exception::class)
+    fun getSupplierProfile(@RequestParam(value = "accountId") accountId: String?): SupplierProfileStateDTO? {
+        return WorkerBee.getSupplierProfile(proxy,accountId)
+    }
+    @GetMapping(value = ["getInvestorProfile"])
+    @Throws(Exception::class)
+    fun getInvestorProfile(@RequestParam(value = "accountId") accountId: String?): InvestorProfileStateDTO? {
+        return WorkerBee.getInvestorProfile(proxy,accountId)
+    }
     @PostMapping(value = ["createSupplierProfile"])
     @Throws(Exception::class)
     fun createSupplierProfile(@RequestBody profile: SupplierProfileStateDTO): String {
@@ -192,26 +213,26 @@ class AdminController(rpc: NodeRPCConnection) {
         return FirebaseUtil.getUser(email)
     }
 
-    @get:Throws(Exception::class)
-    @get:GetMapping(value = ["getUsers"])
-    val users: List<UserDTO>
-        get() {
-            val users: MutableList<UserDTO> = ArrayList()
-            try {
-                val userRecords = FirebaseUtil.users
-                for (userRecord in userRecords) {
-                    logger.info("🔵 🔵 userRecord 😡 " + userRecord.displayName + " 😡 " + userRecord.email)
-                    val user = UserDTO()
-                    user.name = userRecord.displayName
-                    user.email = userRecord.email
-                    user.uid = userRecord.uid
-                    users.add(user)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+
+    @GetMapping(value = ["getUsers"])
+    fun getUsersFromFirestore() : List<UserDTO> {
+        val users: MutableList<UserDTO> = ArrayList()
+        try {
+            val userRecords = FirebaseUtil.users
+            for (userRecord in userRecords) {
+                logger.info("🔵 🔵 userRecord 😡 " + userRecord.displayName + " 😡 " + userRecord.email)
+                val user = UserDTO()
+                user.name = userRecord.displayName
+                user.email = userRecord.email
+                user.uid = userRecord.uid
+                users.add(user)
             }
-            return users
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
+        return users
+    }
+
 
     @GetMapping(value = ["getAccount"])
     @Throws(Exception::class)

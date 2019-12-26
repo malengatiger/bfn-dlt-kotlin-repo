@@ -43,14 +43,14 @@ class _BFNMobileAppState extends State<BFNMobileApp> {
         stream: themeBloc.newThemeStream,
         builder: (context, snapShot) {
           print(
-              '👽 👽 👽 👽 main.dart;  snapShot theme index: 👽  ${snapShot.data} 👽 ');
+              '👽 👽 👽 👽 main.dart; snapShot theme index: 👽  ${snapShot.data} 👽 ');
           return MaterialApp(
             title: 'BFNapp',
             debugShowCheckedModeBanner: false,
             theme: snapShot.data == null
                 ? ThemeUtil.getTheme(themeIndex: themeIndex)
                 : ThemeUtil.getTheme(themeIndex: snapShot.data),
-            home: new ControllerPage(),
+            home: ControllerPage(),
           );
         });
   }

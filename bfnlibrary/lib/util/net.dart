@@ -6,6 +6,7 @@ import 'package:bfnlibrary/data/fb_user.dart';
 import 'package:bfnlibrary/data/invoice.dart';
 import 'package:bfnlibrary/data/invoice_offer.dart';
 import 'package:bfnlibrary/data/node_info.dart';
+import 'package:bfnlibrary/data/profile.dart';
 import 'package:bfnlibrary/data/user.dart';
 import 'package:bfnlibrary/util/prefs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -217,6 +218,49 @@ class Net {
     AccountInfo acctInfo = AccountInfo.fromJson(json.decode(response));
     debugPrint('🍎 🍊 Net: getAccount: found ${acctInfo.toJson()}');
     return acctInfo;
+  }
+
+  static Future<SupplierProfile> getSupplierProfile(String accountId) async {
+    var node = await Prefs.getNode();
+    final response = await get(
+        node.webAPIUrl + 'admin/getSupplierProfile?accountId=$accountId');
+
+    if (response == null) {
+      return null;
+    }
+    SupplierProfile profile = SupplierProfile.fromJson(json.decode(response));
+    debugPrint('🍎 🍊 Net: getSupplierProfile: found ${profile.toJson()}');
+    return profile;
+  }
+
+  static Future<InvestorProfile> getInvestorProfile(String accountId) async {
+    var node = await Prefs.getNode();
+    final response = await get(
+        node.webAPIUrl + 'admin/getInvestorProfile?accountId=$accountId');
+    if (response == null) {
+      return null;
+    }
+    InvestorProfile profile = InvestorProfile.fromJson(json.decode(response));
+    debugPrint('🍎 🍊 Net: getInvestorProfile: found ${profile.toJson()}');
+    return profile;
+  }
+
+  static Future<String> createInvestorProfile(InvestorProfile profile) async {
+    var node = await Prefs.getNode();
+    final response = await post(
+        node.webAPIUrl + 'admin/createInvestorProfile', profile.toJson());
+
+    debugPrint('🍎 🍊 Net: createInvestorProfile: $response');
+    return response;
+  }
+
+  static Future<String> createSupplierProfile(SupplierProfile profile) async {
+    var node = await Prefs.getNode();
+    final response = await post(
+        node.webAPIUrl + 'admin/createSupplierProfile', profile.toJson());
+
+    debugPrint('🍎 🍊 Net: createSupplierProfile: $response');
+    return response;
   }
 
   static Future<UserRecord> getUser(String email) async {

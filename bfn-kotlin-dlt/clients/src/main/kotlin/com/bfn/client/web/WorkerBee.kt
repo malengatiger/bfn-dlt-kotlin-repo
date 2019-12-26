@@ -115,6 +115,7 @@ object WorkerBee {
     fun getAccount(proxy: CordaRPCOps, accountId: String?): AccountInfoDTO {
         val list = getNodeAccounts(proxy)
         var dto: AccountInfoDTO? = null
+        logger.info("\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 AccountID to search for: $accountId")
         for (info in list) {
             if (info.identifier.equals(accountId, ignoreCase = true)) {
                 dto = info
@@ -129,6 +130,53 @@ object WorkerBee {
         logger.info(msg)
         return dto
     }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun getSupplierProfile(proxy: CordaRPCOps, accountId: String?): SupplierProfileStateDTO? {
+        val list: List<StateAndRef<SupplierProfileState>> = proxy.vaultQueryByWithPagingSpec(
+                criteria = VaultQueryCriteria(status = StateStatus.UNCONSUMED),
+                paging = PageSpecification(1,4000),
+                contractStateType = SupplierProfileState::class.java
+                ).states
+        var dto: SupplierProfileStateDTO? = null
+        for (profile in list) {
+            if (profile.state.data.accountId.equals(accountId, ignoreCase = true)) {
+                dto = getDTO(profile.state.data)
+                break
+            }
+        }
+        val msg = if (dto == null) {
+            "\uD83C\uDF3A \uD83C\uDF3A SupplierProfile not found:  \uD83C\uDF3A "
+        } else {
+            "\uD83C\uDF3A \uD83C\uDF3A found profile:  \uD83C\uDF3A " + GSON.toJson(dto)
+        }
+        logger.info(msg)
+        return dto
+    }
+    @JvmStatic
+    @Throws(Exception::class)
+    fun getInvestorProfile(proxy: CordaRPCOps, accountId: String?): InvestorProfileStateDTO? {
+        val list: List<StateAndRef<InvestorProfileState>> = proxy.vaultQueryByWithPagingSpec(
+                criteria = VaultQueryCriteria(status = StateStatus.UNCONSUMED),
+                paging = PageSpecification(1,4000),
+                contractStateType = InvestorProfileState::class.java
+        ).states
+        var dto: InvestorProfileStateDTO? = null
+        for (profile in list) {
+            if (profile.state.data.accountId.equals(accountId, ignoreCase = true)) {
+                dto = getDTO(profile.state.data)
+                break
+            }
+        }
+        val msg = if (dto == null) {
+            "\uD83C\uDF3A \uD83C\uDF3A InvestorProfile not found:  \uD83C\uDF3A "
+        } else {
+            "\uD83C\uDF3A \uD83C\uDF3A found profile:  \uD83C\uDF3A " + GSON.toJson(dto)
+        }
+        logger.info(msg)
+        return dto
+    }
+
 
     @JvmStatic
     @Throws(Exception::class)
@@ -239,9 +287,8 @@ object WorkerBee {
                 issuedBy = proxy.nodeInfo().legalIdentities.first(),
                 accountId = profile.accountId,
                 defaultDiscount = profile.defaultDiscount,
-                maximumInvestmentPerInvoice = profile.maximumInvestmentPerInvoice,
                 maximumInvoiceAmount = profile.maximumInvoiceAmount,
-                maximumTotalInvestment = profile.maximumTotalInvestment,
+                totalInvestment = profile.totalInvestment,
                 minimumInvoiceAmount = profile.minimumInvoiceAmount, date = Date()
         )
         val fut = proxy.startTrackedFlowDynamic(
@@ -823,9 +870,8 @@ object WorkerBee {
                 issuedBy = a.issuedBy.toString(),
                 accountId = a.accountId, date = a.date,
                 defaultDiscount = a.defaultDiscount,
-                maximumInvestmentPerInvoice = a.maximumInvestmentPerInvoice,
                 maximumInvoiceAmount = a.maximumInvoiceAmount,
-                maximumTotalInvestment = a.maximumTotalInvestment,
+                totalInvestment = a.totalInvestment,
                 minimumInvoiceAmount = a.minimumInvoiceAmount
         )
     }

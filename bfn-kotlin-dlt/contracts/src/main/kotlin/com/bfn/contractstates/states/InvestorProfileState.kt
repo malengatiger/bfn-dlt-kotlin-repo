@@ -15,8 +15,7 @@ class InvestorProfileState(var issuedBy: Party,
                            val accountId: String,
                            val minimumInvoiceAmount: Double,
                            val maximumInvoiceAmount: Double,
-                           val maximumInvestmentPerInvoice: Double,
-                           val maximumTotalInvestment: Double,
+                           val totalInvestment: Double,
                            val defaultDiscount: Double,
                            var date: Date
                    ) : ContractState {

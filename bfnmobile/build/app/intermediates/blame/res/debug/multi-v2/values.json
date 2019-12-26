@@ -1,8 +1,27 @@
 {
     "logs": [
         {
-            "outputFile": "/Users/aubs/WORK/CORDA/bfn-dlt-repo/bfnmobile/build/app/intermediates/incremental/mergeDebugResources/merged.dir/values/values.xml",
+            "outputFile": "/Users/aubs/WORK/CORDA/bfn-dlt-kotlin-repo/bfnmobile/build/app/intermediates/incremental/mergeDebugResources/merged.dir/values/values.xml",
             "map": [
+                {
+                    "source": "/Users/aubs/WORK/CORDA/bfn-dlt-kotlin-repo/bfnmobile/android/app/src/main/res/values/styles.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "6",
+                        "endColumns": "12",
+                        "endOffsets": "347"
+                    },
+                    "to": {
+                        "startLines": "77",
+                        "startColumns": "4",
+                        "startOffsets": "6534",
+                        "endLines": "81",
+                        "endColumns": "12",
+                        "endOffsets": "6826"
+                    }
+                },
                 {
                     "source": "/Users/aubs/.gradle/caches/transforms-2/files-2.1/df6cf23cc51da578d8b158de17d0c9cb/core-1.0.0/res/values/values.xml",
                     "from": {
@@ -23,22 +42,20 @@
                     }
                 },
                 {
-                    "source": "/Users/aubs/WORK/CORDA/bfn-dlt-repo/bfnmobile/android/app/src/main/res/values/styles.xml",
+                    "source": "/Users/aubs/WORK/CORDA/bfn-dlt-kotlin-repo/bfnmobile/build/app/generated/res/google-services/debug/values/values.xml",
                     "from": {
-                        "startLines": "2",
-                        "startColumns": "4",
-                        "startOffsets": "55",
-                        "endLines": "6",
-                        "endColumns": "12",
-                        "endOffsets": "347"
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,199,312,394,498,607,727,829",
+                        "endColumns": "143,112,81,103,108,119,101,78",
+                        "endOffsets": "194,307,389,493,602,722,824,903"
                     },
                     "to": {
-                        "startLines": "77",
-                        "startColumns": "4",
-                        "startOffsets": "6534",
-                        "endLines": "81",
-                        "endColumns": "12",
-                        "endOffsets": "6826"
+                        "startLines": "67,69,70,71,72,73,74,75",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "5528,5754,5867,5949,6053,6162,6282,6384",
+                        "endColumns": "143,112,81,103,108,119,101,78",
+                        "endOffsets": "5667,5862,5944,6048,6157,6277,6379,6458"
                     }
                 },
                 {
@@ -58,23 +75,6 @@
                         "endLines": "2,97,114,203",
                         "endColumns": "60,12,24,24",
                         "endOffsets": "161,7868,8774,13985"
-                    }
-                },
-                {
-                    "source": "/Users/aubs/WORK/CORDA/bfn-dlt-repo/bfnmobile/build/app/generated/res/google-services/debug/values/values.xml",
-                    "from": {
-                        "startLines": "2,3,4,5,6,7,8,9",
-                        "startColumns": "4,4,4,4,4,4,4,4",
-                        "startOffsets": "55,199,312,394,498,607,727,829",
-                        "endColumns": "143,112,81,103,108,119,101,78",
-                        "endOffsets": "194,307,389,493,602,722,824,903"
-                    },
-                    "to": {
-                        "startLines": "67,69,70,71,72,73,74,75",
-                        "startColumns": "4,4,4,4,4,4,4,4",
-                        "startOffsets": "5528,5754,5867,5949,6053,6162,6282,6384",
-                        "endColumns": "143,112,81,103,108,119,101,78",
-                        "endOffsets": "5667,5862,5944,6048,6157,6277,6379,6458"
                     }
                 },
                 {

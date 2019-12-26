@@ -4,7 +4,9 @@ import 'package:bfnlibrary/data/user.dart';
 import 'package:bfnlibrary/util/functions.dart';
 import 'package:bfnlibrary/util/net.dart';
 import 'package:bfnlibrary/util/prefs.dart';
+import 'package:bfnlibrary/util/slide_right.dart';
 import 'package:bfnlibrary/util/snack.dart';
+import 'package:bfnmobile/ui/settings.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -95,8 +97,13 @@ class _DevSignInState extends State<DevSignIn> {
     AuthResult authResult =
         await auth.signInWithEmailAndPassword(email: email, password: pass);
     if (authResult.user != null) {
-      print('🔑 🔑 🔑 🔑 🔑 ${authResult.user.displayName} 🔑 has logged in');
-      Navigator.pop(context, true);
+      print(
+          '🔑 🔑 🔑 🔑 🔑 ${authResult.user.displayName} 🔑 has logged in, starting Profile settings');
+      Navigator.push(
+          context,
+          SlideRightRoute(
+            widget: Settings(m),
+          ));
     } else {
       AppSnackbar.showErrorSnackbar(
           scaffoldKey: _key, message: 'User does not exist on Firebase auth');
