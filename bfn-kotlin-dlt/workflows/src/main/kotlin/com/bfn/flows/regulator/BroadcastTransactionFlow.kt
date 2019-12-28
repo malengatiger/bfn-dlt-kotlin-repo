@@ -14,11 +14,12 @@ class BroadcastTransactionFlow(private val signedTransaction: SignedTransaction)
     @Suspendable
     @Throws(FlowException::class)
     override fun call(): Void? {
-        Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 " +
-                "BroadcastTransactionFlow - share transaction with nodes \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 ")
+        Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDD0A \uD83D\uDD0A " +
+                "BroadcastTransactionFlow - share transaction with nodes " +
+                "\uD83D\uDD0A \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 ")
+
         val meParty = serviceHub.ourIdentity
         val otherNodes = serviceHub.networkMapCache.allNodes
-
         otherNodes.forEach() {
             val party = it.legalIdentities.first()
             if (party.name.organisation == meParty.name.organisation
@@ -29,15 +30,15 @@ class BroadcastTransactionFlow(private val signedTransaction: SignedTransaction)
                     val counterPartySession = initiateFlow(party)
                     logger.info("\uD83D\uDE0E \uD83D\uDE0E Sending transaction to \uD83C\uDF3F $party  \uD83C\uDF3F")
                     subFlow(SendTransactionFlow(counterPartySession, signedTransaction))
-                    Companion.logger.info("\uD83E\uDD16 \uD83E\uDD16 \uD83C\uDF3F " +
-                            "\uD83C\uDF3F \uD83C\uDF3F transaction has been shared with $party !! \uD83E\uDD16 ")
                 } catch (e: Exception) {
                     Companion.logger.warn("\uD83D\uDE0E \uD83D\uDE0E Unable to send transaction to $party")
                 }
             }
         }
+
         Companion.logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35  " +
-                "\uD83E\uDD1F transaction sharing with  ${otherNodes.size - 2} other nodes is \uD83E\uDD1F COMPLETE \uD83E\uDD1F")
+                "\uD83E\uDD1F transaction sharing with  ${otherNodes.size - 2} other nodes is " +
+                "\uD83E\uDD1F COMPLETE \uD83E\uDD1F")
 
         return null
     }

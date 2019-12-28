@@ -218,12 +218,14 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
 
         return mSignedTransactionDone
     }
-
+//kk$Tiger#3m
     @Suspendable
     private fun createToken(selected: InvoiceOfferState): FungibleToken {
         Companion.logger.info("\uD83E\uDDE9 \uD83E\uDDE9 Issuing Token: supplier: ${selected.supplier.host}  " +
                 "\uD83C\uDF3F  investor: ${selected.investor.host} \uD83C\uDF3F ")
 
+        //todo - figure out who the token holder is: investor or customer? -
+        // investor has to pay supplier (discounted); then customer has to pay investor (full amount)
         val investorStateAndRef = serviceHub.accountService.accountInfo(selected.investor.identifier.id)
         val investorAccount = investorStateAndRef!!.state.data
 
@@ -238,7 +240,7 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         return fungibleToken
     }
 
-    private val pageSize: Int = 200
+    private val pageSize: Int = 2000
     @Suspendable
     fun query(pageNumber: Int): Vault.Page<InvoiceOfferState> {
         val criteria = VaultQueryCriteria(
@@ -274,16 +276,14 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
         if (list.isEmpty()) {
             return null
         }
-        //todo - what if multiple offers have same offerAmount? Who gets the deal????
         val profile = serviceHub.cordaService(ProfileFinderService::class.java)
                 .findSupplierProfile(supplierAccountId)
 
         var numberInvalid = 0
         if (profile == null) {
             logger.info("\uD83C\uDFB1 \uD83C\uDFB1 \uD83C\uDFB1  Profile is NULL. returning last of ${list.size}")
-            val sorted = list.sortedBy { it.state.data.offerAmount }
-            val selected = sorted.last()
-            log(sorted, selected)
+            val selected = chooseOne(list)
+            log(list, selected)
             return Pair(list, selected)
         } else {
             Companion.logger.info("\uD83C\uDF21 \uD83C\uDF21 \uD83C\uDF21 \uD83C\uDF21 " +
@@ -297,11 +297,10 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
                 }
             }
             return if (filteredList.isNotEmpty()) {
-                val sorted = filteredList.sortedBy { it.state.data.offerAmount }
-                val selected = sorted.last()
+                val selected = chooseOne(filteredList)
                 logger.info("\uD83D\uDD25\uD83D\uDD25 \uD83D\uDD25 Offers that did not make the cut:" +
                         " \uD83D\uDD25 $numberInvalid \uD83D\uDD25")
-                log(sorted, selected)
+                log(filteredList, selected)
                 Pair(filteredList, selected)
             } else {
                 Companion.logger.info("\uD83D\uDD25\uD83D\uDD25 \uD83D\uDD25 No Offers made the cut:")
@@ -312,6 +311,18 @@ class BestOfferForInvoiceFlow(private val supplierAccountId: String,
 
     }
 
+    @Suspendable
+    private fun chooseOne(filteredList: List<StateAndRef<InvoiceOfferState>>) : StateAndRef<InvoiceOfferState> {
+        val sorted = filteredList.sortedBy { it.state.data.discount }
+        val winningDiscount = sorted.first()
+        val similarDiscount = sorted.toList().takeWhile { it.state.data.discount == winningDiscount.state.data.discount }
+        if (similarDiscount.size == 1) {
+            return similarDiscount[0]
+        }
+        //todo - there are multiple investors with same offer, select by some parameter; currently random offer is selected
+        val index = Random(Date().time).nextInt(similarDiscount.size - 1)
+        return similarDiscount[index]
+    }
     private fun log(sorted: List<StateAndRef<InvoiceOfferState>>, selected: StateAndRef<InvoiceOfferState>) {
         logger.info("\uD83E\uDDE9 InvoiceOffers found for invoice:  \uD83C\uDF00 ${sorted.size}  selected: " +
                 "\uD83E\uDDE9 ${selected.state.data.offerAmount}")

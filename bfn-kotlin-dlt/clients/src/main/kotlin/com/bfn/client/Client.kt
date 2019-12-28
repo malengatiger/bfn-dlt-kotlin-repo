@@ -1,6 +1,7 @@
 package com.bfn.client
 
 import com.bfn.client.dto.*
+import com.bfn.client.web.InvoiceIntegration
 import com.bfn.contractstates.states.*
 import com.google.gson.GsonBuilder
 import com.r3.corda.lib.accounts.contracts.states.AccountInfo
@@ -63,21 +64,25 @@ private class Client {
 //        generateCrossNodeInvoices(2, 5)
 
 //        logger.info(" HOUR : ${1000 * 60 * 60}")
-        generateInvoices(0, 30)
-        generateInvoices(1, 30)
-        generateInvoices(2, 30)
+        generateInvoices(0, 1)
+//        generateInvoices(1, 30)
+//        generateInvoices(2, 30)
+////
+//        generateInvoices(0, 30)
+//        generateInvoices(1, 30)
+//        generateInvoices(2, 30)
 
 //
-        generateOffers(0)
-        generateOffers(1)
-        generateOffers(2)
-//
+//        generateOffers(0)
+//        generateOffers(1)
+//        generateOffers(2)
+////
 //        findBestOffers(proxyPartyA)
 //        findBestOffers(proxyPartyB)
 //        findBestOffers(proxyPartyC)
 //////
-        printTotals()
-////        getRegulatorTotals(proxyReg)
+//        printTotals()
+        getRegulatorTotals(proxyReg)
 //
 //        printInvoices(proxyPartyA, consumed = false)
 //        printInvoices(proxyPartyB, consumed = false)

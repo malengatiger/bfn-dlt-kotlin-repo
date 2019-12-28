@@ -23,6 +23,7 @@ import com.bfn.client.web.FirebaseUtil.sendInvoiceMessage
 import com.bfn.client.web.FirebaseUtil.sendInvoiceOfferMessage
 import com.bfn.contractstates.states.*
 import com.bfn.flows.SupplierProfileFlow
+import com.bfn.flows.regulator.BroadcastTransactionFlow
 import net.corda.core.contracts.ContractState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.messaging.CordaRPCOps
@@ -30,6 +31,7 @@ import net.corda.core.node.services.Vault.StateStatus
 import net.corda.core.node.services.vault.PageSpecification
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.node.services.vault.QueryCriteria.VaultQueryCriteria
+import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -130,14 +132,15 @@ object WorkerBee {
         logger.info(msg)
         return dto
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun getSupplierProfile(proxy: CordaRPCOps, accountId: String?): SupplierProfileStateDTO? {
         val list: List<StateAndRef<SupplierProfileState>> = proxy.vaultQueryByWithPagingSpec(
                 criteria = VaultQueryCriteria(status = StateStatus.UNCONSUMED),
-                paging = PageSpecification(1,4000),
+                paging = PageSpecification(1, 4000),
                 contractStateType = SupplierProfileState::class.java
-                ).states
+        ).states
         var dto: SupplierProfileStateDTO? = null
         for (profile in list) {
             if (profile.state.data.accountId.equals(accountId, ignoreCase = true)) {
@@ -153,12 +156,13 @@ object WorkerBee {
         logger.info(msg)
         return dto
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun getInvestorProfile(proxy: CordaRPCOps, accountId: String?): InvestorProfileStateDTO? {
         val list: List<StateAndRef<InvestorProfileState>> = proxy.vaultQueryByWithPagingSpec(
                 criteria = VaultQueryCriteria(status = StateStatus.UNCONSUMED),
-                paging = PageSpecification(1,4000),
+                paging = PageSpecification(1, 4000),
                 contractStateType = InvestorProfileState::class.java
         ).states
         var dto: InvestorProfileStateDTO? = null
@@ -279,9 +283,10 @@ object WorkerBee {
         }
         return dtos
     }
+
     @JvmStatic
     @Throws(Exception::class)
-    fun createInvestorProfile(proxy: CordaRPCOps, profile: InvestorProfileStateDTO): String{
+    fun createInvestorProfile(proxy: CordaRPCOps, profile: InvestorProfileStateDTO): String {
 
         val state = InvestorProfileState(
                 issuedBy = proxy.nodeInfo().legalIdentities.first(),
@@ -298,9 +303,10 @@ object WorkerBee {
         logger.info(m)
         return m
     }
+
     @JvmStatic
     @Throws(Exception::class)
-    fun createSupplierProfile(proxy: CordaRPCOps, profile: SupplierProfileStateDTO): String{
+    fun createSupplierProfile(proxy: CordaRPCOps, profile: SupplierProfileStateDTO): String {
 
         val state = SupplierProfileState(
                 issuedBy = proxy.nodeInfo().legalIdentities.first(),
@@ -315,6 +321,7 @@ object WorkerBee {
         logger.info(m)
         return m
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun makeInvoiceOffers(proxy: CordaRPCOps, investorId: String): List<InvoiceOfferDTO> {
@@ -337,6 +344,7 @@ object WorkerBee {
         logger.info(m)
         return dtos
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun findTokensForNode(proxy: CordaRPCOps): List<OfferAndTokenDTO> {
@@ -358,6 +366,7 @@ object WorkerBee {
         logger.info(m)
         return dtos
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun findTokensForAccount(proxy: CordaRPCOps, accountId: String): List<OfferAndTokenDTO> {
@@ -406,7 +415,7 @@ object WorkerBee {
         val dtos: MutableList<InvoiceOfferDTO> = mutableListOf()
         offers.forEach() {
 
-                dtos.add(getDTO(it))
+            dtos.add(getDTO(it))
 
         }
         val m = "\uD83D\uDCA6  done listing InvoiceOfferStates:  \uD83C\uDF3A " + offers.size
@@ -573,7 +582,8 @@ object WorkerBee {
 
     @JvmStatic
     @Throws(Exception::class)
-    fun startInvoiceRegistrationFlow(proxy: CordaRPCOps, invoice: InvoiceDTO): InvoiceDTO {
+    fun startInvoiceRegistrationFlow(proxy: CordaRPCOps, invoice: InvoiceDTO,
+                                     shareWithOtherNodes: Boolean = true): InvoiceDTO {
         return try {
             val accounts = proxy.vaultQuery(AccountInfo::class.java).states
             var supplierInfo: AccountInfo? = null
@@ -605,19 +615,20 @@ object WorkerBee {
                     supplierInfo,
                     customerInfo,
                     Date())
-            val signedTransactionCordaFuture = proxy.startTrackedFlowDynamic(
-                    InvoiceRegistrationFlow::class.java, invoiceState).returnValue
-            val issueTx = signedTransactionCordaFuture.get()
+            val issueTx = proxy.startTrackedFlowDynamic(
+                    InvoiceRegistrationFlow::class.java, invoiceState).returnValue.getOrThrow()
             logger.info("\uD83C\uDF4F \uD83C\uDF4F \uD83C\uDF4F \uD83C\uDF4F flow completed... " +
                     "\uD83C\uDF4F \uD83C\uDF4F \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06  " +
                     "\uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C  signedTransaction returned: \uD83E\uDD4F "
                     + issueTx.toString() + " \uD83E\uDD4F \uD83E\uDD4F ")
-//            try {
-//                logger.info("Share the new invoice with other nodes")
-//                proxy.startTrackedFlowDynamic(
-//                        ShareInvoiceFlow::class.java, invoiceState.invoiceId.toString()).returnValue
-//            } catch (e: Exception) {
-//               logger.warn("Invoice sharing failed", e)
+//            if (shareWithOtherNodes) {
+//                try {
+//                    logger.info("........  \uD83D\uDCE3 \uD83D\uDCE3 \uD83D\uDCE3 Share the new invoice with other nodes")
+//                    proxy.startTrackedFlowDynamic(
+//                            BroadcastTransactionFlow::class.java, issueTx).returnValue
+//                } catch (e: Exception) {
+//                    logger.warn("Invoice sharing failed", e)
+//                }
 //            }
             val dto = getDTO(invoiceState)
             //logger.info("Check amount discount total calculations: " + GSON.toJson(dto))
@@ -838,6 +849,7 @@ object WorkerBee {
         invoice.totalAmount = state.totalAmount
         return invoice
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun getDTO(state: InvoiceOfferState): InvoiceOfferDTO {
@@ -864,8 +876,9 @@ object WorkerBee {
         info.name = a.name
         return info
     }
+
     @JvmStatic
-    fun getDTO(a:InvestorProfileState): InvestorProfileStateDTO {
+    fun getDTO(a: InvestorProfileState): InvestorProfileStateDTO {
         return InvestorProfileStateDTO(
                 issuedBy = a.issuedBy.toString(),
                 accountId = a.accountId, date = a.date,
@@ -875,8 +888,9 @@ object WorkerBee {
                 minimumInvoiceAmount = a.minimumInvoiceAmount
         )
     }
+
     @JvmStatic
-    fun getDTO(a:SupplierProfileState): SupplierProfileStateDTO {
+    fun getDTO(a: SupplierProfileState): SupplierProfileStateDTO {
         return SupplierProfileStateDTO(
                 issuedBy = a.issuedBy.toString(),
                 accountId = a.accountId, date = a.date,

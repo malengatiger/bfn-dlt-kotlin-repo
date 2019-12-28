@@ -20,8 +20,8 @@ class ReceiveRegulatoryReportFlow(private val counterPartySession: FlowSession) 
         logger.info("\uD83C\uDF45 \uD83C\uDF45 ReceiveRegulatoryReportFlow: This party:  \uD83C\uDF45 $myself" +
                 "party from session: \uD83C\uDF45  $party")
 
-        subFlow(ReceiveTransactionFlow(counterPartySession,
-                false, StatesToRecord.ALL_VISIBLE))
+        subFlow(ReceiveTransactionFlow(otherSideSession = counterPartySession,
+                checkSufficientSignatures = false, statesToRecord = StatesToRecord.ALL_VISIBLE))
         val page = serviceHub.vaultService.queryBy(
                 criteria = QueryCriteria.VaultQueryCriteria(Vault.StateStatus.ALL),
                 contractStateType = InvoiceState::class.java,
@@ -29,7 +29,7 @@ class ReceiveRegulatoryReportFlow(private val counterPartySession: FlowSession) 
         )
         Companion.logger.info("\uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 \uD83D\uDE21 " +
                 "ReceiveRegulatoryReportFlow received state, Senor! \uD83D\uDE3C " +
-                " InvoiceStates on Node: ${page.totalStatesAvailable}\uD83D\uDE21 \uD83D\uDE21")
+                " InvoiceStates on Node: ${page.states.size}\uD83D\uDE21 \uD83D\uDE21")
         return null
     }
 

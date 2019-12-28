@@ -12,7 +12,7 @@ class BroadcastTransactionFlowResponder(private val counterPartySession: FlowSes
     override fun call(): Void? {
 
         Companion.logger.info("\uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C " +
-        "BroadcastTransactionFlowResponder starting ....")
+        "BroadcastTransactionFlowResponder starting .... \uD83D\uDD0A \uD83D\uDD0A \uD83D\uDD0A ")
         val myself = serviceHub.ourIdentity
         val party = counterPartySession.counterparty
         Companion.logger.info("\uD83C\uDF45 \uD83C\uDF45 This party:  \uD83C\uDF45 $myself" +

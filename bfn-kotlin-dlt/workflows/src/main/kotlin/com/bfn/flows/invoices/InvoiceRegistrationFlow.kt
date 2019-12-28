@@ -3,6 +3,7 @@ package com.bfn.flows.invoices
 import co.paralleluniverse.fibers.Suspendable
 import com.bfn.contractstates.contracts.InvoiceContract
 import com.bfn.contractstates.states.InvoiceState
+import com.bfn.flows.regulator.BroadcastTransactionFlow
 import com.bfn.flows.regulator.ReportToRegulatorFlow
 import com.bfn.flows.services.RegulatorFinderService
 import com.google.common.collect.ImmutableList
@@ -143,12 +144,14 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
 
     @Suspendable
     @Throws(FlowException::class)
-    private fun reportToRegulator(mSignedTransactionDone: SignedTransaction) {
+    private fun broadcastTransaction(mSignedTransactionDone: SignedTransaction) {
+        Companion.logger.info("\uD83D\uDD0A \uD83D\uDD0A \uD83D\uDD0A \uD83D\uDD0A " +
+                "Start broadcasting successful invoice transaction")
         try {
             subFlow(ReportToRegulatorFlow(mSignedTransactionDone))
         } catch (e: Exception) {
-            Companion.logger.error(" \uD83D\uDC7F  \uD83D\uDC7F  \uD83D\uDC7F Regulator fell down.  \uD83D\uDC7F IGNORED  \uD83D\uDC7F ", e)
-            throw FlowException("Regulator fell down!")
+            Companion.logger.error("\uD83D\uDC7F \uD83D\uDC7F \uD83D\uDC7F Broadcast fell down. \uD83D\uDC7F IGNORED  \uD83D\uDC7F ", e)
+            throw FlowException("Broadcast fell down!")
         }
     }
 
@@ -165,13 +168,20 @@ class InvoiceRegistrationFlow(private val invoiceState: InvoiceState) : FlowLogi
         Companion.logger.info("\uD83C\uDFBD \uD83C\uDFBD \uD83C\uDFBD \uD83C\uDFBD  Signatures collected OK!  \uD83D\uDE21 \uD83D\uDE21 " +
                 ".... will call FinalityFlow ... \uD83C\uDF3A \uD83C\uDF3A txId: "
                 + signedTransaction.id.toString())
-        val mSignedTransactionDone = subFlow(
-                FinalityFlow(signedTransaction, sessions))
+
+
+        //finalize
+        val tx = subFlow(FinalityFlow(signedTransaction, sessions)).also {
+            // sends to everyone in the network
+            subFlow(BroadcastTransactionFlow(it))
+        }
+
         Companion.logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D  " +
                 " \uD83D\uDC4C \uD83D\uDC4C \uD83D\uDC4C OTHER NODE(S): FinalityFlow has been executed ..." +
-                "\uD83C\uDF40 \uD83C\uDF40 \uD83C\uDF40 YEBO!! " +
+                "\uD83C\uDF40 \uD83C\uDF40 \uD83C\uDF40 YEBO!! ... " +
                 "\uD83E\uDD66 \uD83E\uDD66")
-        return mSignedTransactionDone
+
+        return tx
     }
 
     @Suspendable

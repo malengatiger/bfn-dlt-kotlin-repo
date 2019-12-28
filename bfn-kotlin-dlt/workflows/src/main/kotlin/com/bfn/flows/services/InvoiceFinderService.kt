@@ -45,10 +45,9 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
         logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E InvoiceFinderService: findInvoices ... " +
                 "\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ")
 
-        val account = accountService.accountInfo(UUID.fromString(investorId))?.state?.data
-                ?: throw IllegalArgumentException("\uD83D\uDC7F findInvoicesForInvestor: Investor Account not found: $investorId")
+        val account = accountService.accountInfo(UUID.fromString(investorId)) ?: return listOf()
         logger.info("\uD83D\uDCA6 Finding invoices for investor: \uD83D\uDC7D \uD83D\uDC7D " +
-                " ${account.name} - ${account.host}")
+                " ${account.state.data.name} - ${account.state.data.host}")
         val sortedInvoices = getAllInvoices()
         val bestInvoices: MutableList<InvoiceState>? = mutableListOf()
         val profile = serviceHub.cordaService(ProfileFinderService::class.java)
@@ -72,15 +71,15 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
         logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E InvoiceFinderService: findInvoices ... " +
                 "\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ")
 
-        val account = accountService.accountInfo(UUID.fromString(supplierId))?.state?.data
-                ?: throw IllegalArgumentException("\uD83D\uDC7F findInvoicesForSupplier: Supplier Account not found: $supplierId")
+        val account = accountService.accountInfo(UUID.fromString(supplierId)) ?: return listOf()
+
         logger.info("\uD83D\uDCA6 Finding invoices for supplier: \uD83D\uDC7D \uD83D\uDC7D " +
-                " ${account.name} - ${account.host}")
+                " ${account.state.data.name} - ${account.state.data.host}")
         val sortedInvoices = getAllInvoices()
         val supplierInvoices: MutableList<InvoiceState> = mutableListOf()
 
         sortedInvoices.forEach(){
-            if (it.supplierInfo.name == account.name) {
+            if (it.supplierInfo.name == account.state.data.name) {
                 supplierInvoices.add(it)
             }
         }
@@ -108,15 +107,14 @@ class InvoiceFinderService(private val serviceHub: AppServiceHub) : SingletonSer
         logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E InvoiceFinderService: findInvoices ... " +
                 "\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ")
 
-        val account = accountService.accountInfo(UUID.fromString(customerId))?.state?.data
-                ?: throw IllegalArgumentException("\uD83D\uDC7F findInvoicesForCustomer: Customer Account not found: $customerId")
+        val account = accountService.accountInfo(UUID.fromString(customerId)) ?: return listOf()
         logger.info("\uD83D\uDCA6 Finding invoices for customer: \uD83D\uDC7D \uD83D\uDC7D " +
-                " ${account.name} - ${account.host}")
+                " ${account.state.data.name} - ${account.state.data.host}")
         val sortedInvoices = getAllInvoices()
         val supplierInvoices: MutableList<InvoiceState>? = mutableListOf()
 
         sortedInvoices.forEach(){
-            if (it.customerInfo.name == account.name) {
+            if (it.customerInfo.name == account.state.data.name) {
                 supplierInvoices!!.add(it)
             }
         }

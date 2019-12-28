@@ -39,7 +39,7 @@ class _InvoicesPageState extends State<InvoicesPage>
 
   _getInvoicesAndOffers() async {
     account = await bfnBloc.getMyAccount();
-    print("My account: 🍊 🍊 🍊 ${account.toJson()} 🍊 🍊 🍊 ");
+    //print("My account: 🍊 🍊 🍊 ${account.toJson()} 🍊 🍊 🍊 ");
     if (account.host.contains('Regulator')) {
       offers = await bfnBloc.getInvoiceOffers(consumed: false);
       invoices = await bfnBloc.getInvoices();
@@ -192,7 +192,7 @@ class _OfferListState extends State<OfferList> {
     var x = 0;
     widget.offers.forEach((o) {
       x++;
-      debugPrint('OFFER  #$x : 🥏  🥏  🥏  ${o.toJson()}');
+      //debugPrint('OFFER  #$x : 🥏  🥏  🥏  ${o.toJson()}');
     });
     return StreamBuilder<InvoiceOffer>(
         stream: bfnBloc.offerStream,
@@ -495,8 +495,8 @@ class _InvoiceListState extends State<InvoiceList> {
   }
 
   void _displayDialog(Invoice invoice) async {
-    print(
-        '👽👽👽 Invoice Selected: 👽👽👽 ${invoice.toJson()} 👽👽👽 check me:  ${widget.account.identifier} vs customer: ${invoice.customer.identifier}');
+//    print(
+//        '👽👽👽 Invoice Selected: 👽👽👽 ${invoice.toJson()} 👽👽👽 check me:  ${widget.account.identifier} vs customer: ${invoice.customer.identifier}');
     if (invoice.customer.identifier == widget.account.identifier) {
       showDialog(
           context: widget.context,
