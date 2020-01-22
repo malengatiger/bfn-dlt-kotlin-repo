@@ -4,7 +4,6 @@ import com.google.gson.GsonBuilder
 import com.bfn.client.dto.*
 import com.bfn.client.web.FirebaseUtil.deleteCollections
 import com.bfn.client.web.FirebaseUtil.deleteUsers
-import com.bfn.client.web.FirebaseUtil.users
 import com.bfn.client.web.WorkerBee.getNetworkAccounts
 import com.bfn.client.web.WorkerBee.getNodeAccounts
 import com.bfn.client.web.WorkerBee.startAccountRegistrationFlow
@@ -64,14 +63,14 @@ object DemoUtil {
             logger.warn("🧩🧩🧩🧩🧩🧩🧩🧩🧩 deleteFirestore is 🧩 FALSE 🧩🧩🧩🧩🧩 ")
         }
         //
-        logger.info(" 👽 👽 👽 👽 start data generation:  👽 👽 👽 👽  ")
+        logger.info(" 👽 👽 👽 👽 start data generation:  numberOfAccounts $numberOfAccounts 👽 👽 👽 👽  ")
         generateAccounts(numberOfAccounts)
         //
         val list = getNodeAccounts(proxy!!)
         var cnt = 0
         logger.info(" \uD83C\uDF4E  \uD83C\uDF4E Total Number of Accounts on Node after sharing:" +
                 " \uD83C\uDF4E  \uD83C\uDF4E " + list.size)
-        val userRecords = users
+        val userRecords = FirebaseUtil.getUsers()
         for (userRecord in userRecords) {
             cnt++
             logger.info("🔵 🔵 userRecord 😡 #" + cnt + " - " + userRecord.displayName + " 😡 " + userRecord.email)
@@ -197,14 +196,18 @@ object DemoUtil {
     }
 
     @Throws(Exception::class)
-    private fun generateAccounts(count: Int) {
+    private fun generateAccounts(count: Int = 9) {
         logger.info("\n\n\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 generateAccounts started ...  " +
-                "\uD83D\uDD06 \uD83D\uDD06 ")
+                "\uD83D\uDD06 \uD83D\uDD06 count: $count")
         for (x in 0..count) {
-            var phone = phone
+            val phone = phone
             val prefix = myNode!!.legalIdentities[0].name.organisation
             try {
-                startAccountRegistrationFlow(proxy!!, randomName, "$prefix$phone@gmail.com", "pass123", phone)
+                startAccountRegistrationFlow(proxy!!,
+                        randomName,
+                        "$prefix$phone@gmail.com",
+                        "pass123",
+                        phone)
             } catch (e1: Exception) {
                 logger.warn("Unable to add account - probable duplicate name")
             }
@@ -214,7 +217,7 @@ object DemoUtil {
     }
 
     private val phone: String
-        private get() {
+        get() {
             val sb = StringBuilder()
             sb.append("27")
             sb.append(random.nextInt(9))
@@ -366,6 +369,12 @@ object DemoUtil {
 
     var names: MutableList<String> = ArrayList()
     var map = HashMap<String, String?>()
+
+    @JvmStatic
+    fun getSomeName(): String {
+       return randomName
+    }
+
     @get:Throws(Exception::class)
     val randomName: String
         get() {

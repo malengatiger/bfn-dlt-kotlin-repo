@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="655a3433-d840-4d73-9d6e-f6d199ee8da7" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/../.idea/bfn-dlt-kotlin-repo.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/.idea/modules/clients/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/.vscode/settings.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/.firebaserc" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/bootstrapx.applicationx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/firebase.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/firestore.indexes.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/firestore.rules" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/commands.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/partyA.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfnconfig-server/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfnconfig-server/.mvn/wrapper/MavenWrapperDownloader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfnconfig-server/.mvn/wrapper/maven-wrapper.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfnconfig-server/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfnconfig-server/emojis.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfnconfig-server/mvnw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfnconfig-server/mvnw.cmd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfnconfig-server/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfnconfig-server/src/main/java/com/bfnconfig/BfnconfigApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfnconfig-server/src/main/java/com/bfnconfig/EndpointsListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfnconfig-server/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../bfnconfig-server/src/test/java/com/bfnconfig/BfnconfigApplicationTests.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.gradle/5.4.1/executionHistory/executionHistory.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.gradle/5.4.1/executionHistory/executionHistory.lock" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.gradle/5.4.1/fileChanges/last-build.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.gradle/5.4.1/fileHashes/fileHashes.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.gradle/5.4.1/fileHashes/fileHashes.lock" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.gradle/5.4.1/gc.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.gradle/buildOutputCleanup/cache.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.gradle/vcs-1/gc.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/.name" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/azureSettings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/caches/build_file_checksums.ser" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/dictionaries/aubs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/gradle.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/kotlinc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/runConfigurations.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/SSIApp.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/build.gradle" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/build/generated/source/buildConfig/debug/com/bfn/ssiapp/BuildConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/proguard-rules.pro" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/androidTest/java/com/bfn/ssiapp/ExampleInstrumentedTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/AndroidManifest.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/NewMainActivity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/application/AppConfig.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/application/Application.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/application/Const.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/communcations/MyFirebaseInstanceIDService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/communcations/MyFirebaseMessagingService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/communcations/SovrinAgentService.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/data/Model.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/di/Modules.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/activities/AskClaimsActivity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/activities/DigitalReceiptActivity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/activities/MainActivity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/activities/SimpleScannerActivity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/activities/SplashActivity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/activities/TrackPackageActivity.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/adapters/ClaimsAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/adapters/HistoryAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/adapters/OrderClickListener.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/adapters/OrdersAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/adapters/TimeLineAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/adapters/ViewPagerAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/fragments/ClaimsFragment.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/fragments/HistoryFragment.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/fragments/OrdersFragment.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/ui/views/ScanQrCodeView.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/utils/DateTimeUtils.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/utils/Extensions.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/main/utils/NotificationHelper.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/ui/dashboard/DashboardFragment.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/ui/dashboard/DashboardViewModel.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/ui/home/HomeFragment.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/ui/home/HomeViewModel.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/ui/notifications/NotificationsFragment.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/java/com/bfn/ssiapp/ui/notifications/NotificationsViewModel.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-anydpi/ic_notification.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/barcode.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/bg_main.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/down.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/green_lock.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/ic_blur_on.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/ic_notification.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/logo_luxoft.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/logo_x.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/medicine.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/progress_spinner.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/something.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/up.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-hdpi/user.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/barcode.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/bg_main.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/down.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/green_lock.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/ic_blur_on.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/ic_notification.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/logo_luxoft.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/logo_x.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/medicine.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/progress_spinner.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/something.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/up.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-mdpi/user.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable/bg_block_qr_code.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable/gradient.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable/ic_back.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable/ic_dashboard_black_24dp.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable/ic_home_black_24dp.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable/ic_launcher_background.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable/ic_marker.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable/ic_notifications_black_24dp.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable/ic_qr_code.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable/launch_screen.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable/progress_animation.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/drawable/time_line_marker.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/activity_ask_claims.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/activity_digital_receipt.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/activity_main.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/activity_new_main.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/activity_scanner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/activity_simple_scanner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/activity_splash.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/activity_track_product.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/block_medicine_info.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/block_progress.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/block_scan_qr_code.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/fragment_claims.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/fragment_dashboard.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/fragment_home.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/fragment_notifications.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/fragment_recycler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/item_claim_pic.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/item_claim_text.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/item_history.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/item_history_content.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/item_order.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/item_receipt.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/item_timeline.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/layout/popup_layout.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/menu/bottom_nav_menu.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/menu/menu_claims.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-hdpi/ic_launcher.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-hdpi/ic_launcher_round.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-mdpi/ic_launcher.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-mdpi/ic_launcher_round.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-xhdpi/ic_launcher.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-xxhdpi/ic_launcher.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/navigation/mobile_navigation.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/values/attrs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/values/colors.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/values/dimens.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/values/ic_launcher_background.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/values/strings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/main/res/values/styles.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/app/src/test/java/com/bfn/ssiapp/ExampleUnitTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/build.gradle" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/emojis.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/gradle.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/gradlew" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/gradlew.bat" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/local.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../ssi-app/settings.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/Client.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/Client.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/web/AdminController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/web/AdminController.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/web/AppProperties.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/web/AppProperties.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/web/DemoUtil.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/web/DemoUtil.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/web/FirebaseScaffold.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/web/FirebaseScaffold.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/web/FirebaseUtil.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/web/FirebaseUtil.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/web/Server.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/kotlin/com/bfn/client/web/Server.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/clients/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfn-kotlin-dlt/contracts/src/main/kotlin/com/bfn/contractstates/states/OfferAndTokenState.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../bfn-kotlin-dlt/contracts/src/main/kotlin/com/bfn/contractstates/states/OfferAndTokenState.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bfnmobile/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../bfnmobile/.idea/workspace.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand />
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1WVf3c6KoDftIEGNm8BXsWtGfAz" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="android.sdk.path" value="$USER_HOME$/Library/Android/sdk" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="AndroidSdkUpdater" />
+    <property name="show.migrate.to.gradle.popup" value="false" />
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="655a3433-d840-4d73-9d6e-f6d199ee8da7" name="Default Changelist" comment="" />
+      <created>1579239484510</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1579239484510</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="962" y="443" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1579329379118">
+      <screen x="0" y="23" width="2560" height="1371" />
+    </state>
+    <state x="962" y="443" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/-1920.23.1920.1057/0.23.2560.1371@0.23.2560.1371" timestamp="1579329379118" />
+    <state x="900" y="341" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1579328772208">
+      <screen x="0" y="23" width="2560" height="1371" />
+    </state>
+    <state x="900" y="341" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/-1920.23.1920.1057/0.23.2560.1371@0.23.2560.1371" timestamp="1579328772208" />
+    <state x="651" y="412" key="new project wizard" timestamp="1579331374220">
+      <screen x="0" y="23" width="2560" height="1371" />
+    </state>
+    <state x="651" y="412" key="new project wizard/-1920.23.1920.1057/0.23.2560.1371@0.23.2560.1371" timestamp="1579331374220" />
+  </component>
+</project>

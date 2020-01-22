@@ -14,4 +14,5 @@ open class AppProperties {
     lateinit var intervalPartyA: String
     lateinit var intervalPartyB: String
     lateinit var intervalPartyC: String
+    lateinit var message: String
 }

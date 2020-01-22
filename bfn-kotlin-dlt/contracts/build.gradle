@@ -5,9 +5,9 @@ cordapp {
     targetPlatformVersion 4
     minimumPlatformVersion 4
     contract {
-        name "Template Contract"
-        vendor "Corda Open Source"
-        licence "A liberal, open source licence"
+        name "BFN Platform Contracts and States"
+        vendor "OneConnect"
+        licence "Apache 2"
         versionId 1
     }
     signing {

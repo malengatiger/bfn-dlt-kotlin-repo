@@ -78,9 +78,10 @@ object FirebaseUtil {
     @JvmStatic
     @Throws(ExecutionException::class, InterruptedException::class)
     fun addToken(token: TokenDTO) {
-      val future: ApiFuture<DocumentReference> = db.collection("tokens").add(token);
+        val future: ApiFuture<DocumentReference> = db.collection("tokens").add(token);
         logger.info("\uD83D\uDE3C \uD83D\uDE3C Token added to Firestore: \uD83D\uDC9A ${future.getOrThrow().path}")
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun addNode(node: NodeInfoDTO?) {
@@ -93,9 +94,10 @@ object FirebaseUtil {
             throw e
         }
     }
+
     @JvmStatic
     @Throws(Exception::class)
-    fun refreshNodes(proxy: CordaRPCOps, appProperties: AppProperties) : List<NodeInfoDTO> {
+    fun refreshNodes(proxy: CordaRPCOps, appProperties: AppProperties): List<NodeInfoDTO> {
         logger.info(" \uD83C\uDF3A \uD83C\uDF3A \uD83E\uDD4F \uD83E\uDD4F \uD83E\uDD4F \uD83E\uDD4F  " +
                 "Refreshing Nodes on Firebase ...  \uD83C\uDF3A \uD83C\uDF3A ")
 
@@ -106,8 +108,8 @@ object FirebaseUtil {
                 it.webAPIUrl = appProperties.partyA
                 // "webAPIUrl": "http://192.168.86.240:10056/"
                 val index = appProperties.partyA.lastIndexOf(":")
-                val mPort = appProperties.partyA.substring(index + 1,endIndex = index + 6)
-                val mHost = appProperties.partyA.substring(0,endIndex = index )
+                val mPort = appProperties.partyA.substring(index + 1, endIndex = index + 6)
+                val mHost = appProperties.partyA.substring(0, endIndex = index)
                 it.port = mPort.toLong()
                 it.host = mHost
                 logger.info(" \uD83C\uDFC0 \uD83C\uDFC0 \uD83C\uDFC0 host: $mHost port: $mPort")
@@ -115,8 +117,8 @@ object FirebaseUtil {
             if (it.addresses!!.first().contains("PartyB")) {
                 it.webAPIUrl = appProperties.partyB
                 val index = appProperties.partyB.lastIndexOf(":")
-                val mPort = appProperties.partyB.substring(index + 1,endIndex = index + 6)
-                val mHost = appProperties.partyB.substring(0,endIndex = index )
+                val mPort = appProperties.partyB.substring(index + 1, endIndex = index + 6)
+                val mHost = appProperties.partyB.substring(0, endIndex = index)
                 it.port = mPort.toLong()
                 it.host = mHost
                 logger.info(" \uD83C\uDFC0 \uD83C\uDFC0 \uD83C\uDFC0 host: $mHost port: $mPort")
@@ -124,8 +126,8 @@ object FirebaseUtil {
             if (it.addresses!!.first().contains("PartyC")) {
                 it.webAPIUrl = appProperties.partyC
                 val index = appProperties.partyC.lastIndexOf(":")
-                val mPort = appProperties.partyC.substring(index + 1,endIndex = index + 6)
-                val mHost = appProperties.partyC.substring(0,endIndex = index )
+                val mPort = appProperties.partyC.substring(index + 1, endIndex = index + 6)
+                val mHost = appProperties.partyC.substring(0, endIndex = index)
                 it.port = mPort.toLong()
                 it.host = mHost
                 logger.info(" \uD83C\uDFC0 \uD83C\uDFC0 \uD83C\uDFC0 host: $mHost port: $mPort")
@@ -133,8 +135,8 @@ object FirebaseUtil {
             if (it.addresses!!.first().contains("Regulator")) {
                 it.webAPIUrl = appProperties.regulator
                 val index = appProperties.regulator.lastIndexOf(":")
-                val mPort = appProperties.regulator.substring(index + 1,endIndex = index + 6)
-                val mHost = appProperties.regulator.substring(0,endIndex = index )
+                val mPort = appProperties.regulator.substring(index + 1, endIndex = index + 6)
+                val mHost = appProperties.regulator.substring(0, endIndex = index)
                 it.port = mPort.toLong()
                 it.host = mHost
                 logger.info(" \uD83C\uDFC0 \uD83C\uDFC0 \uD83C\uDFC0 host: $mHost port: $mPort")
@@ -148,6 +150,7 @@ object FirebaseUtil {
         }
         return kList
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun deleteNodes() {
@@ -159,10 +162,11 @@ object FirebaseUtil {
             throw e
         }
     }
+
     @JvmStatic
     @Throws(Exception::class)
     fun getCordaNodes(): List<NodeInfoDTO> {
-        var mList : MutableList<NodeInfoDTO> = mutableListOf()
+        var mList: MutableList<NodeInfoDTO> = mutableListOf()
         try {
             val future = db.collection("nodes").get()
             val qs: QuerySnapshot = future.get()
@@ -242,21 +246,20 @@ object FirebaseUtil {
     }
 
     @JvmStatic
-    @get:Throws(FirebaseAuthException::class)
-    val users: List<UserRecord>
-        get() {
-            val records: MutableList<UserRecord> = ArrayList()
+    @Throws(FirebaseAuthException::class)
+    fun getUsers(): List<UserRecord> {
+        logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06 Getting Firebase auth users ...")
+        val records: MutableList<UserRecord> = ArrayList()
+        try {
             val page = auth.listUsers(null)
             val m = page.values
             m.forEach(Consumer { e: ExportedUserRecord -> records.add(e) })
-//            var cnt = 0
-//            for (record in records) {
-//                cnt++
-//                logger.info("\uD83E\uDD66  \uD83E\uDD66 UserRecord #" +
-//                        cnt + " from Firebase: " + GSON.toJson(record))
-//            }
-            return records
+        } catch (e: Exception) {
+            logger.error(e.message)
         }
+
+        return records
+    }
 
     @JvmStatic
     fun deleteCollections() {

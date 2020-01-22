@@ -26,10 +26,10 @@ echo "🔆 Woke up, 🔆 🔆 🔆  opening terminal for partyB"
 ttab ./scripts/npartyB.sh
 
 # ------------ partyC NODE
-echo "🕗  Sleeping for 15 seconds ........"
-sleep 15s
-echo "🔆 Woke up, 🔆 🔆 🔆  opening terminal for partyC"
-ttab ./scripts/npartyC.sh
+#echo "🕗  Sleeping for 15 seconds ........"
+#sleep 15s
+#echo "🔆 Woke up, 🔆 🔆 🔆  opening terminal for partyC"
+#ttab ./scripts/npartyC.sh
 
 echo "🔵 SLEEPING 🍎 10 🍎 seconds to let corda nodes finish booting up 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵"
 sleep 10s
@@ -45,9 +45,9 @@ sleep 30s
 echo "🔆 Woke up, 🧩 🧩 🧩 🧩  opening PartyB webServer"
 ttab ./scripts/wpartyB.sh
 
-sleep 30s
-echo "🔆 Woke up, 🧩 🧩 🧩 🧩  opening PartyC webServer"
-ttab ./scripts/wpartyC.sh
+#sleep 30s
+#echo "🔆 Woke up, 🧩 🧩 🧩 🧩  opening PartyC webServer"
+#ttab ./scripts/wpartyC.sh
 
 sleep 15s
 echo "🔆 Woke up, 🧩 🧩 🧩 🧩  starting Demo data generation  🔵 🔵 🔵 🔵 🔵"

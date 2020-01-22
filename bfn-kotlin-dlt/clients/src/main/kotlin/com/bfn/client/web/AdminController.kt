@@ -31,7 +31,7 @@ class AdminController(rpc: NodeRPCConnection) {
 
     @GetMapping(value = ["/demo"], produces = ["application/json"])
     @Throws(Exception::class)
-    private fun buildDemo(@RequestParam deleteFirestore: Boolean, @RequestParam numberOfAccounts: Int = 1): DemoSummary {
+    private fun buildDemo(@RequestParam deleteFirestore: Boolean, @RequestParam numberOfAccounts: Int = 9): DemoSummary {
         logger.info("\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 starting DemoUtil: buildDemo ... \uD83C\uDF4F deleteFirestore: $deleteFirestore")
         val result = DemoUtil.generateLocalNodeAccounts(proxy, deleteFirestore, numberOfAccounts)
         logger.info("\n\n\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 DemoUtil result: " +
@@ -218,7 +218,7 @@ class AdminController(rpc: NodeRPCConnection) {
     fun getUsersFromFirestore() : List<UserDTO> {
         val users: MutableList<UserDTO> = ArrayList()
         try {
-            val userRecords = FirebaseUtil.users
+            val userRecords = FirebaseUtil.getUsers()
             for (userRecord in userRecords) {
                 logger.info("🔵 🔵 userRecord 😡 " + userRecord.displayName + " 😡 " + userRecord.email)
                 val user = UserDTO()

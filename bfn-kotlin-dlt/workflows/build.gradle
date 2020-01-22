@@ -6,9 +6,9 @@ cordapp {
     targetPlatformVersion 4
     minimumPlatformVersion 4
     workflow {
-        name "Template Flows"
-        vendor "Corda Open Source"
-        licence "A liberal, open source licence"
+        name "BFN Platform Workflows"
+        vendor "OneConnect"
+        licence "Apache 2"
         versionId 1
     }
     signing {

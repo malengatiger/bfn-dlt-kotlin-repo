@@ -1,9 +1,9 @@
 package com.bfn.flows.regulator
 
 import co.paralleluniverse.fibers.Suspendable
+import com.bfn.contractstates.states.InvoiceState
 import com.bfn.flows.services.RegulatorFinderService
 import net.corda.core.flows.*
-import net.corda.core.identity.CordaX500Name
 import net.corda.core.node.NodeInfo
 import net.corda.core.transactions.SignedTransaction
 import org.slf4j.LoggerFactory
@@ -22,10 +22,12 @@ class ReportToRegulatorFlow(private val signedTransaction: SignedTransaction) : 
 
         val regulatorParty = regulator!!.legalIdentities.first()
         val session = initiateFlow(regulatorParty)
+
         subFlow(SendTransactionFlow(session,signedTransaction))
         Companion.logger.info("\uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C" +
                 "Done sending transaction to Regulator, Senor! \uD83E\uDD6C \uD83E\uDD6C " +
                 "outputs: ${signedTransaction.coreTransaction.outputs.size}")
+        
         return null
     }
 

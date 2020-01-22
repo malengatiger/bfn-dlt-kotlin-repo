@@ -1,0 +1,8 @@
+ docker build . --tag gcr.io/bfn-mobile-backend/bfnwebapi
+ docker push gcr.io/bfn-mobile-backend/bfnwebapi
+
+--- OR ---
+
+ gcloud builds submit --tag gcr.io/bfn-mobile-backend/bfnwebapi
+
+ gcloud beta run deploy --image gcr.io/bfn-mobile-backend/bfnwebapi

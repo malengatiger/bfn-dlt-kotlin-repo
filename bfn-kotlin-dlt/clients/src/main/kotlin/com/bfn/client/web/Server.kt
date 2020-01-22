@@ -1,17 +1,19 @@
 package com.bfn.client.web
 
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.Banner
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.WebApplicationType.SERVLET
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.event.ApplicationReadyEvent
+//import org.springframework.cloud.config.server.EnableConfigServer
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationListener
 import org.springframework.scheduling.annotation.EnableScheduling
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.logging.Logger
 import kotlin.reflect.full.functions
 
 /**
@@ -25,19 +27,22 @@ fun main(args: Array<String>) {
     app.run(*args)
 
     println("\uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 " +
-            "BFN Web API (Kotlin) started \uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 ")
+            "BFN Web API (Kotlin) started: in a container, maybe? \uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 ")
 
 }
 
+//@EnableConfigServer
 @SpringBootApplication
 @EnableScheduling
 private open class RestApiApplication: ApplicationListener<ApplicationReadyEvent> {
-    private val logger = LoggerFactory.getLogger(RestApiApplication::class.java)
+    private val logger = Logger.getLogger(RestApiApplication::class.java.name)
 
     @Autowired
     lateinit var context: ApplicationContext
     @Autowired
     private lateinit var appProperties: AppProperties
+    @Value("bfn.user")
+    private val bfnUser: String? = null
 
     override fun onApplicationEvent(contextRefreshedEvent: ApplicationReadyEvent) {
         logger.info("\uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C  STARTED SPRINGBOOT APP:  " +
@@ -50,6 +55,8 @@ private open class RestApiApplication: ApplicationListener<ApplicationReadyEvent
     }
 
     private fun printAppInfo() {
+//        logger.info("\n\uD83D\uDECE\uD83D\uDECE\uD83D\uDECE\uD83D\uDECE BFN User from GitHub Configuration Properties: " +
+//                "\uD83D\uDECE $bfnUser \uD83D\uDECE \n");
         var cnt = 0
         val c = AdminController::class
         val functions = c.functions
@@ -85,6 +92,7 @@ private open class RestApiApplication: ApplicationListener<ApplicationReadyEvent
     fun setTimer() {
         val bean = context.getBean(AdminController::class.java)
         val org: String = bean.getProxy().nodeInfo().legalIdentities.first().name.organisation
+        logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E Properties message: \uD83C\uDF4E ${appProperties.message} \uD83C\uDF4E")
         logger.info("\n\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 NODE \uD83C\uDF4E $org \uD83C\uDF4E " +
                 "will start a Timer to control selectBestOffers for suppliers ...  ⏰  ⏰  ⏰ ")
         when (org) {

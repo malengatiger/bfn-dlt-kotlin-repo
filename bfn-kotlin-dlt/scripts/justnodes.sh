@@ -25,10 +25,10 @@ echo "🔆 Woke up, 🔆 🔆 🔆  opening terminal for partyB"
 ttab ./scripts/npartyB.sh
 
 # ------------ partyC NODE
-echo 🕗  Sleeping for 15 seconds ........
-sleep 15s
-echo "🔆 Woke up, 🔆 🔆 🔆 opening terminal for partyC"
-ttab ./scripts/npartyC.sh
+#echo 🕗  Sleeping for 15 seconds ........
+#sleep 15s
+#echo "🔆 Woke up, 🔆 🔆 🔆 opening terminal for partyC"
+#ttab ./scripts/npartyC.sh
 
 echo "🔵 DONE! 🍎 🍎 corda nodes booted up! 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵"
 

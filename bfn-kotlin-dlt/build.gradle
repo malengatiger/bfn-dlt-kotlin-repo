@@ -1,6 +1,7 @@
 buildscript {
     ext {
-        corda_platform_version = '5'
+        corda_platform_version = '4'
+        minimum_platform_version = '4'
         corda_release_group = 'net.corda'
         corda_release_version = '4.3'
         tokens_release_group = 'com.r3.corda.lib.tokens'
@@ -25,6 +26,7 @@ buildscript {
         mavenCentral()
         jcenter()
         maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda' }
+        maven { url 'https://jitpack.io' }
     }
 
     dependencies {
@@ -108,6 +110,22 @@ dependencies {
 
     cordapp "$confidential_id_release_group:ci-workflows:$confidential_id_release_version"
 }
+cordapp {
+    targetPlatformVersion 4
+    minimumPlatformVersion 4
+    contract {
+        name "BFN Contracts & States"
+        vendor "OneConnect"
+        licence "Apache or MIT"
+        versionId 2
+    }
+    workflow {
+        name "BFN Workflows"
+        vendor "OneConnect"
+        licence "Apache"
+        versionId 2
+    }
+}
 task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
     nodeDefaults {
         projectCordapp {
@@ -128,13 +146,13 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
 
     node {
         name "O=PartyA,L=London,C=GB"
-        p2pPort 10005
+        p2pPort 1000
         rpcSettings {
             address("localhost:10006")
-            adminAddress("localhost:10046")
+            adminAddress("localhost:10043")
         }
-
     }
+
     node {
         name "O=PartyB,L=New York,C=US"
         p2pPort 10008
@@ -143,14 +161,14 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
             adminAddress("localhost:10049")
         }
     }
-    node {
-        name "O=PartyC,L=Pretoria,C=ZA"
-        p2pPort 10011
-        rpcSettings {
-            address("localhost:10012")
-            adminAddress("localhost:10052")
-        }
-    }
+//    node {
+//        name "O=PartyC,L=Pretoria,C=ZA"
+//        p2pPort 10011
+//        rpcSettings {
+//            address("localhost:10012")
+//            adminAddress("localhost:10052")
+//        }
+//    }
     node {
         name "O=Regulator,L=Pretoria,C=ZA"
         p2pPort 10020
