@@ -104,7 +104,7 @@ private class RemoteNodeClient {
         getNodeContractStates(proxyPartyA)
         cnt = 0
         try {
-            for (i in 0..5) {
+            for (i in 0..2) {
                 createAccountInfo(proxyPartyA)
             }
 

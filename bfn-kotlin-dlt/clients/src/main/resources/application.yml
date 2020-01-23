@@ -4,7 +4,7 @@ myconfig:
   partyB: http://192.168.86.240:10053/
   partyC: http://192.168.86.240:10056/
   regulator: http://192.168.86.240:10059/
-  intervalPartyA: 90
+  intervalPartyA: 300
   intervalPartyB: 75
   intervalPartyC: 120
-  message: Heita Daarso!
+  message: Heita Daarso! ons speel in Singapore, Broer!

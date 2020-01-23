@@ -117,13 +117,13 @@ cordapp {
         name "BFN Contracts & States"
         vendor "OneConnect"
         licence "Apache or MIT"
-        versionId 2
+        versionId 1
     }
     workflow {
         name "BFN Workflows"
         vendor "OneConnect"
         licence "Apache"
-        versionId 2
+        versionId 1
     }
 }
 task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {

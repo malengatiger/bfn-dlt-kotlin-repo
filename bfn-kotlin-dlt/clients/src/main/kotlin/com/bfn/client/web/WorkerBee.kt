@@ -73,21 +73,32 @@ object WorkerBee {
 
     @JvmStatic
     fun getNodeAccounts(proxy: CordaRPCOps): List<AccountInfoDTO> {
+        val start = Date()
         val accounts = proxy.vaultQuery(AccountInfo::class.java).states
-        logger.info("\uD83C\uDF3A Total Accounts in Network: ${accounts.size} \uD83C\uDF3A ")
+        logger.info("\uD83C\uDF3A Total Accounts in Node: ${accounts.size} \uD83C\uDF3A ")
+        var end = Date()
+        val ms1 = (end.time - start.time)
+        logger.info("\uD83D\uDD37 vault query: $ms1 milliseconds elapsed, ${accounts.size} accounts gotten \uD83D\uDD37 ")
         var cnt = 0
         val list: MutableList<AccountInfoDTO> = ArrayList()
+
+        val node = proxy.nodeInfo().legalIdentities.first().toString()
+        val start2 = Date()
         for ((state) in accounts) {
             cnt++
-            val (name, host, identifier) = state.data
-            val dto = AccountInfoDTO(identifier.id.toString(),
-                    host.toString(), name, null)
-            if (dto.host.toString() == proxy.nodeInfo().legalIdentities.first().toString()) {
+            val acct = state.data
+            logger.info("\uD83C\uDF50️ \uD83C\uDF50 ️Processing account  \uD83C\uDF50️ " +
+                    "#$cnt \uD83C\uDF3A ${state.data.name} \uD83C\uDF50️ ")
+            val dto = AccountInfoDTO(acct.identifier.id.toString(),
+                    acct.host.toString(), acct.name, null)
+            if (dto.host.toString() == node) {
                 list.add(dto)
-                logger.info("${GSON.toJson(dto)}")
             }
         }
-        val msg = "\uD83C\uDF3A \uD83C\uDF3A done listing ${list.size} accounts on Node: \uD83C\uDF3A " +
+        end = Date()
+        val ms = (end.time - start2.time)
+        val msg = "\uD83C\uDF3A \uD83C\uDF3A done listing \uD83D\uDC9A ${list.size} " +
+                "\uD83D\uDC9A accounts on Node: \uD83C\uDF3A : \uD83D\uDD37 $ms milliseconds elapsed \uD83D\uDD37 " +
                 proxy.nodeInfo().legalIdentities.first().toString()
         logger.info(msg)
         return list
@@ -106,7 +117,8 @@ object WorkerBee {
                     host.toString(), name, null)
             list.add(dto)
         }
-        val msg = "\uD83C\uDF3A \uD83C\uDF3A done listing ${list.size} accounts on Node: \uD83C\uDF3A " +
+        val msg = "\uD83C\uDF3A \uD83C\uDF3A done listing  \uD83E\uDDA0 ${list.size}  " +
+                "\uD83E\uDDA0 accounts on Network: \uD83C\uDF3A " +
                 proxy.nodeInfo().legalIdentities.first().toString()
         logger.info(msg)
         return list
