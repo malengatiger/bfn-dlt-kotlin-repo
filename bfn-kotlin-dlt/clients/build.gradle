@@ -1,18 +1,27 @@
 buildscript {
     repositories {
         maven {
+            url 'https://oss.sonatype.org/content/repositories/snapshots' // SNAPSHOT repository (if needed)
+        }
+        maven {
             url "https://plugins.gradle.org/m2/"
         }
         mavenCentral()
     }
     dependencies {
         classpath('org.springframework.boot:spring-boot-gradle-plugin:2.2.1.RELEASE')
+        classpath 'com.google.cloud.tools:appengine-gradle-plugin:1.+'
         classpath('com.google.cloud.tools.jib:com.google.cloud.tools.jib.gradle.plugin:1.8.0')
     }
 }
 apply plugin: 'org.springframework.boot'
 apply plugin: 'com.google.cloud.tools.jib'
+apply plugin: 'java'                              // standard Java tasks
+apply plugin: 'war'                               // standard Web Archive plugin
+apply plugin: 'com.google.cloud.tools.appengine'  // App Engine tasks
 
+sourceCompatibility = 1.8     // App Engine Flexible uses Java 8
+targetCompatibility = 1.8
 sourceSets {
     main {
         resources {
@@ -22,6 +31,14 @@ sourceSets {
 }
 
 dependencies {
+    compile 'com.google.appengine:appengine-api-1.0-sdk:+'  // Latest App Engine Api's
+    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
+
+    compile 'jstl:jstl:1.2'
+
+// Add your dependencies here.
+//  compile 'com.google.cloud:google-cloud:+'   // Latest Cloud API's http://googlecloudplatform.github.io/google-cloud-java
+
     // Corda dependencies.
     compile "$corda_release_group:corda-rpc:$corda_release_version"
 
@@ -42,11 +59,23 @@ dependencies {
     compile group: 'com.google.firebase', name: 'firebase-admin', version: '6.11.0'
     // https://mvnrepository.com/artifact/khttp/khttp
     compile group: 'khttp', name: 'khttp', version: '1.0.0'
+    //app engine
+    testCompile 'junit:junit:4.12'
+    testCompile 'com.google.truth:truth:0.33'
+    testCompile 'org.mockito:mockito-all:1.10.19'
+
+    testCompile 'com.google.appengine:appengine-testing:+'
+    testCompile 'com.google.appengine:appengine-api-stubs:+'
+    testCompile 'com.google.appengine:appengine-tools-sdk:+'
 
 
 }
 
+appengine {  // App Engine tasks configuration
+    deploy {   // deploy configuration
 
+    }
+}
 springBoot {
     mainClassName = "com.bfn.client.web.ServerKt"
 }
@@ -83,10 +112,5 @@ task runRegulator(type: JavaExec, dependsOn: assemble) {
 task runRemoteBFN1(type: JavaExec, dependsOn: assemble) {
     classpath = sourceSets.main.runtimeClasspath
     main = 'com.bfn.client.web.ServerKt'
-    args '--server.port=10050',
-            '--config.rpc.host=nd-601-154-124.rg-788-479.p2pify.com',
-            '--config.rpc.port=10201',
-            '--config.rpc.username=mystifying_cray',
-            '--config.rpc.password=device-grimy-herbs-kelp-cramp-sprout'
 }
 

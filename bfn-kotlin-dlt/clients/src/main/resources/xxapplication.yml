@@ -1,0 +1,10 @@
+myconfig:
+  firebasePath: /Users/aubs/WORK/CORDA/bfn.json
+  partyA: http://192.168.86.240:10050/
+  partyB: http://192.168.86.240:10053/
+  partyC: http://192.168.86.240:10056/
+  regulator: http://192.168.86.240:10059/
+  intervalPartyA: 300
+  intervalPartyB: 75
+  intervalPartyC: 120
+  message: Heita Daarso!

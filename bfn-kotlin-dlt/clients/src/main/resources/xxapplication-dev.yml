@@ -1,5 +1,4 @@
 myconfig:
-  firebasePath: /Users/aubs/WORK/CORDA/bfn.json
   partyA: http://192.168.86.240:10050/
   partyB: http://192.168.86.240:10053/
   partyC: http://192.168.86.240:10056/
@@ -8,3 +7,8 @@ myconfig:
   intervalPartyB: 75
   intervalPartyC: 120
   message: Heita Daarso! ons speel in Singapore, Broer!
+  port: 10050
+  config.rpc.host: localhost
+  config.rpc.port: 10050
+  config.rpc.username: user1
+  config.rpc.password: test

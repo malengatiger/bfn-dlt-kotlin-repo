@@ -115,8 +115,9 @@ private class RemoteNodeClient {
 
     }
     var cnt = 0
-    private fun createAccountInfo(proxyPartyA: CordaRPCOps) {
+    private fun createAccountInfo(proxyPartyA: CordaRPCOps) : AccountInfo? {
 
+        var info: AccountInfo? = null
         try {
             val name = DemoUtil.getSomeName()
             logger.info("\uD83D\uDC9A \uD83D\uDC9A \uD83D\uDC9A \uD83D\uDC9A Creating Account for \uD83D\uDC9A $name ....")
@@ -125,9 +126,11 @@ private class RemoteNodeClient {
             cnt++
             logger.info("\uD83E\uDDA0 \uD83E\uDDA0 \uD83E\uDDA0 \uD83E\uDDA0 Future \uD83D\uDCA6 #$cnt has been returned, \uD83D\uDC9B isCancelled: ${accountInfoCordaFuture.isCancelled} " +
                     " \uD83D\uDC9B isDone: ${accountInfoCordaFuture.isDone} \uD83E\uDDA0")
+            info =  accountInfoCordaFuture.get()
         } catch (e: Exception) {
             logger.error("\uD83C\uDF4F Account Registration fucked up!", e)
         }
+        return info
     }
 
     private fun getNodeContractStates(proxyPartyA: CordaRPCOps) {

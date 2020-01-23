@@ -23,13 +23,8 @@ class FirebaseScaffold {
         logger.info("\uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D \uD83D\uDC7D " +
                 "PostConstruct: \uD83C\uDF3F Alexa and AI are coming for you! $context")
 
-        if (appProperties == null) {
-            logger.info("WTF! \uD83D\uDC7A \uD83D\uDC7A this shit is still null \uD83D\uDC7A ")
-            throw java.lang.Exception("Houston, we are dead!")
-        } else {
-            logger.info("\uD83D\uDC4C\uD83C\uDFFE \uD83D\uDC4C\uD83C\uDFFE YEBO! appProperties are cool. " +
-                    "\uD83C\uDF4F \uD83C\uDF4F \uD83C\uDF4F this shit is hanging in there ..." )
-        }
+        logger.info("\uD83D\uDC4C\uD83C\uDFFE \uD83D\uDC4C\uD83C\uDFFE YEBO! appProperties are cool. " +
+                "\uD83C\uDF4F \uD83C\uDF4F \uD83C\uDF4F this shit is hanging in there ..." )
 
         logger.info("\uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06  BFNWebApi: setting up Firebase service account ...."
                 + " \uD83D\uDD06 \uD83D\uDD06 \uD83D\uDD06")

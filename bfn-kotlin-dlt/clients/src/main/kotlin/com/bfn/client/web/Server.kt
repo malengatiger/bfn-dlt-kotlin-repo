@@ -2,19 +2,19 @@ package com.bfn.client.web
 
 //import org.springframework.cloud.config.server.EnableConfigServer
 
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.Banner
-import org.springframework.boot.SpringApplication
-import org.springframework.boot.WebApplicationType.SERVLET
+import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.web.server.WebServerFactoryCustomizer
 import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Bean
-import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.EnableScheduling
 import java.net.InetAddress
 import java.text.SimpleDateFormat
@@ -28,13 +28,15 @@ import kotlin.reflect.full.functions
  */
 
 fun main(args: Array<String>) {
-    val app = SpringApplication(RestApiApplication::class.java)
-    app.setBannerMode(Banner.Mode.OFF)
-    app.webApplicationType = SERVLET
-    app.run(*args)
+    val p = SpringApplicationBuilder().sources(RestApiApplication::class.java)
+            .bannerMode(Banner.Mode.OFF)
+            .web(WebApplicationType.SERVLET)
+            .run(*args)
 
     println("\uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 " +
-            "BFN Web API (Kotlin) started: in a container, maybe? \uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 ")
+            "BFN Web API (Kotlin) started: in a container, if in production " +
+            "\uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 \uD83E\uDDE9 \uD83C\uDF50️ " +
+            "isRunning: ${p.isRunning} \uD83C\uDF50️")
 
 }
 
@@ -45,12 +47,9 @@ private open class RestApiApplication: ApplicationListener<ApplicationReadyEvent
     private val logger = Logger.getLogger(RestApiApplication::class.java.name)
 
     @Autowired
-    lateinit var context: ApplicationContext
-    @Autowired
-    private lateinit var appProperties: AppProperties
-    @Value("bfn.user")
-    private val bfnUser: String? = null
-    private val serverPort: String = ""
+    private lateinit var context: ApplicationContext
+    @Value("\${interval}")
+    private var interval: String = "900"
 
     override fun onApplicationEvent(contextRefreshedEvent: ApplicationReadyEvent) {
         logger.info("\uD83E\uDD6C \uD83E\uDD6C \uD83E\uDD6C  STARTED SPRINGBOOT APP:  " +
@@ -104,15 +103,11 @@ private open class RestApiApplication: ApplicationListener<ApplicationReadyEvent
     fun setTimer() {
         val bean = context.getBean(AdminController::class.java)
         val org: String = bean.getProxy().nodeInfo().legalIdentities.first().name.organisation
-        logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E Properties message: \uD83C\uDF4E ${appProperties.message} \uD83C\uDF4E")
         logger.info("\n\uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 \uD83D\uDD35 NODE \uD83C\uDF4E $org \uD83C\uDF4E " +
                 "will start a Timer to control selectBestOffers for suppliers ...  ⏰  ⏰  ⏰ ")
-        when (org) {
-            "OneConnect-BFN" -> startTimer( org,appProperties.intervalPartyA.toLong(), bean)
-            "PartyB" -> startTimer( org, appProperties.intervalPartyB.toLong(), bean)
-            "PartyC" -> startTimer( org, appProperties.intervalPartyC.toLong(), bean)
-        }
-
+        logger.info("\uD83E\uDD6C\uD83E\uDD6C\uD83E\uDD6C\uD83E\uDD6C\uD83E\uDD6C interval from properties : " +
+                " \uD83D\uDE21  $interval minutes \uD83D\uDE21 ")
+        startTimer( org, interval.toLong(), bean)
     }
     fun startTimer(name: String, minutes: Long, bean: AdminController) {
         logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E  startTimer:  \uD83C\uDF50 NODE: $name \uD83C\uDF50️ ⏳ Interval in Minutes: $minutes  ⏰  ⏰  ⏰ ")
@@ -127,10 +122,8 @@ private open class RestApiApplication: ApplicationListener<ApplicationReadyEvent
     }
     @Bean
     open fun webServerFactoryCustomizer(): WebServerFactoryCustomizer<ConfigurableServletWebServerFactory>? {
-        logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E setting context path to /bfn")
-        val m = WebServerFactoryCustomizer { factory: ConfigurableServletWebServerFactory -> factory.setContextPath("/bfn") }
-        logger.warning("What is this? $m")
-        return  m;
+        logger.info("\uD83C\uDF4E \uD83C\uDF4E \uD83C\uDF4E ... setting context path to /bfn")
+        return WebServerFactoryCustomizer { factory: ConfigurableServletWebServerFactory -> factory.setContextPath("/bfn") };
     }
 
 }

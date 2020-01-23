@@ -1,0 +1,14 @@
+myconfig:
+  partyA: http://192.168.86.240:10050/
+  partyB: http://192.168.86.240:10053/
+  partyC: http://192.168.86.240:10056/
+  regulator: http://192.168.86.240:10059/
+  intervalPartyA: 300
+  intervalPartyB: 75
+  intervalPartyC: 120
+  message: Heita Daarso! ons speel in Singapore, Broer!
+  port: 10050
+  config.rpc.host: nd-601-154-124.rg-788-479.p2pify.com
+  config.rpc.port: 10201
+  config.rpc.username: mystifying_cray
+  config.rpc.password: device-grimy-herbs-kelp-cramp-sprout'
